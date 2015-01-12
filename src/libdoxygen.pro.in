@@ -122,6 +122,12 @@ HEADERS      =	arguments.h \
                 xmlgen.h \
                 docbookvisitor.h \
                 docbookgen.h \
+		verilogscanner.h \
+		verilogdocgen.h \
+		verilogparser.hpp \
+		VFileLine.h \
+		VPreLex.h \
+		VPreProc.h \
 		vhdljjparser.h 
 		
 
@@ -206,9 +212,16 @@ SOURCES      =	arguments.cpp \
                 docbookvisitor.cpp \
                 docbookgen.cpp \
                 vhdljjparser.cpp \
+		verilogparser.cpp \
+		verilogdocgen.cpp \
+		VFileLine.cpp \
+			VPreProc.cpp \
+
 	        ../generated_src/doxygen/ce_parse.cpp \
                 ../generated_src/doxygen/constexp.cpp \
 		../generated_src/doxygen/vhdlcode.cpp \
+		../generated_src/doxygen/verilogscanner.cpp \
+		../generated_src/doxygen/VPreLex.cpp \
 		../generated_src/doxygen/code.cpp \
 		../generated_src/doxygen/commentcnv.cpp \
 		../generated_src/doxygen/commentscan.cpp \

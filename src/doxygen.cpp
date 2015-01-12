@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <qtextcodec.h>
-#include <unistd.h>
+//#include <unistd.h>
 #include <errno.h>
 #include <qptrdict.h>
 #include <qtextstream.h>
@@ -99,6 +99,8 @@
 #include "settings.h"
 #include "context.h"
 #include "fileparser.h"
+#include "VPreProc.h"
+#include "verilogscanner.h"
 
 // provided by the generated file resources.cpp
 extern void initResources();
@@ -9330,7 +9332,7 @@ static ParserInterface *getParserForFile(const char *fn)
   {
     extension = ".no_extension";
   }
-
+  fprintf(stderr,"\n search parse for extension \n",extension.data());
   return Doxygen::parserManager->getParser(extension);
 }
 
@@ -9357,14 +9359,43 @@ static void parseFile(ParserInterface *parser,
 
   QFileInfo fi(fileName);
   BufStr preBuf(fi.size()+4096);
+  
 
+  bool jk=Config_getBool("ENABLE_PREPROCESSING");
+  bool ks=parser->needsPreprocessing(extension);
+  
+  msg("parse file mit extension %s %s %d %d",extension.data(),parser->name.data(),jk,ks);
   if (Config_getBool("ENABLE_PREPROCESSING") && 
       parser->needsPreprocessing(extension))
   {
     BufStr inBuf(fi.size()+4096);
-    msg("Preprocessing %s...\n",fn);
+    fprintf(stderr,"\nPreprocessing %s...\n",fn);
+    BufStr strBuf(fi.size()+4096);
+    SrcLangExt lang = getLanguageFromFileName(fn);
+  
+    bool optVerilog = lang==SrcLangExt_VHDL || lang==SrcLangExt_VERILOG;
+ 
+	if(optVerilog) 
+	 {
+	 VerilogPreProc defProc;
+     readInputFile(fileName,strBuf);
+      QCString s=defProc.performPreprocessing(fi,true).data();
+  #if 0
+   // deleteVerilogChars(bb,"\0");
+        printf("\n++++++++++++++++######++++++++++++++++++++++++++++");
+         printf("\n %s",s.data());    
+           printf("\n+++++++++++++++++++++++++++++++++++++");
+   // exit(0);
+   //  defProc.printDict();
+ #endif
+ 
+ preBuf.addArray(s.data(),s.length()); 
+	 }
+	 else 
+	 {
     readInputFile(fileName,inBuf);
     preprocessFile(fileName,inBuf,preBuf);
+  }
   }
   else // no preprocessing
   {
@@ -9479,8 +9510,9 @@ static void parseFiles(Entry *root,EntryNav *rootNav)
       QStrList filesInSameTu;
       FileDef *fd=findFileDef(Doxygen::inputNameDict,s->data(),ambig);
       ASSERT(fd!=0);
+	  
       ParserInterface * parser = getParserForFile(s->data());
-      parser->startTranslationUnit(s->data());
+	  parser->startTranslationUnit(s->data());
       parseFile(parser,root,rootNav,fd,s->data(),FALSE,filesInSameTu);
     }
   }
@@ -10013,6 +10045,8 @@ void initDoxygen()
   Doxygen::parserManager->registerParser("dbusxml",      new DBusXMLScanner);
   Doxygen::parserManager->registerParser("tcl",          new TclLanguageScanner);
   Doxygen::parserManager->registerParser("md",           new MarkdownFileParser);
+  Doxygen::parserManager->registerParser("v", new VerilogScanner("verilog"));
+
 
   // register any additional parsers here...
 

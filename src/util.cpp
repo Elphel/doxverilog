@@ -5139,7 +5139,7 @@ bool classHasVisibleChildren(ClassDef *cd)
 {
   BaseClassList *bcl;
 
-  if (cd->getLanguage()==SrcLangExt_VHDL) // reverse baseClass/subClass relation
+  if (cd->getLanguage()==SrcLangExt_VERILOG) // reverse baseClass/subClass relation
   {
     if (cd->baseClasses()==0) return FALSE;
     bcl=cd->baseClasses();
@@ -6744,7 +6744,10 @@ g_lang2extMap[] =
   { "vhdl",        "vhdl",          SrcLangExt_VHDL     },
   { "dbusxml",     "dbusxml",       SrcLangExt_XML      },
   { "tcl",         "tcl",           SrcLangExt_Tcl      },
-  { "md",          "md",            SrcLangExt_Markdown },
+  { "ucf",        "v",    SrcLangExt_VERILOG   },
+  { "qsf",        "v",    SrcLangExt_VERILOG   },
+  { "v",        "v",    SrcLangExt_VERILOG    },
+ { "md",          "md",            SrcLangExt_Markdown },
   { 0,             0,              (SrcLangExt)0        }
 };
 
@@ -6835,6 +6838,8 @@ void initDefaultExtensionMapping()
   updateLanguageMapping(".ucf",      "vhdl");
   updateLanguageMapping(".qsf",      "vhdl");
   updateLanguageMapping(".md",       "md");
+  updateLanguageMapping(".v",       "v");
+  updateLanguageMapping(".V",       "v");
   updateLanguageMapping(".markdown", "md");
 
   //updateLanguageMapping(".xml",   "dbusxml");
@@ -7832,6 +7837,7 @@ QCString langToString(SrcLangExt lang)
     case SrcLangExt_Python:   return "Python";
     case SrcLangExt_Fortran:  return "Fortran";
     case SrcLangExt_VHDL:     return "VHDL";
+	case SrcLangExt_VERILOG:     return "VERILOG";
     case SrcLangExt_XML:      return "XML";
     case SrcLangExt_Tcl:      return "Tcl";
     case SrcLangExt_Markdown: return "Markdown";
@@ -7842,7 +7848,7 @@ QCString langToString(SrcLangExt lang)
 /** Returns the scope separator to use given the programming language \a lang */
 QCString getLanguageSpecificSeparator(SrcLangExt lang,bool classScope)
 {
-  if (lang==SrcLangExt_Java || lang==SrcLangExt_CSharp || lang==SrcLangExt_VHDL || lang==SrcLangExt_Python)
+  if (lang==SrcLangExt_Java || lang==SrcLangExt_CSharp || lang==SrcLangExt_VERILOG || lang==SrcLangExt_VHDL || lang==SrcLangExt_Python)
   {
     return ".";
   }

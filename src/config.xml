@@ -580,6 +580,21 @@ Go to the <a href="commands.html">next</a> section or return to the
 ]]>
       </docs>
     </option>
+    <option type='bool' id='OPTIMIZE_OUTPUT_VERILOG' defval='0'>
+      <docs>
+        <![CDATA[
+ Set the \c OPTIMIZE_OUTPUT_VERILOG tag to \c YES if your project consists of VERILOG 
+ sources. Doxygen will then generate output that is tailored for VERILOG.
+]]>
+      </docs>
+    </option>
+    <option type='bool' id='HIDE_PORT' defval='0'>
+      <docs>
+        <![CDATA[
+ Set the \c HIDE_PORT tag to \c YES ports are not displayed.
+]]>
+      </docs>
+    </option>
     <option type='list' id='EXTENSION_MAPPING' format='string'>
       <docs>
 <![CDATA[
@@ -1306,6 +1321,8 @@ FILE_VERSION_INFO = "cleartool desc -fmt \%Vn"
       <value name='*.tcl'/>
       <value name='*.vhd'/>
       <value name='*.vhdl'/>
+      <value name='*.v'/>
+      <value name='*.V'/>
       <value name='*.ucf'/>
       <value name='*.qsf'/>
       <value name='*.as'/>

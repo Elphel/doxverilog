@@ -202,7 +202,6 @@ void VHDLLanguageScanner::parseInput(const char *fileName,const char *fileBuf,En
 
   if (!inLine)
   VhdlParser::mapLibPackage(root);
-
   delete[] lineParse;
   yyFileName.resize(0);
   libUse.clear();

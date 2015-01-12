@@ -110,6 +110,17 @@ sub GenerateLex {
 #$ GenerateDep("\$(GENERATED_SRC)/ce_parse.h","constexp.y");
 	$(YACC) -l -d -p ce_parsexpYY constexp.y -o \$(GENERATED_SRC)/ce_parse.c 
 	-rm $(GENERATED_SRC)/ce_parse.c
+	
+#$ GenerateDep("verilogscanner.cpp","verilogscanner.l");
+	$(LEX)  -8  -PverilogScanYY -t verilogscanner.l | $(INCBUFSIZE) >verilogscanner.cpp
+
+#$ GenerateDep("verilogparser.cpp","verilogparser.y");
+	$(YACC)  -v -d verilogparser.y -o verilogparser.cpp 
+
+#$ GenerateDep("VPreLex.cpp","VPreLex.l");
+	$(LEX) -PVPreLex -t VPreLex.l | $(INCBUFSIZE) >VPreLex.cpp 
+	
+
 
 #$ GenerateDep("layout.cpp","\$(GENERATED_SRC)/layout_default.xml.h");
 

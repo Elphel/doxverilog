@@ -190,8 +190,8 @@ static void startCodeLine()
     //QCString lineNumber,lineAnchor;
     //lineNumber.sprintf("%05d",g_yyLineNr);
     //lineAnchor.sprintf("l%05d",g_yyLineNr);
-    //  if ((g_yyLineNr % 500) == 0) 
-    //         fprintf(stderr,"\n starting Line %d:",g_yyLineNr);
+     // if ((g_yyLineNr % 50) == 0) 
+           //  fprintf(stderr,"\n starting Line %d:",g_yyLineNr);
     Definition *d   = g_sourceFileDef->getSourceDefinition(g_yyLineNr);
     //printf("startCodeLine %d d=%s\n", g_yyLineNr,d ? d->name().data() : "<null>");
     if (!g_includeCodeFragment && d)

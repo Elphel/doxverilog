@@ -130,7 +130,7 @@ class ParserInterface
      *  comment block parser was invoked.
      */
     virtual void parsePrototype(const char *text) = 0;
-
+	QCString name;
 };
 
 //-----------------------------------------------------------------------------
@@ -174,9 +174,9 @@ class ParserManager
     bool registerExtension(const char *extension, const char *parserName)
     {
       if (parserName==0 || extension==0) return FALSE;
-      ParserInterface *intf = m_parsers.find(parserName);
-      if (intf==0) return FALSE;
-      if (m_extensions.find(extension)!=0) // extension already exists
+      ParserInterface *intf = m_parsers.find(parserName);     
+	  if (intf==0) return FALSE;
+	   if (m_extensions.find(extension)!=0) // extension already exists
       {
         m_extensions.remove(extension); // remove it
       }
@@ -193,9 +193,10 @@ class ParserManager
       QCString ext = QCString(extension).lower();
       if (ext.isEmpty()) ext=".no_extension";
       ParserInterface *intf = m_extensions.find(ext);
-      if (intf==0 && ext.length()>4)
+   //   fprintf(stderr,"\n get parser for extension %s  \n",ext.data());
+	  if (intf==0 && ext.length()>4)
       {
-        intf = m_extensions.find(ext.left(4));
+      	  intf = m_extensions.find(ext.left(4));
       }
       return intf ? intf : m_defaultParser;
     }

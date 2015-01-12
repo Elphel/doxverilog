@@ -47,6 +47,8 @@
 #include "classlist.h"
 #include "namespacedef.h"
 #include "filename.h"
+#include "verilogdocgen.h"
+
 
 #define MAX_ITEMS_BEFORE_MULTIPAGE_INDEX 200
 #define MAX_ITEMS_BEFORE_QUICK_INDEX 30
@@ -434,7 +436,7 @@ static void writeClassTree(OutputList &ol,const BaseClassList *bcl,bool hideSupe
     }
 
     bool b;
-    if (cd->getLanguage()==SrcLangExt_VHDL)
+    if (cd->getLanguage()==SrcLangExt_VHDL || cd->getLanguage()==SrcLangExt_VERILOG)
     {
       b=hasVisibleRoot(cd->subClasses());
     }
@@ -509,7 +511,7 @@ static void writeClassTree(OutputList &ol,const BaseClassList *bcl,bool hideSupe
         //printf("Class %s at %p visited=%d\n",cd->name().data(),cd,cd->visited);
         bool wasVisited=cd->visited;
         cd->visited=TRUE;
-        if (cd->getLanguage()==SrcLangExt_VHDL)	
+        if (cd->getLanguage()==SrcLangExt_VHDL|| cd->getLanguage()==SrcLangExt_VERILOG)	
         {
           writeClassTree(ol,cd->baseClasses(),wasVisited,level+1,ftv,addToIndex);
         }
@@ -809,7 +811,7 @@ static void writeClassTreeForList(OutputList &ol,ClassSDict *cl,bool &started,FT
     //              cd->isVisibleInHierarchy()
     //      );
     bool b;
-    if (cd->getLanguage()==SrcLangExt_VHDL)
+    if (cd->getLanguage()==SrcLangExt_VHDL || cd->getLanguage()==SrcLangExt_VERILOG)
     {
       if ((VhdlDocGen::VhdlClasses)cd->protection()!=VhdlDocGen::ENTITYCLASS)
       {
@@ -875,7 +877,7 @@ static void writeClassTreeForList(OutputList &ol,ClassSDict *cl,bool &started,FT
             ftv->addContentsItem(hasChildren,cd->displayName(),0,0,0,FALSE,FALSE,cd); 
           }
         }
-        if (cd->getLanguage()==SrcLangExt_VHDL && hasChildren) 
+        if ((cd->getLanguage()==SrcLangExt_VHDL || cd->getLanguage()==SrcLangExt_VERILOG ) && hasChildren) 
         {
           writeClassTree(ol,cd->baseClasses(),cd->visited,1,ftv,addToIndex);
           cd->visited=TRUE;
@@ -2267,7 +2269,12 @@ void addClassMemberNameToIndex(MemberDef *md)
   static bool hideFriendCompounds = Config_getBool("HIDE_FRIEND_COMPOUNDS");
   ClassDef *cd=0;
 
- 
+ if ( md->getLanguage()==SrcLangExt_VERILOG) // &&  (VhdlDocGen::isRecord(md) || VhdlDocGen::isUnit(md)))
+  {
+    VerilogDocGen::adjustMemberName(md);
+  }
+  
+
   
   if (md->isLinkableInProject() && 
       (cd=md->getClassDef())    && 

@@ -1441,6 +1441,7 @@ void Config::check()
     filePatternList.append("*.for");
     filePatternList.append("*.vhd");
     filePatternList.append("*.vhdl");
+    filePatternList.append("*.v");
     filePatternList.append("*.tcl");
     filePatternList.append("*.md");
     filePatternList.append("*.markdown");
@@ -1463,6 +1464,7 @@ void Config::check()
       filePatternList.append("*.PY");
       filePatternList.append("*.F90");
       filePatternList.append("*.F");
+	   filePatternList.append("*.V");
       filePatternList.append("*.VHD");
       filePatternList.append("*.VHDL");
       filePatternList.append("*.TCL");
@@ -1581,6 +1583,11 @@ void Config::check()
     annotationFromBrief.append("a");
     annotationFromBrief.append("an");
     annotationFromBrief.append("the");
+  }
+  
+   if (Config_getBool("OPTIMIZE_OUTPUT_VERILOG"))
+  {
+   Config_getBool("OPTIMIZE_OUTPUT_VHDL")       = TRUE;
   }
 
   // some default settings for vhdl

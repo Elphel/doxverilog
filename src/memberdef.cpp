@@ -1943,8 +1943,9 @@ void MemberDef::getLabels(QStrList &sl,Definition *container) const
     //ol.writeLatexSpacing();
     //ol.startTypewriter();
     //ol.docify(" [");
-    SrcLangExt lang = getLanguage();
-    bool optVhdl = lang==SrcLangExt_VHDL;
+	  SrcLangExt lang = getLanguage();
+  
+    bool optVhdl = lang==SrcLangExt_VHDL || lang==SrcLangExt_VERILOG;
     bool extractPrivate = Config_getBool("EXTRACT_PRIVATE");
     if (optVhdl)
     {
@@ -2532,7 +2533,7 @@ void MemberDef::writeDocumentation(MemberList *ml,OutputList &ol,
 
   SrcLangExt lang = getLanguage();
   //printf("member=%s lang=%d\n",name().data(),lang);
-  bool optVhdl = lang==SrcLangExt_VHDL;
+  bool optVhdl = (lang==SrcLangExt_VHDL) || (lang==SrcLangExt_VERILOG);
   QCString sep = getLanguageSpecificSeparator(lang,TRUE);
 
   QCString scopeName = scName;

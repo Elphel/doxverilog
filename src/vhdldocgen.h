@@ -245,8 +245,14 @@ class VhdlDocGen
              cu->spec==VhdlDocGen::ARCHITECTURE ||
              cu->spec==VhdlDocGen::PACKAGE_BODY;
     }
+	
+ static bool membersHaveSpecificType(MemberList *ml,uint64 type);
+ static void resetCodeVhdlParserState();
 
-  static void resetCodeVhdlParserState();
+public:
+	 static void writeUCFLink(const MemberDef* mdef,OutputList &ol);
+public:
+	static void startFonts(const QCString& q, const char *keyword,OutputList& ol);
 
   private:
     static void findAllArchitectures(QList<QCString>& ql,const ClassDef *cd);
