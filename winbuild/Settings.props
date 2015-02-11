@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup
+    Condition="'$(SettingsBeforeTargets)' == '' and '$(SettingsAfterTargets)' == '' and '$(ConfigurationType)' != 'Makefile'">
+    <SettingsBeforeTargets>Midl</SettingsBeforeTargets>
+    <SettingsAfterTargets>CustomBuild</SettingsAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SettingsDependsOn
+      Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(SettingsDependsOn)</SettingsDependsOn>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Settings>
+      <SqlLite3>0</SqlLite3>
+      <CLANG>0</CLANG>
+      <CommandLineTemplate>python "%(FullPath)" [AllOptions] [AdditionalOptions] $(IntDir)</CommandLineTemplate>
+      <Outputs>$(IntDir)%(Filename).h</Outputs>
+      <ExecutionDescription>Executing Settings ...</ExecutionDescription>
+      <ShowOnlyRuleProperties>false</ShowOnlyRuleProperties>
+      <AdditionalDependencies>$(ProjectDir)..\configure</AdditionalDependencies>
+    </Settings>
+  </ItemDefinitionGroup>
+</Project>

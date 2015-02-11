@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup
+    Condition="'$(LexBeforeTargets)' == '' and '$(LexAfterTargets)' == '' and '$(ConfigurationType)' != 'Makefile'">
+    <LexBeforeTargets>Midl</LexBeforeTargets>
+    <LexAfterTargets>CustomBuild</LexAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LexDependsOn
+      Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(LexDependsOn)</LexDependsOn>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Lex>
+      <Case>False</Case>
+      <Rules>False</Rules>
+      <CommandLineTemplate>flex [AllOptions] -t -P%(Filename)YY [AdditionalOptions] [inputs] | python "$(ProjectDir)..\src\increasebuffer.py" &gt; $(IntDir)%(Filename).cpp</CommandLineTemplate>
+      <Outputs>$(IntDir)%(Filename).cpp</Outputs>
+      <ExecutionDescription>Executing Lex for %(FullPath) ...</ExecutionDescription>
+      <ShowOnlyRuleProperties>false</ShowOnlyRuleProperties>
+      <AdditionalDependencies>$(ProjectDir)..\src\increasebuffer.py</AdditionalDependencies>
+    </Lex>
+  </ItemDefinitionGroup>
+</Project>
