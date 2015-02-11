@@ -749,7 +749,7 @@ del $(IntDir)ce_parse.c
     <GenResources Include="..\templates\xml\index.xsd" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\verilogparser.y" />
+    <None Include="..\src\ parser.y" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
