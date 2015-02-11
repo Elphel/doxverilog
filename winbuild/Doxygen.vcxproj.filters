@@ -1,0 +1,1294 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{1154eb47-fea5-4268-87bf-f079c9976f8f}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Yacc Files">
+      <UniqueIdentifier>{a486dbd9-f069-4574-b4d0-d841a85f3ab0}</UniqueIdentifier>
+      <Extensions>y</Extensions>
+    </Filter>
+    <Filter Include="Lex Files">
+      <UniqueIdentifier>{67e96e63-1773-448a-9369-06d7917262c1}</UniqueIdentifier>
+      <Extensions>l</Extensions>
+    </Filter>
+    <Filter Include="Python Files">
+      <UniqueIdentifier>{f3c3abf2-2ffb-4471-92b5-3ae05d102a77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML Files">
+      <UniqueIdentifier>{9c9aaf4f-5b85-457d-ba6b-b6a6e65ab0ea}</UniqueIdentifier>
+      <Extensions>xml</Extensions>
+    </Filter>
+    <Filter Include="Generating Resource Files">
+      <UniqueIdentifier>{ba813919-5d1b-4799-93de-84b642c9898d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generating header Files">
+      <UniqueIdentifier>{e8190aba-fb80-4cdc-bacb-ce89fd7eb9ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{e0f22e0e-f868-4ef4-868a-4e097d18c67d}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\arguments.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)ce_parse.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vhdlparser\CharStream.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\clangparser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\classdef.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\classlist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cmdmapper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)code.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)commentcnv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)commentscan.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\condparser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)config.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)configoptions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)constexp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\context.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cppvalue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dbusxmlscanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)declinfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)defargs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\defgen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\define.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\definition.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dia.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\diagram.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dirdef.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\docbookgen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\docbookvisitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\docparser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\docsets.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)doctokenizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\dot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\doxygen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\eclipsehelp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\entry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\filedef.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\filename.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\fileparser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\formula.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)fortrancode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)fortranscanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ftextstream.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ftvhelp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\groupdef.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\htags.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\htmldocvisitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\htmlentity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\htmlgen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\htmlhelp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\image.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\index.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\language.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\latexdocvisitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\latexgen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\layout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\lodepng.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\logos.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mandocvisitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mangen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\markdown.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\marshal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libmd5\md5.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\memberdef.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\membergroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\memberlist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\membername.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\message.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\msc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\namespacedef.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\objcache.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\outputgen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\outputlist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\pagedef.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vhdlparser\ParseException.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\perlmodgen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\plantuml.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\portable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\portable_c.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)pre.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)pycode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)pyscanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\qhp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\qhpxmlwriter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\reflist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\resourcemgr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rtfdocvisitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rtfgen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\rtfstyle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)scanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\searchindex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sqlite3gen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\store.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tagreader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)tclscanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\template.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\textdocvisitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vhdlparser\Token.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vhdlparser\TokenMgrError.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\tooltip.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)version.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vhdldocgen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vhdljjparser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vhdlparser\VhdlParser.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vhdlparser\VhdlParserIF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\vhdlparser\VhdlParserTokenManager.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\xmldocvisitor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\xmlgen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)resources.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(IntDir)vhdlcode.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\VPreProc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\VFileLine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\verilogdocgen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\VPreLex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\verilogparser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\verilogscanner.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\textdocvisitor.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\arguments.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\bufstr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ce_parse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vhdlparser\CharStream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cite.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\clangparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\classdef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\classlist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cmdmapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\code.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\commentcnv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\commentscan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\condparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\constexp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cppvalue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dbusxmlscanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\debug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\declinfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\defargs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\defgen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\define.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\definition.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dia.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\diagram.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dirdef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\docbookgen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\docbookvisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\docparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\docsets.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\doctokenizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\docvisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\dot.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\doxygen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\eclipsehelp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\entry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vhdlparser\ErrorHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\example.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\filedef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\filename.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fileparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\formula.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fortrancode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\fortranscanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ftextstream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\ftvhelp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\groupdef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\htags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\htmlattrib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\htmldocvisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\htmlentity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\htmlgen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\htmlhelp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="iconv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\image.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\index.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\instdox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vhdlparser\JavaCC.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(IntDir)lang_cfg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\language.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\latexdocvisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\latexgen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\layout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(IntDir)layout_default_xml.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lockingptr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\lodepng.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\logos.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mandocvisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mangen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\marshal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libmd5\md5.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libmd5\md5_loc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\memberdef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\membergroup.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\memberlist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\membername.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\message.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\msc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\namespacedef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\navtree_css.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\objcache.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\outputgen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\outputlist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\pagedef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vhdlparser\ParseException.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\parserintf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\perlmodgen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\plantuml.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\portable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\pre.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\printdocvisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\pycode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\pyscanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\qhp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\qhpxmlwriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\qtbc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\reflist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\resourcemgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rtfdocvisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rtfgen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\rtfstyle.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\scanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\searchindex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\section.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(IntDir)settings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sortdict.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\store.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tagreader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tclscanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\template.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vhdlparser\Token.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vhdlparser\TokenManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vhdlparser\TokenMgrError.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\tooltip.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_adapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_am.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_ar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_br.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_ca.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_cn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_cz.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_de.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_dk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_en.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_eo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_es.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_fa.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_fi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_fr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_gr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_hr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_hu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_id.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_it.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_je.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_jp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_ke.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_kr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_lt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_lv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_mk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_nl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_no.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_pl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_pt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_ro.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_ru.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_sc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_si.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_sk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_sr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_sv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_tr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_tw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_ua.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_vi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\translator_za.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="$(IntDir)unistd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vhdlcode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vhdldocgen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vhdljjparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vhdlparser\vhdlparser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vhdlparser\VhdlParserConstants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vhdlparser\VhdlParserErrorHandler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vhdlparser\VhdlParserIF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vhdlparser\VhdlParserTokenManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\vhdlparser\vhdlstring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\xmldocvisitor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\xmlgen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\VFileLine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\verilogscanner.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\verilogdocgen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\VPreProc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\verilogparser.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Lex Include="..\src\code.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\commentcnv.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\commentscan.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\config.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\constexp.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\declinfo.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\defargs.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\doctokenizer.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\fortrancode.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\fortranscanner.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\pre.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\pycode.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\pyscanner.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\scanner.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\tclscanner.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\vhdlcode.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\VPreLex.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+    <Lex Include="..\src\verilogscanner.l">
+      <Filter>Lex Files</Filter>
+    </Lex>
+  </ItemGroup>
+  <ItemGroup>
+    <Unistd Include="unistd.py">
+      <Filter>Python Files</Filter>
+    </Unistd>
+  </ItemGroup>
+  <ItemGroup>
+    <Config Include="..\src\config.xml">
+      <Filter>XML Files</Filter>
+    </Config>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\src\constexp.y">
+      <Filter>Yacc Files</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Languages Include="..\src\lang_cfg.py">
+      <Filter>Python Files</Filter>
+    </Languages>
+  </ItemGroup>
+  <ItemGroup>
+    <Settings Include="..\src\settings.py">
+      <Filter>Python Files</Filter>
+    </Settings>
+  </ItemGroup>
+  <ItemGroup>
+    <Version Include="..\src\version.py">
+      <Filter>Python Files</Filter>
+    </Version>
+  </ItemGroup>
+  <ItemGroup>
+    <GenResources Include="..\templates\html\arrowdown.luma">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\arrowright.luma">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\bc_s.luma">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\bdwn.luma">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\bib2xhtml.pl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\close.png">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\closed.luma">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\doc.luma">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\doxygen.bst">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\doxygen.css">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\doxygen.luma">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\dynsections.js">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\extsearch.js">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\folderclosed.luma">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\folderopen.luma">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\footer.html">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\header.html">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlallmembers.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlannotated.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlbase.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlclass.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlclasses.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlclmembers.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlclmembersindex.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmldeclcomp.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmldir.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmldirtree.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmldyncontents.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmldynheader.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlfile.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlfiles.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlflmembers.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlinclude.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlindexpages.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmljsnavindex.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmljsnavtree.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmllayout.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlmemberindex.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlmembersindex.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlmembertabs.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlmemdecl.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlmemdecls.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlmemdef.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlmeminherit.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlmemlist.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlmemsummary.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlmodule.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlmodules.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlnamespace.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlnamespaces.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlnavpath.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlnavtree.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlnsmembers.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlnsmembersindex.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlobjlink.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlpage.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlpages.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmlsource.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmltabs.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\htmltypeconstraints.tpl">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\jquery.js">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\mag.png">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\mag_sel.png">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\nav_f.lum">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\nav_g.png">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\nav_h.lum">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\navtree.css">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\navtree.js">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\open.luma">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\resize.js">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\search.css">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\search.js">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\search_functions.php">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\search_l.png">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\search_m.png">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\search_opensearch.php">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\search_r.png">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\splitbar.lum">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\svgpan.js">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\sync_off.luma">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\sync_on.luma">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\tab_a.lum">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\tab_b.lum">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\tab_h.lum">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\tab_s.lum">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\html\tabs.css">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\latex\doxygen.sty">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\xml\compound.xsd">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+    <GenResources Include="..\templates\xml\index.xsd">
+      <Filter>Generating Resource Files</Filter>
+    </GenResources>
+  </ItemGroup>
+  <ItemGroup>
+    <Gen_head Include="..\src\layout_default.xml">
+      <Filter>Generating header Files</Filter>
+    </Gen_head>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\src\verilogparser.y">
+      <Filter>Yacc Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>

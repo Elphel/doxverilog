@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <PropertyPageSchema
+      Include="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml" />
+    <AvailableItemName
+      Include="Lex">
+      <Targets>_Lex</Targets>
+    </AvailableItemName>
+  </ItemGroup>
+  <UsingTask
+    TaskName="Lex"
+    TaskFactory="XamlTaskFactory"
+    AssemblyName="Microsoft.Build.Tasks.v4.0">
+    <Task>$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml</Task>
+  </UsingTask>
+  <Target
+    Name="_Lex"
+    BeforeTargets="$(LexBeforeTargets)"
+    AfterTargets="$(LexAfterTargets)"
+    Condition="'@(Lex)' != ''"
+    DependsOnTargets="$(LexDependsOn);ComputeLexOutput"
+    Outputs="%(Lex.Outputs)"
+    Inputs="%(Lex.Identity);%(Lex.AdditionalDependencies);$(MSBuildProjectFile)">
+    <ItemGroup
+      Condition="'@(SelectedFiles)' != ''">
+      <Lex
+        Remove="@(Lex)"
+        Condition="'%(Identity)' != '@(SelectedFiles)'" />
+    </ItemGroup>
+    <ItemGroup>
+      <Lex_tlog
+        Include="%(Lex.Outputs)"
+        Condition="'%(Lex.Outputs)' != '' and '%(Lex.ExcludedFromBuild)' != 'true'">
+        <Source>@(Lex, '|')</Source>
+      </Lex_tlog>
+    </ItemGroup>
+    <Message
+      Importance="High"
+      Text="%(Lex.ExecutionDescription)" />
+    <WriteLinesToFile
+      Condition="'@(Lex_tlog)' != '' and '%(Lex_tlog.ExcludedFromBuild)' != 'true'"
+      File="$(TLogLocation)$(ProjectName).write.1.tlog"
+      Lines="^%(Lex_tlog.Source);@(Lex_tlog-&gt;'%(Fullpath)')" />
+    <Lex
+      Condition="'@(Lex)' != '' and '%(Lex.ExcludedFromBuild)' != 'true'"
+      CommandLineTemplate="%(Lex.CommandLineTemplate)"
+      Case="%(Lex.Case)"
+      Rules="%(Lex.Rules)"
+      AdditionalOptions="%(Lex.AdditionalOptions)"
+      Inputs="%(Lex.Identity)" />
+  </Target>
+  <PropertyGroup>
+    <ComputeLinkInputsTargets>
+            $(ComputeLinkInputsTargets);
+            ComputeLexOutput;
+          </ComputeLinkInputsTargets>
+    <ComputeLibInputsTargets>
+            $(ComputeLibInputsTargets);
+            ComputeLexOutput;
+          </ComputeLibInputsTargets>
+  </PropertyGroup>
+  <Target
+    Name="ComputeLexOutput"
+    Condition="'@(Lex)' != ''">
+    <ItemGroup>
+      <LexDirsToMake
+        Condition="'@(Lex)' != '' and '%(Lex.ExcludedFromBuild)' != 'true'"
+        Include="%(Lex.Outputs)" />
+      <Link
+        Include="%(LexDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+      <Lib
+        Include="%(LexDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+      <ImpLib
+        Include="%(LexDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+    </ItemGroup>
+    <MakeDir
+      Directories="@(LexDirsToMake-&gt;'%(RootDir)%(Directory)')" />
+  </Target>
+</Project>

@@ -1,0 +1,765 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{309C9A4A-94D2-4837-9A11-45B0A6CF35C3}</ProjectGuid>
+    <RootNamespace>Doxygen</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="Lex.props" />
+    <Import Project="Settings.props" />
+    <Import Project="Unistd.props" />
+    <Import Project="Version.props" />
+    <Import Project="Config.props" />
+    <Import Project="Gen_head.props" />
+    <Import Project="GenResources.props" />
+    <Import Project="Languages.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC60.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>11.0.50727.1</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>..\bin\Debug\</OutDir>
+    <IntDir>.\Debug\doxygen\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>..\bin\Debug64\</OutDir>
+    <IntDir>.\Debug64\doxygen\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>..\bin\Release\</OutDir>
+    <IntDir>.\Release\doxygen\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>..\bin\Release64\</OutDir>
+    <IntDir>.\Release64\doxygen\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <BuildLog>
+      <Path>$(IntDir)$(TargetName)BuildLog.htm</Path>
+    </BuildLog>
+    <Midl>
+      <TypeLibraryName>.\Debug\doxygen\Doxygen.tlb</TypeLibraryName>
+      <HeaderFileName />
+    </Midl>
+    <ClCompile>
+      <AdditionalOptions>/Zm200  %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\src;..\qtools;..\libpng;..\libmd5;..\vhdlparser;$(IntDir);.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CONSOLE;WIN32;_DEBUG; _CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;LIBICONV_STATIC;CHARSET_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeaderOutputFile>.\Debug\doxygen/Doxygen.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Debug\doxygen/</AssemblerListingLocation>
+      <ObjectFileName>.\Debug\doxygen/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Debug\doxygen\$(TargetName).pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>qtools.lib;ws2_32.lib;iconv.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\bin\Debug\doxygen.exe</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>libcmtd.lib libcpmtd.lib libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>.\Debug\doxygen\$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <LargeAddressAware>true</LargeAddressAware>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\Debug\doxygen/Doxygen.bsc</OutputFile>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <BuildLog>
+      <Path>$(IntDir)$(TargetName)BuildLog.htm</Path>
+    </BuildLog>
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+      <TypeLibraryName>.\Debug64\doxygen\Doxygen.tlb</TypeLibraryName>
+      <HeaderFileName />
+    </Midl>
+    <ClCompile>
+      <AdditionalOptions>/Zm200 /bigobj %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\src;..\qtools;..\libpng;..\libmd5;..\vhdlparser;$(IntDir);.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CONSOLE;WIN32;_DEBUG; _CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;LIBICONV_STATIC;CHARSET_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeaderOutputFile>.\Debug64\doxygen/Doxygen.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Debug64\doxygen/</AssemblerListingLocation>
+      <ObjectFileName>.\Debug64\doxygen/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Debug64\doxygen\$(TargetName).pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <CallingConvention>Cdecl</CallingConvention>
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalDependencies>qtools.lib;ws2_32.lib;iconv64.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\bin\Debug64\doxygen.exe</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>Debug64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>.\Debug64\doxygen\$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <LargeAddressAware>true</LargeAddressAware>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX64</TargetMachine>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Link>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\Debug64\doxygen/Doxygen.bsc</OutputFile>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <BuildLog>
+      <Path>$(IntDir)$(TargetName)BuildLog.htm</Path>
+    </BuildLog>
+    <Midl>
+      <TypeLibraryName>.\Release\doxygen\Doxygen.tlb</TypeLibraryName>
+      <HeaderFileName />
+    </Midl>
+    <ClCompile>
+      <AdditionalOptions>/Zm200  %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>..\src;..\qtools;..\libpng;..\libmd5;..\vhdlparser;$(IntDir);.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_CINDEX_LIB_;_CINDEX_LIB_;NDEBUG;_CONSOLE; _CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;LIBICONV_STATIC;CHARSET_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeaderOutputFile>.\Release\doxygen/Doxygen.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Release\doxygen/</AssemblerListingLocation>
+      <ObjectFileName>.\Release\doxygen/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Release\doxygen\$(TargetName).pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>qtools.lib;iconv.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\bin\Release\doxygen.exe</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>.\Release\doxygen\$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <LargeAddressAware>true</LargeAddressAware>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\Release\doxygen/Doxygen.bsc</OutputFile>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <BuildLog>
+      <Path>$(IntDir)$(TargetName)BuildLog.htm</Path>
+    </BuildLog>
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+      <TypeLibraryName>.\Release64\doxygen\Doxygen.tlb</TypeLibraryName>
+      <HeaderFileName />
+    </Midl>
+    <ClCompile>
+      <AdditionalOptions>/Zm200  %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <OmitFramePointers>true</OmitFramePointers>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <AdditionalIncludeDirectories>..\src;..\qtools;..\libpng;..\libmd5;..\vhdlparser;$(IntDir);.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_CINDEX_LIB_;_CINDEX_LIB_;NDEBUG;_CONSOLE; _CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;LIBICONV_STATIC;CHARSET_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeaderOutputFile>.\Release64\doxygen/Doxygen.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Release64\doxygen/</AssemblerListingLocation>
+      <ObjectFileName>.\Release64\doxygen/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Release64\doxygen\$(TargetName).pdb</ProgramDataBaseFileName>
+      <WarningLevel>Level3</WarningLevel>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <AdditionalOptions>/LTCG %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>qtools.lib;iconv64.lib;shell32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\bin\Release64\doxygen.exe</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <AdditionalLibraryDirectories>Release64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <ProgramDatabaseFile>.\Release64\doxygen\$(TargetName).pdb</ProgramDatabaseFile>
+      <SubSystem>Console</SubSystem>
+      <LargeAddressAware>true</LargeAddressAware>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+    <Bscmake>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <OutputFile>.\Release64\doxygen/Doxygen.bsc</OutputFile>
+    </Bscmake>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\arguments.cpp" />
+    <ClCompile Include="$(IntDir)ce_parse.cpp" />
+    <ClCompile Include="..\src\verilogdocgen.cpp" />
+    <ClCompile Include="..\src\verilogparser.cpp" />
+    <ClCompile Include="..\src\verilogscanner.cpp" />
+    <ClCompile Include="..\src\VFileLine.cpp" />
+    <ClCompile Include="..\src\VPreLex.cpp" />
+    <ClCompile Include="..\src\VPreProc.cpp" />
+    <ClCompile Include="..\vhdlparser\CharStream.cc" />
+    <ClCompile Include="..\src\cite.cpp" />
+    <ClCompile Include="..\src\clangparser.cpp" />
+    <ClCompile Include="..\src\classdef.cpp" />
+    <ClCompile Include="..\src\classlist.cpp" />
+    <ClCompile Include="..\src\cmdmapper.cpp" />
+    <ClCompile Include="$(IntDir)code.cpp" />
+    <ClCompile Include="$(IntDir)commentcnv.cpp" />
+    <ClCompile Include="$(IntDir)commentscan.cpp" />
+    <ClCompile Include="..\src\condparser.cpp" />
+    <ClCompile Include="$(IntDir)config.cpp" />
+    <ClCompile Include="$(IntDir)configoptions.cpp" />
+    <ClCompile Include="$(IntDir)constexp.cpp" />
+    <ClCompile Include="..\src\context.cpp" />
+    <ClCompile Include="..\src\cppvalue.cpp" />
+    <ClCompile Include="..\src\dbusxmlscanner.cpp" />
+    <ClCompile Include="..\src\debug.cpp" />
+    <ClCompile Include="$(IntDir)declinfo.cpp" />
+    <ClCompile Include="$(IntDir)defargs.cpp" />
+    <ClCompile Include="..\src\defgen.cpp" />
+    <ClCompile Include="..\src\define.cpp" />
+    <ClCompile Include="..\src\definition.cpp" />
+    <ClCompile Include="..\src\dia.cpp" />
+    <ClCompile Include="..\src\diagram.cpp" />
+    <ClCompile Include="..\src\dirdef.cpp" />
+    <ClCompile Include="..\src\docbookgen.cpp" />
+    <ClCompile Include="..\src\docbookvisitor.cpp" />
+    <ClCompile Include="..\src\docparser.cpp" />
+    <ClCompile Include="..\src\docsets.cpp" />
+    <ClCompile Include="$(IntDir)doctokenizer.cpp" />
+    <ClCompile Include="..\src\dot.cpp" />
+    <ClCompile Include="..\src\doxygen.cpp" />
+    <ClCompile Include="..\src\eclipsehelp.cpp" />
+    <ClCompile Include="..\src\entry.cpp" />
+    <ClCompile Include="..\src\filedef.cpp" />
+    <ClCompile Include="..\src\filename.cpp" />
+    <ClCompile Include="..\src\fileparser.cpp" />
+    <ClCompile Include="..\src\formula.cpp" />
+    <ClCompile Include="$(IntDir)fortrancode.cpp" />
+    <ClCompile Include="$(IntDir)fortranscanner.cpp" />
+    <ClCompile Include="..\src\ftextstream.cpp" />
+    <ClCompile Include="..\src\ftvhelp.cpp" />
+    <ClCompile Include="..\src\groupdef.cpp" />
+    <ClCompile Include="..\src\htags.cpp" />
+    <ClCompile Include="..\src\htmldocvisitor.cpp" />
+    <ClCompile Include="..\src\htmlentity.cpp" />
+    <ClCompile Include="..\src\htmlgen.cpp" />
+    <ClCompile Include="..\src\htmlhelp.cpp" />
+    <ClCompile Include="..\src\image.cpp" />
+    <ClCompile Include="..\src\index.cpp" />
+    <ClCompile Include="..\src\language.cpp" />
+    <ClCompile Include="..\src\latexdocvisitor.cpp" />
+    <ClCompile Include="..\src\latexgen.cpp" />
+    <ClCompile Include="..\src\layout.cpp" />
+    <ClCompile Include="..\src\lodepng.cpp" />
+    <ClCompile Include="..\src\logos.cpp" />
+    <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\mandocvisitor.cpp" />
+    <ClCompile Include="..\src\mangen.cpp" />
+    <ClCompile Include="..\src\markdown.cpp" />
+    <ClCompile Include="..\src\marshal.cpp" />
+    <ClCompile Include="..\libmd5\md5.c" />
+    <ClCompile Include="..\src\memberdef.cpp" />
+    <ClCompile Include="..\src\membergroup.cpp" />
+    <ClCompile Include="..\src\memberlist.cpp" />
+    <ClCompile Include="..\src\membername.cpp" />
+    <ClCompile Include="..\src\message.cpp" />
+    <ClCompile Include="..\src\msc.cpp" />
+    <ClCompile Include="..\src\namespacedef.cpp" />
+    <ClCompile Include="..\src\objcache.cpp" />
+    <ClCompile Include="..\src\outputgen.cpp" />
+    <ClCompile Include="..\src\outputlist.cpp" />
+    <ClCompile Include="..\src\pagedef.cpp" />
+    <ClCompile Include="..\vhdlparser\ParseException.cc" />
+    <ClCompile Include="..\src\perlmodgen.cpp" />
+    <ClCompile Include="..\src\plantuml.cpp" />
+    <ClCompile Include="..\src\portable.cpp" />
+    <ClCompile Include="..\src\portable_c.c" />
+    <ClCompile Include="$(IntDir)pre.cpp" />
+    <ClCompile Include="$(IntDir)pycode.cpp" />
+    <ClCompile Include="$(IntDir)pyscanner.cpp" />
+    <ClCompile Include="..\src\qhp.cpp" />
+    <ClCompile Include="..\src\qhpxmlwriter.cpp" />
+    <ClCompile Include="..\src\reflist.cpp" />
+    <ClCompile Include="..\src\resourcemgr.cpp" />
+    <ClCompile Include="..\src\rtfdocvisitor.cpp" />
+    <ClCompile Include="..\src\rtfgen.cpp" />
+    <ClCompile Include="..\src\rtfstyle.cpp" />
+    <ClCompile Include="$(IntDir)scanner.cpp" />
+    <ClCompile Include="..\src\searchindex.cpp" />
+    <ClCompile Include="..\src\sqlite3gen.cpp" />
+    <ClCompile Include="..\src\store.cpp" />
+    <ClCompile Include="..\src\tagreader.cpp" />
+    <ClCompile Include="$(IntDir)tclscanner.cpp" />
+    <ClCompile Include="..\src\template.cpp" />
+    <ClCompile Include="..\src\textdocvisitor.cpp" />
+    <ClCompile Include="..\vhdlparser\Token.cc" />
+    <ClCompile Include="..\vhdlparser\TokenMgrError.cc" />
+    <ClCompile Include="..\src\tooltip.cpp" />
+    <ClCompile Include="..\src\util.cpp" />
+    <ClCompile Include="$(IntDir)version.cpp" />
+    <ClCompile Include="..\src\vhdldocgen.cpp" />
+    <ClCompile Include="..\src\vhdljjparser.cpp" />
+    <ClCompile Include="..\vhdlparser\VhdlParser.cc" />
+    <ClCompile Include="..\vhdlparser\VhdlParserIF.cpp" />
+    <ClCompile Include="..\vhdlparser\VhdlParserTokenManager.cc" />
+    <ClCompile Include="..\src\xmldocvisitor.cpp" />
+    <ClCompile Include="..\src\xmlgen.cpp" />
+    <ClCompile Include="$(IntDir)resources.cpp" />
+    <ClCompile Include="$(IntDir)vhdlcode.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\textdocvisitor.h" />
+    <ClInclude Include="..\src\arguments.h" />
+    <ClInclude Include="..\src\bufstr.h" />
+    <ClInclude Include="..\src\ce_parse.h" />
+    <ClInclude Include="..\src\verilogdocgen.h" />
+    <ClInclude Include="..\src\verilogparser.hpp" />
+    <ClInclude Include="..\src\verilogscanner.h" />
+    <ClInclude Include="..\src\VFileLine.h" />
+    <ClInclude Include="..\src\VPreProc.h" />
+    <ClInclude Include="..\vhdlparser\CharStream.h" />
+    <ClInclude Include="..\src\cite.h" />
+    <ClInclude Include="..\src\clangparser.h" />
+    <ClInclude Include="..\src\classdef.h" />
+    <ClInclude Include="..\src\classlist.h" />
+    <ClInclude Include="..\src\cmdmapper.h" />
+    <ClInclude Include="..\src\code.h" />
+    <ClInclude Include="..\src\commentcnv.h" />
+    <ClInclude Include="..\src\commentscan.h" />
+    <ClInclude Include="..\src\condparser.h" />
+    <ClInclude Include="..\src\config.h" />
+    <ClInclude Include="..\src\constexp.h" />
+    <ClInclude Include="..\src\context.h" />
+    <ClInclude Include="..\src\cppvalue.h" />
+    <ClInclude Include="..\src\dbusxmlscanner.h" />
+    <ClInclude Include="..\src\debug.h" />
+    <ClInclude Include="..\src\declinfo.h" />
+    <ClInclude Include="..\src\defargs.h" />
+    <ClInclude Include="..\src\defgen.h" />
+    <ClInclude Include="..\src\define.h" />
+    <ClInclude Include="..\src\definition.h" />
+    <ClInclude Include="..\src\dia.h" />
+    <ClInclude Include="..\src\diagram.h" />
+    <ClInclude Include="..\src\dirdef.h" />
+    <ClInclude Include="..\src\docbookgen.h" />
+    <ClInclude Include="..\src\docbookvisitor.h" />
+    <ClInclude Include="..\src\docparser.h" />
+    <ClInclude Include="..\src\docsets.h" />
+    <ClInclude Include="..\src\doctokenizer.h" />
+    <ClInclude Include="..\src\docvisitor.h" />
+    <ClInclude Include="..\src\dot.h" />
+    <ClInclude Include="..\src\doxygen.h" />
+    <ClInclude Include="..\src\eclipsehelp.h" />
+    <ClInclude Include="..\src\entry.h" />
+    <ClInclude Include="..\vhdlparser\ErrorHandler.h" />
+    <ClInclude Include="..\src\example.h" />
+    <ClInclude Include="..\src\filedef.h" />
+    <ClInclude Include="..\src\filename.h" />
+    <ClInclude Include="..\src\fileparser.h" />
+    <ClInclude Include="..\src\formula.h" />
+    <ClInclude Include="..\src\fortrancode.h" />
+    <ClInclude Include="..\src\fortranscanner.h" />
+    <ClInclude Include="..\src\ftextstream.h" />
+    <ClInclude Include="..\src\ftvhelp.h" />
+    <ClInclude Include="..\src\groupdef.h" />
+    <ClInclude Include="..\src\htags.h" />
+    <ClInclude Include="..\src\htmlattrib.h" />
+    <ClInclude Include="..\src\htmldocvisitor.h" />
+    <ClInclude Include="..\src\htmlentity.h" />
+    <ClInclude Include="..\src\htmlgen.h" />
+    <ClInclude Include="..\src\htmlhelp.h" />
+    <ClInclude Include="iconv.h" />
+    <ClInclude Include="..\src\image.h" />
+    <ClInclude Include="..\src\index.h" />
+    <ClInclude Include="..\src\instdox.h" />
+    <ClInclude Include="..\vhdlparser\JavaCC.h" />
+    <ClInclude Include="$(IntDir)lang_cfg.h" />
+    <ClInclude Include="..\src\language.h" />
+    <ClInclude Include="..\src\latexdocvisitor.h" />
+    <ClInclude Include="..\src\latexgen.h" />
+    <ClInclude Include="..\src\layout.h" />
+    <ClInclude Include="$(IntDir)layout_default_xml.h" />
+    <ClInclude Include="..\src\lockingptr.h" />
+    <ClInclude Include="..\src\lodepng.h" />
+    <ClInclude Include="..\src\logos.h" />
+    <ClInclude Include="..\src\mandocvisitor.h" />
+    <ClInclude Include="..\src\mangen.h" />
+    <ClInclude Include="..\src\marshal.h" />
+    <ClInclude Include="..\libmd5\md5.h" />
+    <ClInclude Include="..\libmd5\md5_loc.h" />
+    <ClInclude Include="..\src\memberdef.h" />
+    <ClInclude Include="..\src\membergroup.h" />
+    <ClInclude Include="..\src\memberlist.h" />
+    <ClInclude Include="..\src\membername.h" />
+    <ClInclude Include="..\src\message.h" />
+    <ClInclude Include="..\src\msc.h" />
+    <ClInclude Include="..\src\namespacedef.h" />
+    <ClInclude Include="..\src\navtree_css.h" />
+    <ClInclude Include="..\src\objcache.h" />
+    <ClInclude Include="..\src\outputgen.h" />
+    <ClInclude Include="..\src\outputlist.h" />
+    <ClInclude Include="..\src\pagedef.h" />
+    <ClInclude Include="..\vhdlparser\ParseException.h" />
+    <ClInclude Include="..\src\parserintf.h" />
+    <ClInclude Include="..\src\perlmodgen.h" />
+    <ClInclude Include="..\src\plantuml.h" />
+    <ClInclude Include="..\src\portable.h" />
+    <ClInclude Include="..\src\pre.h" />
+    <ClInclude Include="..\src\printdocvisitor.h" />
+    <ClInclude Include="..\src\pycode.h" />
+    <ClInclude Include="..\src\pyscanner.h" />
+    <ClInclude Include="..\src\qhp.h" />
+    <ClInclude Include="..\src\qhpxmlwriter.h" />
+    <ClInclude Include="..\src\qtbc.h" />
+    <ClInclude Include="..\src\reflist.h" />
+    <ClInclude Include="..\src\resourcemgr.h" />
+    <ClInclude Include="..\src\rtfdocvisitor.h" />
+    <ClInclude Include="..\src\rtfgen.h" />
+    <ClInclude Include="..\src\rtfstyle.h" />
+    <ClInclude Include="..\src\scanner.h" />
+    <ClInclude Include="..\src\searchindex.h" />
+    <ClInclude Include="..\src\section.h" />
+    <ClInclude Include="$(IntDir)settings.h" />
+    <ClInclude Include="..\src\sortdict.h" />
+    <ClInclude Include="..\src\store.h" />
+    <ClInclude Include="..\src\tagreader.h" />
+    <ClInclude Include="..\src\tclscanner.h" />
+    <ClInclude Include="..\src\template.h" />
+    <ClInclude Include="..\vhdlparser\Token.h" />
+    <ClInclude Include="..\vhdlparser\TokenManager.h" />
+    <ClInclude Include="..\vhdlparser\TokenMgrError.h" />
+    <ClInclude Include="..\src\tooltip.h" />
+    <ClInclude Include="..\src\translator.h" />
+    <ClInclude Include="..\src\translator_adapter.h" />
+    <ClInclude Include="..\src\translator_am.h" />
+    <ClInclude Include="..\src\translator_ar.h" />
+    <ClInclude Include="..\src\translator_br.h" />
+    <ClInclude Include="..\src\translator_ca.h" />
+    <ClInclude Include="..\src\translator_cn.h" />
+    <ClInclude Include="..\src\translator_cz.h" />
+    <ClInclude Include="..\src\translator_de.h" />
+    <ClInclude Include="..\src\translator_dk.h" />
+    <ClInclude Include="..\src\translator_en.h" />
+    <ClInclude Include="..\src\translator_eo.h" />
+    <ClInclude Include="..\src\translator_es.h" />
+    <ClInclude Include="..\src\translator_fa.h" />
+    <ClInclude Include="..\src\translator_fi.h" />
+    <ClInclude Include="..\src\translator_fr.h" />
+    <ClInclude Include="..\src\translator_gr.h" />
+    <ClInclude Include="..\src\translator_hr.h" />
+    <ClInclude Include="..\src\translator_hu.h" />
+    <ClInclude Include="..\src\translator_id.h" />
+    <ClInclude Include="..\src\translator_it.h" />
+    <ClInclude Include="..\src\translator_je.h" />
+    <ClInclude Include="..\src\translator_jp.h" />
+    <ClInclude Include="..\src\translator_ke.h" />
+    <ClInclude Include="..\src\translator_kr.h" />
+    <ClInclude Include="..\src\translator_lt.h" />
+    <ClInclude Include="..\src\translator_lv.h" />
+    <ClInclude Include="..\src\translator_mk.h" />
+    <ClInclude Include="..\src\translator_nl.h" />
+    <ClInclude Include="..\src\translator_no.h" />
+    <ClInclude Include="..\src\translator_pl.h" />
+    <ClInclude Include="..\src\translator_pt.h" />
+    <ClInclude Include="..\src\translator_ro.h" />
+    <ClInclude Include="..\src\translator_ru.h" />
+    <ClInclude Include="..\src\translator_sc.h" />
+    <ClInclude Include="..\src\translator_si.h" />
+    <ClInclude Include="..\src\translator_sk.h" />
+    <ClInclude Include="..\src\translator_sr.h" />
+    <ClInclude Include="..\src\translator_sv.h" />
+    <ClInclude Include="..\src\translator_tr.h" />
+    <ClInclude Include="..\src\translator_tw.h" />
+    <ClInclude Include="..\src\translator_ua.h" />
+    <ClInclude Include="..\src\translator_vi.h" />
+    <ClInclude Include="..\src\translator_za.h" />
+    <ClInclude Include="$(IntDir)unistd.h" />
+    <ClInclude Include="..\src\util.h" />
+    <ClInclude Include="..\src\version.h" />
+    <ClInclude Include="..\src\vhdlcode.h" />
+    <ClInclude Include="..\src\vhdldocgen.h" />
+    <ClInclude Include="..\src\vhdljjparser.h" />
+    <ClInclude Include="..\vhdlparser\vhdlparser.h" />
+    <ClInclude Include="..\vhdlparser\VhdlParserConstants.h" />
+    <ClInclude Include="..\vhdlparser\VhdlParserErrorHandler.hpp" />
+    <ClInclude Include="..\vhdlparser\VhdlParserIF.h" />
+    <ClInclude Include="..\vhdlparser\VhdlParserTokenManager.h" />
+    <ClInclude Include="..\vhdlparser\vhdlstring.h" />
+    <ClInclude Include="..\src\xmldocvisitor.h" />
+    <ClInclude Include="..\src\xmlgen.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\src\constexp.y">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Running bison on constexp.y</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">bison -l -d -p ce_parseexpYY "%(FullPath)" -o $(IntDir)ce_parse.c
+bison -l -p constexpYY "%(FullPath)" -o $(IntDir)ce_parse.cpp
+del $(IntDir)ce_parse.c
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(IntDir)ce_parse.cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Running bison on constexp.y</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">bison -l -d -p ce_parseexpYY "%(FullPath)" -o $(IntDir)ce_parse.c
+bison -l -p constexpYY "%(FullPath)" -o $(IntDir)ce_parse.cpp
+del $(IntDir)ce_parse.c
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)ce_parse.cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Running bison on constexp.y</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">bison -l -d -p ce_parseexpYY "%(FullPath)" -o $(IntDir)ce_parse.c
+bison -l -p constexpYY "%(FullPath)" -o $(IntDir)ce_parse.cpp
+del $(IntDir)ce_parse.c
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)ce_parse.cpp;%(Outputs)</Outputs>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Running bison on constexp.y</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">bison -l -d -p ce_parseexpYY "%(FullPath)" -o $(IntDir)ce_parse.c
+bison -l -p constexpYY "%(FullPath)" -o $(IntDir)ce_parse.cpp
+del $(IntDir)ce_parse.c
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)ce_parse.cpp;%(Outputs)</Outputs>
+    </CustomBuild>
+    <GenResources Include="..\templates\html\arrowdown.luma" />
+    <GenResources Include="..\templates\html\arrowright.luma" />
+    <GenResources Include="..\templates\html\bc_s.luma" />
+    <GenResources Include="..\templates\html\bdwn.luma" />
+    <GenResources Include="..\templates\html\bib2xhtml.pl" />
+    <GenResources Include="..\templates\html\closed.luma" />
+    <GenResources Include="..\templates\html\doc.luma" />
+    <GenResources Include="..\templates\html\doxygen.bst" />
+    <GenResources Include="..\templates\html\doxygen.css" />
+    <GenResources Include="..\templates\html\doxygen.luma" />
+    <GenResources Include="..\templates\html\dynsections.js" />
+    <GenResources Include="..\templates\html\extsearch.js" />
+    <GenResources Include="..\templates\html\folderclosed.luma" />
+    <GenResources Include="..\templates\html\folderopen.luma" />
+    <GenResources Include="..\templates\html\footer.html" />
+    <GenResources Include="..\templates\html\header.html" />
+    <GenResources Include="..\templates\html\htmlallmembers.tpl" />
+    <GenResources Include="..\templates\html\htmlannotated.tpl" />
+    <GenResources Include="..\templates\html\htmlbase.tpl" />
+    <GenResources Include="..\templates\html\htmlclass.tpl" />
+    <GenResources Include="..\templates\html\htmlclasses.tpl" />
+    <GenResources Include="..\templates\html\htmlclmembers.tpl" />
+    <GenResources Include="..\templates\html\htmlclmembersindex.tpl" />
+    <GenResources Include="..\templates\html\htmldeclcomp.tpl" />
+    <GenResources Include="..\templates\html\htmldir.tpl" />
+    <GenResources Include="..\templates\html\htmldirtree.tpl" />
+    <GenResources Include="..\templates\html\htmldyncontents.tpl" />
+    <GenResources Include="..\templates\html\htmldynheader.tpl" />
+    <GenResources Include="..\templates\html\htmlfile.tpl" />
+    <GenResources Include="..\templates\html\htmlfiles.tpl" />
+    <GenResources Include="..\templates\html\htmlflmembers.tpl" />
+    <GenResources Include="..\templates\html\htmlinclude.tpl" />
+    <GenResources Include="..\templates\html\htmlindexpages.tpl" />
+    <GenResources Include="..\templates\html\htmljsnavindex.tpl" />
+    <GenResources Include="..\templates\html\htmljsnavtree.tpl" />
+    <GenResources Include="..\templates\html\htmllayout.tpl" />
+    <GenResources Include="..\templates\html\htmlmemberindex.tpl" />
+    <GenResources Include="..\templates\html\htmlmembersindex.tpl" />
+    <GenResources Include="..\templates\html\htmlmembertabs.tpl" />
+    <GenResources Include="..\templates\html\htmlmemdecl.tpl" />
+    <GenResources Include="..\templates\html\htmlmemdecls.tpl" />
+    <GenResources Include="..\templates\html\htmlmemdef.tpl" />
+    <GenResources Include="..\templates\html\htmlmeminherit.tpl" />
+    <GenResources Include="..\templates\html\htmlmemlist.tpl" />
+    <GenResources Include="..\templates\html\htmlmemsummary.tpl" />
+    <GenResources Include="..\templates\html\htmlmodule.tpl" />
+    <GenResources Include="..\templates\html\htmlmodules.tpl" />
+    <GenResources Include="..\templates\html\htmlnamespace.tpl" />
+    <GenResources Include="..\templates\html\htmlnamespaces.tpl" />
+    <GenResources Include="..\templates\html\htmlnavpath.tpl" />
+    <GenResources Include="..\templates\html\htmlnavtree.tpl" />
+    <GenResources Include="..\templates\html\htmlnsmembers.tpl" />
+    <GenResources Include="..\templates\html\htmlnsmembersindex.tpl" />
+    <GenResources Include="..\templates\html\htmlobjlink.tpl" />
+    <GenResources Include="..\templates\html\htmlpage.tpl" />
+    <GenResources Include="..\templates\html\htmlpages.tpl" />
+    <GenResources Include="..\templates\html\htmlsource.tpl" />
+    <GenResources Include="..\templates\html\htmltabs.tpl" />
+    <GenResources Include="..\templates\html\htmltypeconstraints.tpl" />
+    <GenResources Include="..\templates\html\jquery.js" />
+    <GenResources Include="..\templates\html\nav_f.lum" />
+    <GenResources Include="..\templates\html\nav_h.lum" />
+    <GenResources Include="..\templates\html\navtree.css" />
+    <GenResources Include="..\templates\html\navtree.js" />
+    <GenResources Include="..\templates\html\open.luma" />
+    <GenResources Include="..\templates\html\resize.js" />
+    <GenResources Include="..\templates\html\search.css" />
+    <GenResources Include="..\templates\html\search.js" />
+    <GenResources Include="..\templates\html\search_functions.php" />
+    <GenResources Include="..\templates\html\search_opensearch.php" />
+    <GenResources Include="..\templates\html\splitbar.lum" />
+    <GenResources Include="..\templates\html\svgpan.js" />
+    <GenResources Include="..\templates\html\sync_off.luma" />
+    <GenResources Include="..\templates\html\sync_on.luma" />
+    <GenResources Include="..\templates\html\tab_a.lum" />
+    <GenResources Include="..\templates\html\tab_b.lum" />
+    <GenResources Include="..\templates\html\tab_h.lum" />
+    <GenResources Include="..\templates\html\tab_s.lum" />
+    <GenResources Include="..\templates\html\tabs.css" />
+    <GenResources Include="..\templates\latex\doxygen.sty" />
+  </ItemGroup>
+  <ItemGroup>
+    <Lex Include="..\src\code.l" />
+    <Lex Include="..\src\commentcnv.l" />
+    <Lex Include="..\src\commentscan.l" />
+    <Lex Include="..\src\config.l" />
+    <Lex Include="..\src\constexp.l" />
+    <Lex Include="..\src\declinfo.l" />
+    <Lex Include="..\src\defargs.l" />
+    <Lex Include="..\src\doctokenizer.l" />
+    <Lex Include="..\src\fortrancode.l" />
+    <Lex Include="..\src\fortranscanner.l" />
+    <Lex Include="..\src\pre.l" />
+    <Lex Include="..\src\pycode.l" />
+    <Lex Include="..\src\pyscanner.l" />
+    <Lex Include="..\src\scanner.l" />
+    <Lex Include="..\src\tclscanner.l" />
+    <Lex Include="..\src\verilogscanner.l" />
+    <Lex Include="..\src\vhdlcode.l" />
+    <Lex Include="..\src\VPreLex.l" />
+  </ItemGroup>
+  <ItemGroup>
+    <Languages Include="..\src\lang_cfg.py" />
+    <Settings Include="..\src\settings.py" />
+    <Unistd Include="unistd.py" />
+    <Version Include="..\src\version.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Config Include="..\src\config.xml" />
+    <Gen_head Include="..\src\layout_default.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <GenResources Include="..\templates\html\close.png" />
+    <GenResources Include="..\templates\html\mag.png" />
+    <GenResources Include="..\templates\html\mag_sel.png" />
+    <GenResources Include="..\templates\html\nav_g.png" />
+    <GenResources Include="..\templates\html\search_l.png" />
+    <GenResources Include="..\templates\html\search_m.png" />
+    <GenResources Include="..\templates\html\search_r.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <GenResources Include="..\templates\xml\compound.xsd" />
+    <GenResources Include="..\templates\xml\index.xsd" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\src\verilogparser.y" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="Lex.targets" />
+    <Import Project="Settings.targets" />
+    <Import Project="Unistd.targets" />
+    <Import Project="Version.targets" />
+    <Import Project="Config.targets" />
+    <Import Project="Gen_head.targets" />
+    <Import Project="GenResources.targets" />
+    <Import Project="Languages.targets" />
+  </ImportGroup>
+</Project>
