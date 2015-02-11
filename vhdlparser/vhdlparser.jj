@@ -299,7 +299,7 @@ TOKEN:
  | < #LETTER_OR_DIGIT: ( <LETTER> | <DIGIT> ) >
  | < #LETTER: (<UPPER_CASE_LETTER>|<LOWER_CASE_LETTER>) >
  | < #UPPER_CASE_LETTER: ["A"-"Z"]  >
- | <BIT_STRING_LITERAL : <BASE_SPECIFIER >["\""](<LETTER_OR_DIGIT>)* ["\""] >
+ | <BIT_STRING_LITERAL : <BASE_SPECIFIER >["\""](<LETTER_OR_DIGIT>((["_"])*<LETTER_OR_DIGIT>)*) ["\""] >
  | <#BASE_SPECIFIER:["B","O","X","b","o","x"]>
  | < #DIGIT: ["0"-"9"] >
  | < #SPECIAL_CHARACTER: ["#","&","'","(",")","*","+",",","-",".","/",":",";","<","=",">","_","|"] >
