@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup
+    Condition="'$(LanguagesBeforeTargets)' == '' and '$(LanguagesAfterTargets)' == '' and '$(ConfigurationType)' != 'Makefile'">
+    <LanguagesBeforeTargets>Midl</LanguagesBeforeTargets>
+    <LanguagesAfterTargets>CustomBuild</LanguagesAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LanguagesDependsOn
+      Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(LanguagesDependsOn)</LanguagesDependsOn>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <Languages>
+      <EnglishOnlys>0</EnglishOnlys>
+      <armenian>1</armenian>
+      <arabic>1</arabic>
+      <brazilian>1</brazilian>
+      <catalan>1</catalan>
+      <chinese>1</chinese>
+      <czech>1</czech>
+      <german>1</german>
+      <danish>1</danish>
+      <esperanto>1</esperanto>
+      <spanish>1</spanish>
+      <persian>1</persian>
+      <finnish>1</finnish>
+      <french>1</french>
+      <greek>1</greek>
+      <croatian>1</croatian>
+      <hungarian>1</hungarian>
+      <indonesian>1</indonesian>
+      <italian>1</italian>
+      <japaneseen>1</japaneseen>
+      <japanese>1</japanese>
+      <koreanen>1</koreanen>
+      <korean>1</korean>
+      <lithuanian>1</lithuanian>
+      <latvian>1</latvian>
+      <macedonian>1</macedonian>
+      <dutch>1</dutch>
+      <norwegian>1</norwegian>
+      <polish>1</polish>
+      <portuguese>1</portuguese>
+      <romanian>1</romanian>
+      <russian>1</russian>
+      <serbiancyrillic>1</serbiancyrillic>
+      <slovene>1</slovene>
+      <slovak>1</slovak>
+      <serbian>1</serbian>
+      <swedish>1</swedish>
+      <turkish>1</turkish>
+      <chinesetraditional>1</chinesetraditional>
+      <ukrainian>1</ukrainian>
+      <vietnamese>1</vietnamese>
+      <afrikaans>1</afrikaans>
+      <CommandLineTemplate>python "%(FullPath)" [AllOptions] [AdditionalOptions] &gt; $(IntDir)%(Filename).h</CommandLineTemplate>
+      <Outputs>$(IntDir)%(Filename).h</Outputs>
+      <ExecutionDescription>Executing languages ...</ExecutionDescription>
+      <ShowOnlyRuleProperties>false</ShowOnlyRuleProperties>
+      <AdditionalDependencies></AdditionalDependencies>
+    </Languages>
+  </ItemDefinitionGroup>
+</Project>

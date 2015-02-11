@@ -1,0 +1,123 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <PropertyPageSchema
+      Include="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml" />
+    <AvailableItemName
+      Include="Languages">
+      <Targets>_Languages</Targets>
+    </AvailableItemName>
+  </ItemGroup>
+  <UsingTask
+    TaskName="Languages"
+    TaskFactory="XamlTaskFactory"
+    AssemblyName="Microsoft.Build.Tasks.v4.0">
+    <Task>$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml</Task>
+  </UsingTask>
+  <Target
+    Name="_Languages"
+    BeforeTargets="$(LanguagesBeforeTargets)"
+    AfterTargets="$(LanguagesAfterTargets)"
+    Condition="'@(Languages)' != ''"
+    DependsOnTargets="$(LanguagesDependsOn);ComputeLanguagesOutput"
+    Outputs="%(Languages.Outputs)"
+    Inputs="%(Languages.Identity);%(Languages.AdditionalDependencies);$(MSBuildProjectFile)">
+    <ItemGroup
+      Condition="'@(SelectedFiles)' != ''">
+      <Languages
+        Remove="@(Languages)"
+        Condition="'%(Identity)' != '@(SelectedFiles)'" />
+    </ItemGroup>
+    <ItemGroup>
+      <Languages_tlog
+        Include="%(Languages.Outputs)"
+        Condition="'%(Languages.Outputs)' != '' and '%(Languages.ExcludedFromBuild)' != 'true'">
+        <Source>@(Languages, '|')</Source>
+      </Languages_tlog>
+    </ItemGroup>
+    <Message
+      Importance="High"
+      Text="%(Languages.ExecutionDescription)" />
+    <WriteLinesToFile
+      Condition="'@(Languages_tlog)' != '' and '%(Languages_tlog.ExcludedFromBuild)' != 'true'"
+      File="$(TLogLocation)$(ProjectName).write.1.tlog"
+      Lines="^%(Languages_tlog.Source);@(Languages_tlog-&gt;'%(Fullpath)')" />
+    <Languages
+      Condition="'@(Languages)' != '' and '%(Languages.ExcludedFromBuild)' != 'true'"
+      CommandLineTemplate="%(Languages.CommandLineTemplate)"
+      EnglishOnlys="%(Languages.EnglishOnlys)"
+      armenian="%(Languages.armenian)"
+      arabic="%(Languages.arabic)"
+      brazilian="%(Languages.brazilian)"
+      catalan="%(Languages.catalan)"
+      chinese="%(Languages.chinese)"
+      czech="%(Languages.czech)"
+      german="%(Languages.german)"
+      danish="%(Languages.danish)"
+      esperanto="%(Languages.esperanto)"
+      spanish="%(Languages.spanish)"
+      persian="%(Languages.persian)"
+      finnish="%(Languages.finnish)"
+      french="%(Languages.french)"
+      greek="%(Languages.greek)"
+      croatian="%(Languages.croatian)"
+      hungarian="%(Languages.hungarian)"
+      indonesian="%(Languages.indonesian)"
+      italian="%(Languages.italian)"
+      japaneseen="%(Languages.japaneseen)"
+      japanese="%(Languages.japanese)"
+      koreanen="%(Languages.koreanen)"
+      korean="%(Languages.korean)"
+      lithuanian="%(Languages.lithuanian)"
+      latvian="%(Languages.latvian)"
+      macedonian="%(Languages.macedonian)"
+      dutch="%(Languages.dutch)"
+      norwegian="%(Languages.norwegian)"
+      polish="%(Languages.polish)"
+      portuguese="%(Languages.portuguese)"
+      romanian="%(Languages.romanian)"
+      russian="%(Languages.russian)"
+      serbiancyrillic="%(Languages.serbiancyrillic)"
+      slovene="%(Languages.slovene)"
+      slovak="%(Languages.slovak)"
+      serbian="%(Languages.serbian)"
+      swedish="%(Languages.swedish)"
+      turkish="%(Languages.turkish)"
+      chinesetraditional="%(Languages.chinesetraditional)"
+      ukrainian="%(Languages.ukrainian)"
+      vietnamese="%(Languages.vietnamese)"
+      afrikaans="%(Languages.afrikaans)"
+      AdditionalOptions="%(Languages.AdditionalOptions)"
+      Inputs="%(Languages.Identity)" />
+  </Target>
+  <PropertyGroup>
+    <ComputeLinkInputsTargets>
+            $(ComputeLinkInputsTargets);
+            ComputeLanguagesOutput;
+          </ComputeLinkInputsTargets>
+    <ComputeLibInputsTargets>
+            $(ComputeLibInputsTargets);
+            ComputeLanguagesOutput;
+          </ComputeLibInputsTargets>
+  </PropertyGroup>
+  <Target
+    Name="ComputeLanguagesOutput"
+    Condition="'@(Languages)' != ''">
+    <ItemGroup>
+      <LanguagesDirsToMake
+        Condition="'@(Languages)' != '' and '%(Languages.ExcludedFromBuild)' != 'true'"
+        Include="%(Languages.Outputs)" />
+      <Link
+        Include="%(LanguagesDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+      <Lib
+        Include="%(LanguagesDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+      <ImpLib
+        Include="%(LanguagesDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+    </ItemGroup>
+    <MakeDir
+      Directories="@(LanguagesDirsToMake-&gt;'%(RootDir)%(Directory)')" />
+  </Target>
+</Project>

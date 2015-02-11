@@ -1,0 +1,155 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <PropertyPageSchema
+      Include="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml" />
+    <AvailableItemName
+      Include="Config">
+      <Targets>_Config</Targets>
+    </AvailableItemName>
+    <AvailableItemName
+      Include="Config_dw">
+      <Targets>_Config_dw</Targets>
+    </AvailableItemName>
+  </ItemGroup>
+  <UsingTask
+    TaskName="Config"
+    TaskFactory="XamlTaskFactory"
+    AssemblyName="Microsoft.Build.Tasks.v4.0">
+    <Task>$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml</Task>
+  </UsingTask>
+  <UsingTask
+    TaskName="Config_dw"
+    TaskFactory="XamlTaskFactory"
+    AssemblyName="Microsoft.Build.Tasks.v4.0">
+    <Task>$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml</Task>
+  </UsingTask>
+  <Target
+    Name="_Config"
+    BeforeTargets="$(ConfigBeforeTargets)"
+    AfterTargets="$(ConfigAfterTargets)"
+    Condition="'@(Config)' != ''"
+    DependsOnTargets="$(ConfigDependsOn);ComputeConfigOutput"
+    Outputs="%(Config.Outputs)"
+    Inputs="%(Config.Identity);%(Config.AdditionalDependencies);$(MSBuildProjectFile)">
+    <ItemGroup
+      Condition="'@(SelectedFiles)' != ''">
+      <Config
+        Remove="@(Config)"
+        Condition="'%(Identity)' != '@(SelectedFiles)'" />
+    </ItemGroup>
+    <ItemGroup>
+      <Config_tlog
+        Include="%(Config.Outputs)"
+        Condition="'%(Config.Outputs)' != '' and '%(Config.ExcludedFromBuild)' != 'true'">
+        <Source>@(Config, '|')</Source>
+      </Config_tlog>
+    </ItemGroup>
+    <Message
+      Importance="High"
+      Text="%(Config.ExecutionDescription)" />
+    <WriteLinesToFile
+      Condition="'@(Config_tlog)' != '' and '%(Config_tlog.ExcludedFromBuild)' != 'true'"
+      File="$(TLogLocation)$(ProjectName).write.1.tlog"
+      Lines="^%(Config_tlog.Source);@(Config_tlog-&gt;'%(Fullpath)')" />
+    <Config
+      Condition="'@(Config)' != '' and '%(Config.ExcludedFromBuild)' != 'true'"
+      CommandLineTemplate="%(Config.CommandLineTemplate)"
+      AdditionalOptions="%(Config.AdditionalOptions)"
+      Inputs="%(Config.Identity)" />
+  </Target>
+  <PropertyGroup>
+    <ComputeLinkInputsTargets>
+            $(ComputeLinkInputsTargets);
+            ComputeConfigOutput;
+          </ComputeLinkInputsTargets>
+    <ComputeLibInputsTargets>
+            $(ComputeLibInputsTargets);
+            ComputeConfigOutput;
+          </ComputeLibInputsTargets>
+  </PropertyGroup>
+  <Target
+    Name="ComputeConfigOutput"
+    Condition="'@(Config)' != ''">
+    <ItemGroup>
+      <ConfigDirsToMake
+        Condition="'@(Config)' != '' and '%(Config.ExcludedFromBuild)' != 'true'"
+        Include="%(Config.Outputs)" />
+      <Link
+        Include="%(ConfigDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+      <Lib
+        Include="%(ConfigDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+      <ImpLib
+        Include="%(ConfigDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+    </ItemGroup>
+    <MakeDir
+      Directories="@(ConfigDirsToMake-&gt;'%(RootDir)%(Directory)')" />
+  </Target>
+  <Target
+    Name="_Config_dw"
+    BeforeTargets="$(Config_dwBeforeTargets)"
+    AfterTargets="$(Config_dwAfterTargets)"
+    Condition="'@(Config_dw)' != ''"
+    DependsOnTargets="$(Config_dwDependsOn);ComputeConfig_dwOutput"
+    Outputs="%(Config_dw.Outputs)"
+    Inputs="%(Config_dw.Identity);%(Config_dw.AdditionalDependencies);$(MSBuildProjectFile)">
+    <ItemGroup
+      Condition="'@(SelectedFiles)' != ''">
+      <Config_dw
+        Remove="@(Config_dw)"
+        Condition="'%(Identity)' != '@(SelectedFiles)'" />
+    </ItemGroup>
+    <ItemGroup>
+      <Config_dw_tlog
+        Include="%(Config_dw.Outputs)"
+        Condition="'%(Config_dw.Outputs)' != '' and '%(Config_dw.ExcludedFromBuild)' != 'true'">
+        <Source>@(Config_dw, '|')</Source>
+      </Config_dw_tlog>
+    </ItemGroup>
+    <Message
+      Importance="High"
+      Text="%(Config_dw.ExecutionDescription)" />
+    <WriteLinesToFile
+      Condition="'@(Config_dw_tlog)' != '' and '%(Config_dw_tlog.ExcludedFromBuild)' != 'true'"
+      File="$(TLogLocation)$(ProjectName).write.1.tlog"
+      Lines="^%(Config_dw_tlog.Source);@(Config_dw_tlog-&gt;'%(Fullpath)')" />
+    <Config_dw
+      Condition="'@(Config_dw)' != '' and '%(Config_dw.ExcludedFromBuild)' != 'true'"
+      CommandLineTemplate="%(Config_dw.CommandLineTemplate)"
+      AdditionalOptions="%(Config_dw.AdditionalOptions)"
+      Inputs="%(Config_dw.Identity)" />
+  </Target>
+  <PropertyGroup>
+    <ComputeLinkInputsTargets>
+            $(ComputeLinkInputsTargets);
+            ComputeConfig_dwOutput;
+          </ComputeLinkInputsTargets>
+    <ComputeLibInputsTargets>
+            $(ComputeLibInputsTargets);
+            ComputeConfig_dwOutput;
+          </ComputeLibInputsTargets>
+  </PropertyGroup>
+  <Target
+    Name="ComputeConfig_dwOutput"
+    Condition="'@(Config_dw)' != ''">
+    <ItemGroup>
+      <Config_dwDirsToMake
+        Condition="'@(Config_dw)' != '' and '%(Config_dw.ExcludedFromBuild)' != 'true'"
+        Include="%(Config_dw.Outputs)" />
+      <Link
+        Include="%(Config_dwDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+      <Lib
+        Include="%(Config_dwDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+      <ImpLib
+        Include="%(Config_dwDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+    </ItemGroup>
+    <MakeDir
+      Directories="@(Config_dwDirsToMake-&gt;'%(RootDir)%(Directory)')" />
+  </Target>
+</Project>
