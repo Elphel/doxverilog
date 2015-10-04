@@ -314,7 +314,7 @@ static bool  checkMultiComment(QCString& qcs){
        globalMemberList.insert(pNew->name,pNew);
 }
 
-static bool checkString(QCString &name)
+ bool checkString(QCString &name)
 {
   if (name.isEmpty()) return FALSE;
   static QRegExp regg("[ \t\"]");

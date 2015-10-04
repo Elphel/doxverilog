@@ -216,8 +216,7 @@ SOURCES      =	arguments.cpp \
 		verilogdocgen.cpp \
 		VFileLine.cpp \
 			VPreProc.cpp \
-
-	        ../generated_src/doxygen/ce_parse.cpp \
+                ../generated_src/doxygen/ce_parse.cpp \
                 ../generated_src/doxygen/constexp.cpp \
 		../generated_src/doxygen/vhdlcode.cpp \
 		../generated_src/doxygen/verilogscanner.cpp \
