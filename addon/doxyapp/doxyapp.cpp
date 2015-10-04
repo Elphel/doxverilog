@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -26,7 +26,8 @@
  */
 
 #include <stdlib.h>
-#include <unistd.h>
+#include <qfile.h>
+#include <qdir.h>
 #include "doxygen.h"
 #include "outputgen.h"
 #include "parserintf.h"
@@ -308,10 +309,10 @@ int main(int argc,char **argv)
   }
 
   // remove temporary files
-  if (!Doxygen::objDBFileName.isEmpty()) unlink(Doxygen::objDBFileName);
-  if (!Doxygen::entryDBFileName.isEmpty()) unlink(Doxygen::entryDBFileName);
+  if (!Doxygen::objDBFileName.isEmpty()) QFile::remove(Doxygen::objDBFileName);
+  if (!Doxygen::entryDBFileName.isEmpty()) QFile::remove(Doxygen::entryDBFileName);
   // clean up after us
-  rmdir("/tmp/doxygen");
+  QDir().rmdir("/tmp/doxygen");
 
   while (1)
   {

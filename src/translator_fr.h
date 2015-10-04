@@ -2,7 +2,7 @@
  *
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby
@@ -1077,7 +1077,7 @@ class TranslatorFrench : public Translator
             "};\n"
             "\\endcode\n"
             "Cela aboutira au graphe suivant :"
-            "<p><center><img alt=\"\" src=\"graph_legend."+Config_getEnum("DOT_IMAGE_FORMAT")+"\"></center></p>\n"
+            "<p><center><img alt=\"\" src=\"graph_legend."+getDotImageExtension()+"\"></center></p>\n"
             "<p>\n"
             "Les rectangles du graphe ci-dessus ont la signification suivante :\n"
             "<ul>\n"

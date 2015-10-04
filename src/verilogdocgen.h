@@ -99,7 +99,7 @@ static void writeVerilogDeclarations(MemberDef* mdef,OutputList &ol,
 
 
 // insert a new entry
-static Entry* makeNewEntry(char* name=NULL,int sec=0,int spec=0,int line=0,bool add=true);
+static Entry* makeNewEntry(const char* name=NULL,int sec=0,int spec=0,int line=0,bool add=true);
 
 static MemberDef* findMember(QCString& className, QCString& memName,int type);
 
@@ -120,7 +120,7 @@ static const QCString* findKeyWord(const char*);
 
 static void initEntry(Entry *e);
 
-static char* removeLastWord(const char* word);
+static const char* removeLastWord(const char* word);
 
 static QCString getFileNameFromString(const char* fileName);
 

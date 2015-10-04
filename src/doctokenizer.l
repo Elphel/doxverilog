@@ -3,7 +3,7 @@
  * $Id: $
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -16,7 +16,7 @@
  *
  */
 
-
+%option never-interactive
 %{
 
 #include <ctype.h>
@@ -37,8 +37,8 @@
 #include "doxygen.h"
 #include "portable.h"
 
-#define YY_NEVER_INTERACTIVE 1
 #define YY_NO_INPUT 1
+#define YY_NO_UNISTD_H 1
   
 //--------------------------------------------------------------------------
 
@@ -1035,7 +1035,7 @@ REFWORD   {LABELID}|{REFWORD2}|{REFWORD3}|{REFWORD4}
 <St_IntRef>{BLANK}+"\"" {
                          BEGIN(St_Ref2);
                        }
-<St_SetScope>{SCOPEMASK}{BLANK} {
+<St_SetScope>({SCOPEMASK}|{ANONNS}){BLANK} {
                          g_token->name = yytext;
                          g_token->name = g_token->name.stripWhiteSpace();
 			 return TK_WORD;
@@ -1150,8 +1150,8 @@ REFWORD   {LABELID}|{REFWORD2}|{REFWORD3}|{REFWORD4}
 <St_Comment>"-->"      { /* end of html comment */
                          BEGIN(g_commentState); 
                        }
-<St_Comment>[^-\n]+       /* inside html comment */
-<St_Comment>.             /* inside html comment */
+<St_Comment>[^-]+      /* inside html comment */
+<St_Comment>.          /* inside html comment */
 
      /* State for skipping title (all chars until the end of the line) */
 

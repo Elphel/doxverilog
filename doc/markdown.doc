@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -389,6 +389,12 @@ int func(int a,int b) { return a*b; }
 ~~~~~~~~~~~~~~~
 
 The curly braces and dot are optional by the way.
+
+Another way to denote fenced code blocks is to use 3 or more backticks (```):
+
+    ```
+    also a fenced code block
+    ```
 
 \subsection md_header_id Header Id Attributes
 

@@ -2,7 +2,7 @@
  *
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby
@@ -1003,7 +1003,7 @@ class TranslatorMacedonian : public TranslatorAdapter_1_6_0
         "\\endcode\n"
         "Ако вредноста на \\c MAX_DOT_GRAPH_HEIGHT во конфигурациската датотека "
         "е 240 тогаш примерот ќе го создаде следниов дијаграм:"
-        "<p><center><img alt=\"\" src=\"graph_legend."+Config_getEnum("DOT_IMAGE_FORMAT")+"\"></center>\n"
+        "<p><center><img alt=\"\" src=\"graph_legend."+getDotImageExtension()+"\"></center>\n"
         "<p>\n"
         "Правоаголниците во дијаграмот погоре го имаат следново значење:\n"
         "<ul>\n"

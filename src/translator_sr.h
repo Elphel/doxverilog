@@ -2,7 +2,7 @@
  *
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby
@@ -1001,7 +1001,7 @@ class TranslatorSerbian : public TranslatorAdapter_1_6_0
         "\\endcode\n"
         "Ako je \\c MAX_DOT_GRAPH_HEIGHT tag u konfiguracionoj datoteci "
         "postavljen na \\c 200 graf izvođenja će izgledati ovako:"
-        "<p><center><img src=\"graph_legend."+Config_getEnum("DOT_IMAGE_FORMAT")+"\"></center>\n"
+        "<p><center><img src=\"graph_legend."+getDotImageExtension()+"\"></center>\n"
         "Graf će biti odsečen ako ne stane unutar zadatih granica.\n"
         "<p>\n"
         "Pravougaonici imaju sledeća značenja:\n"

@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -46,8 +46,7 @@ NamespaceDef::NamespaceDef(const char *df,int dl,int dc,
   }
   else
   {
-    fileName="namespace";
-    fileName+=name;
+    setFileName(name);
   }
   classSDict = new ClassSDict(17);
   namespaceSDict = new NamespaceSDict(17);
@@ -87,6 +86,12 @@ NamespaceDef::~NamespaceDef()
   delete usingDeclList;
   delete memberGroupSDict;
   delete m_allMembersDict;
+}
+
+void NamespaceDef::setFileName(const QCString &fn)
+{
+  fileName="namespace";
+  fileName+=fn;
 }
 
 void NamespaceDef::distributeMemberGroupDocumentation()
@@ -1136,7 +1141,7 @@ QCString NamespaceDef::title() const
 {
   SrcLangExt lang = getLanguage();
   QCString pageTitle;
-  if (lang==SrcLangExt_Java || lang==SrcLangExt_CSharp)
+  if (lang==SrcLangExt_Java)
   {
     pageTitle = theTranslator->trPackage(displayName());
   }
@@ -1160,9 +1165,13 @@ QCString NamespaceDef::title() const
 QCString NamespaceDef::compoundTypeString() const
 {
   SrcLangExt lang = getLanguage();
-  if (lang==SrcLangExt_Java || lang==SrcLangExt_CSharp)
+  if (lang==SrcLangExt_Java)
   {
     return "package";
+  }
+  else if(lang==SrcLangExt_CSharp)
+  {
+	return "namespace";
   }
   else if (lang==SrcLangExt_Fortran)
   {
@@ -1184,7 +1193,7 @@ QCString NamespaceDef::compoundTypeString() const
     }
     else
     {
-      err("Internal inconsistency: namespace in IDL not module, library or constant group\n");
+      err_full(getDefFileName(),getDefLine(),"Internal inconsistency: namespace in IDL not module, library or constant group");
     }
   }
   return "";

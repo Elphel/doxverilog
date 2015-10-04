@@ -14,12 +14,12 @@
  * input used in their production; they are not affected by this license.
  *
  */ 
+%option never-interactive
 %{
 #include <stdio.h> 
 #include <stdlib.h>
 #include <assert.h>
 #include <ctype.h>
-#include <unistd.h> 
 
 #include <qstring.h>
 #include <qstringlist.h>
@@ -51,8 +51,8 @@
 #include "namespacedef.h"
 #include "filedef.h"
 
-#define YY_NEVER_INTERACTIVE 1
 #define YY_NO_INPUT 1
+#define YY_NO_UNISTD_H 1
 
 #define MAX_INCLUDE_DEPTH 10
 
@@ -657,7 +657,7 @@ static void tcl_font_end()
 }
 
 //! Codify 'str' with special font class 's'.
-static void tcl_codify(const char *s,char *str)
+static void tcl_codify(const char *s,const char *str)
 {
   if (!tcl.code || !str) return;
   if (s && qstrcmp(s,"NULL")!=0)
@@ -666,7 +666,9 @@ static void tcl_codify(const char *s,char *str)
     tcl.code->startFontClass(s);
     tcl.code_font=s;
   }
-  char *p=str,*sp=p;
+  char *tmp = (char *) malloc(strlen(str)+1);
+  strcpy(tmp, str);
+  char *p=tmp,*sp=p;
   char c;
   bool done=FALSE;
   while (!done)
@@ -676,7 +678,10 @@ static void tcl_codify(const char *s,char *str)
     if (c=='\n')
     {
       tcl.code_line++;
-      *(p-1)='\0';
+      *(p-1)='\0'; // Dimitri: is this really needed?
+                   // wtschueller: As far as I can see: yes.
+                   // Deletes that \n that would produce ugly source listings otherwise.
+                   // However, there may exist more sophisticated solutions.
       tcl.code->codify(sp);
       if (tcl.code_font)
       {
@@ -699,6 +704,7 @@ static void tcl_codify(const char *s,char *str)
       done=TRUE;
     }
   }
+  free(tmp);
   tcl_font_end();
 }
 
@@ -719,7 +725,6 @@ static void tcl_codify(const char *s,const QString &str)
   if (tcl.code==NULL) return;
   tcl_codify(s,str.utf8());
 }
-#endif
 
 //! Codify 'str' with special font class 's'.
 static void tcl_codify(const char *s,const QCString &str)
@@ -727,6 +732,7 @@ static void tcl_codify(const char *s,const QCString &str)
   if (!tcl.code) return;
   tcl_codify(s,str.data());
 }
+#endif
 
 static void tcl_codify_cmd(const char *s,int i)
 {
@@ -1123,7 +1129,6 @@ D
 static tcl_scan *tcl_scan_start(char type, QString content, QCString ns, Entry *entry_cl, Entry *entry_fn)
 {
   tcl_scan *myScan=tcl.scan.at(0);
-  QCString myName;
 tcl_inf("line=%d type=%d '%s'\n",tcl.line_body0,type,content.ascii());
 
   myScan->line1=yylineno;
@@ -2298,7 +2303,7 @@ D
 static void tcl_command_ITCL_CLASS()
 {
 D
-  QCString myNs, myName, myStr;
+  QCString myNs, myName;
   Entry *myEntryCl;
   tcl_scan *myScan = tcl.scan.at(0);
 
@@ -2327,7 +2332,7 @@ D
 static void tcl_command_OO_CLASS()
 {
 D
-  QCString myNs, myName, myStr;
+  QCString myNs, myName;
   //Entry *myEntryNs;
   Entry *myEntryCl;
   tcl_scan *myScan = tcl.scan.at(0);

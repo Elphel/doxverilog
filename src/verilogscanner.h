@@ -58,10 +58,11 @@
 class VerilogScanner : public ParserInterface
 {
   public:
+    QCString name;
     virtual ~VerilogScanner() {}
     VerilogScanner(const char *n)
 	{
-		name+=n;
+		name="Verilog";
 	}
       void finishTranslationUnit() {}
        void startTranslationUnit(const char *) {}
@@ -97,9 +98,9 @@ class VerilogScanner : public ParserInterface
 
 //------ wrapper functions for parsing code ---------------------------------
  
-void codifyVerilogString(char* c,char* color=NULL);
+void codifyVerilogString(const char* c,const char* color=NULL);
 bool generateVerilogMemLink(QCString &clName,QCString& memberName,int type);
-bool generateVerilogClassOrGlobalLink(char *clName);
+bool generateVerilogClassOrGlobalLink(const char *clName);
 void writeVerilogFont(const char *s,const char* text);
 
 //void generateVerilogMemLink(QCString &clName,QCString& memberName);

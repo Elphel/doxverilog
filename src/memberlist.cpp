@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -409,7 +409,6 @@ void MemberList::writePlainDeclarations(OutputList &ol,
               {
                 ol.endDoxyAnchor(md->getOutputFileBase(),md->anchor());
               }
-              ol.endMemberItem();
               if (!md->briefDescription().isEmpty() && Config_getBool("BRIEF_MEMBER_DESC"))
               {
                 DocRoot *rootNode = validatingParseDoc(
@@ -437,6 +436,7 @@ void MemberList::writePlainDeclarations(OutputList &ol,
                 delete rootNode;
               }
               ol.endMemberDeclaration(md->anchor(),inheritId);
+              ol.endMemberItem();
             }
             md->warnIfUndocumented();
             break;
@@ -968,6 +968,15 @@ void MemberList::writeTagFile(FTextStream &tagFile)
     if (md->getLanguage()!=SrcLangExt_VHDL)
     {
       md->writeTagFile(tagFile);
+      if (md->memberType()==MemberType_Enumeration && md->enumFieldList() && !md->isStrong())
+      {
+        MemberListIterator vmli(*md->enumFieldList());
+        MemberDef *vmd;
+        for ( ; (vmd=vmli.current()) ; ++vmli)
+        {
+          vmd->writeTagFile(tagFile);
+        }
+      }
     }
     else
     {

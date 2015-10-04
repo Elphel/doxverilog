@@ -3,7 +3,7 @@
  * 
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -189,7 +189,7 @@ class PrintDocVisitor : public DocVisitor
     void visit(DocFormula *f)
     {
       indent_leaf();
-      printf("<formula name=%s test=%s/>",f->name().data(),f->text().data());
+      printf("<formula name=%s text=%s/>",f->name().data(),f->text().data());
     }
     void visit(DocIndexEntry *i)
     {

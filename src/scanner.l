@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -14,7 +14,7 @@
  * input used in their production; they are not affected by this license.
  *
  */
-  
+%option never-interactive
 %{
 
 /*
@@ -28,7 +28,6 @@
 #include <qarray.h>
 #include <qstack.h>
 #include <qregexp.h>
-#include <unistd.h>
 #include <qfile.h>
   
 #include "scanner.h"
@@ -45,8 +44,8 @@
 
 #include "clangparser.h"
 
-#define YY_NEVER_INTERACTIVE 1
 #define YY_NO_INPUT 1
+#define YY_NO_UNISTD_H 1
 
 /* -----------------------------------------------------------------
  *
@@ -83,7 +82,6 @@ static int		roundCount   = 0 ;
 static int		curlyCount   = 0 ;
 static int		squareCount  = 0 ;
 static int              padCount     = 0 ;
-static QCString         slString;
 static Entry*		current_root = 0 ;
 static Entry*		global_root  = 0 ;
 static Entry*		current      = 0 ;
@@ -114,7 +112,6 @@ static QCString         aliasName;
 static QCString         baseName;
 static QCString*        specName;
 static QCString         formulaText;
-static QCString         formulaEnd;
 static bool             useOverrideCommands = FALSE;
 
 static SrcLangExt       language;
@@ -162,13 +159,7 @@ static bool             needsSemi;
 
 //static int              depthIf;
 static int  	        initBracketCount;
-static QCString         memberGroupRelates;
-static QCString         memberGroupInside;
-static QCString         xrefItemKey;
-static QCString         xrefItemTitle;
-static QCString         xrefListTitle;
 
-static QCString         g_skipBlockName;
 static QCString         oldStyleArgType;
 static QCString         docBackup;
 static QCString         briefBackup;
@@ -182,6 +173,7 @@ static char             docBlockTerm;
 
 static QCString         idlAttr;
 static QCString         idlProp;
+static bool             odlProp;
 
 static bool             g_lexInit = FALSE;
 static bool             externC;
@@ -675,6 +667,7 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
 %x      SkipString
 %x      SkipPHPString
 %x	SkipInits
+%x	SkipC11Inits
 %x	SkipCPP
 %x	SkipCPPBlock
 %x	SkipComment
@@ -1824,7 +1817,7 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
 <FindMembers>{B}*{TYPEDEFPREFIX}{IDLATTR}?"enum"({BN}+("class"|"struct"))?{BN}+ { // for IDL: typedef [something] enum
                                           QCString text=yytext;
 					  isTypedef    = text.find("typedef")!=-1;
-                                          bool isStrongEnum = text.find("struct")!=-1 || text.find("class")!=-1;
+                                          bool isStrongEnum = text.find("struct")!=-1 || text.find("class")!=-1 || insideCS;
 					  if (insideJava)
 					  {
 					    current->section = Entry::CLASS_SEC;
@@ -2811,7 +2804,8 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
 					  }
   					}
 <FindMembers,FindFields,ReadInitializer>"//"([!/]?){B}*{CMD}"}".*|"/*"([!*]?){B}*{CMD}"}"[^*]*"*/"	{
-  					  closeGroup(current,yyFileName,yyLineNr);
+                                          bool insideEnum = YY_START==FindFields || (YY_START==ReadInitializer && lastInitializerContext==FindFields); // see bug746226
+  					  closeGroup(current,yyFileName,yyLineNr,insideEnum);
   					}
 <FindMembers>"="			{ // in PHP code this could also be due to "<?="
   					  current->bodyLine = yyLineNr;
@@ -3398,6 +3392,15 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
 					    idlAttr.resize(0);
 					    idlProp.resize(0);
 					    current->mtype = mtype;
+
+					    if (Config_getBool("IDL_PROPERTY_SUPPORT") &&
+					         current->mtype == Property)
+					    { // we are inside the properties section of a dispinterface
+					      odlProp = true;
+					      current->spec |= Entry::Gettable;
+					      current->spec |= Entry::Settable;
+					    }
+
 					    BEGIN( IDLAttribute );
 					  }
                                           else if (insideCS &&
@@ -3452,7 +3455,14 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
                            current->spec |= Entry::Optional;
                          }
 <IDLAttribute>"readonly" { // on UNO IDL attribute or property
-					  current->spec |= Entry::Readonly;
+					  if (Config_getBool("IDL_PROPERTY_SUPPORT") && odlProp)
+					  {
+					    current->spec ^= Entry::Settable;
+					  }
+					  else
+					  {
+					    current->spec |= Entry::Readonly;
+					  }
 					}
 <IDLAttribute>"bound" { // on UNO IDL attribute or property
 					  current->spec |= Entry::Bound;
@@ -3479,6 +3489,11 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
 					}
 <IDLPropName>{BN}*{ID}{BN}*		{
 					  // return type (probably HRESULT) - skip it
+
+					  if (odlProp)
+					  { // property type
+					    idlProp = yytext;
+					  }
 					}
 <IDLPropName>{ID}{BN}*"("		{
   					  current->name = yytext;
@@ -3486,6 +3501,22 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
   					  current->startLine = yyLineNr;
 					  current->startColumn = yyColNr;
 					  BEGIN( IDLProp );
+					}
+<IDLPropName>{BN}*"("{BN}*{ID}{BN}*")"{BN}*	{
+					   if (odlProp)
+					   {
+					     idlProp += yytext;
+					   }
+					}
+<IDLPropName>{ID}{BN}*/";"		{
+					   if (odlProp)
+					   {
+					     current->name = yytext;
+					     idlProp = idlProp.stripWhiteSpace();
+					     odlProp = false;
+
+					     BEGIN( IDLProp );
+					   }
 					}
 <IDLProp>{BN}*"["[^\]]*"]"{BN}*		{  // attribute of a parameter
 					   idlAttr = yytext;
@@ -3562,6 +3593,7 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
 					  sharpCount++;	
 					}
 <Sharp>{BN}+				{
+                                          current->type += ' ';
   					  lineCount();
 					}
 <Sharp>.				{ current->type += *yytext ; }
@@ -4630,6 +4662,7 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
                                           lineCount();
                                           current->args += " = delete";
 					  current->spec |= Entry::Delete;
+					  current->argList->isDeleted=TRUE;
                                           BEGIN(FuncQual);
                                         }
 <FuncQual,TrailingReturn>{BN}*"="{BN}*"default"{BN}*     { // C++11 explicitly defaulted constructor/assignment operator
@@ -4977,7 +5010,17 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
                                         }
 <SkipInits>{ID}{BN}*"{"                 { // C++11 style initializer (see bug 688647)
                                           lineCount();
+                                          curlyCount=1;
+                                          BEGIN(SkipC11Inits);
+                                        }
+<SkipC11Inits>"{"                       {
                                           ++curlyCount;
+                                        }
+<SkipC11Inits>"}"                       {
+  					  if ( --curlyCount<=0 )
+                                          {
+                                            BEGIN(SkipInits);
+                                          }
                                         }
 <SkipInits>"{"				{ // C++11 style initializer
   					  unput('{');
@@ -5082,7 +5125,7 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
   				          //addToBody(yytext);
   					  BEGIN( SkipCurlyCpp );
 					}
-<SkipCurly,SkipInits>\n			{
+<SkipCurly,SkipC11Inits,SkipInits>\n	{
                                           lineCount();
   				          //addToBody(yytext);
   					}
@@ -5111,22 +5154,22 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
   				          //addToBody(yytext);
                                           lineCount();
 					}
-<SkipInits,SkipCurly,SkipCurlyCpp>"/*"	{
+<SkipInits,SkipC11Inits,SkipCurly,SkipCurlyCpp>"/*"	{
   				          //addToBody(yytext);
   					  lastCContext = YY_START;
 					  BEGIN(SkipComment);
   					}
-<SkipInits,SkipCurly,SkipCurlyCpp>"//"  {
+<SkipInits,SkipC11Inits,SkipCurly,SkipCurlyCpp>"//"  {
   				          //addToBody(yytext);
   					  lastCContext = YY_START;
 					  BEGIN(SkipCxxComment);
   					}
-<SkipInits>"("                          {
+<SkipInits,SkipC11Inits>"("             {
                                           roundCount=0;
                                           lastSkipRoundContext=YY_START;
                                           BEGIN(SkipRound);
                                         }
-<SkipInits>\"				{
+<SkipInits,SkipC11Inits>\"	        {
   					  lastStringContext=YY_START;
   				          BEGIN( SkipString ); 
 					}
@@ -5161,7 +5204,7 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
 					    BEGIN(SkipPHPString);
 					  }
 					}
-<SkipInits,SkipCurly,SkipCurlyCpp>.	{ }
+<SkipInits,SkipC11Inits,SkipCurly,SkipCurlyCpp>.	{ }
 <SkipString,SkipPHPString>\\.		{ }
 <SkipString>\"				{ 
   					  BEGIN( lastStringContext ); 
@@ -5591,7 +5634,13 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
 					  BEGIN( ClassVar );
 					}
 <ClassVar>":"				{ 
-					  if (current->section==Entry::ENUM_SEC) // enum E:2, see bug 313527, 
+                                          if (current->section==Entry::VARIABLE_SEC) // enum A B:2, see bug 748208
+                                          {
+                                            current->bitfields+=":";
+                                            current->args.resize(0);
+                                            BEGIN(BitFields);
+                                          }
+                                          else if (current->section==Entry::ENUM_SEC) // enum E:2, see bug 313527, 
                                                                                  // or C++11 style enum: 'E : unsigned int {...}'
 					  {
 					    current->args.resize(0);
@@ -5950,7 +5999,7 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
 					}
 <Comment>.				{ current->program += *yytext ; }
 
-<FindMembers,FindFields,MemberSpec,FuncQual,SkipCurly,Operator,ClassVar,SkipInits,Bases,OldStyleArgs>("//"{B}*)?"/*!" { 
+<FindMembers,FindFields,MemberSpec,FuncQual,SkipCurly,Operator,ClassVar,SkipInits,SkipC11Inits,Bases,OldStyleArgs>("//"{B}*)?"/*!" { 
   					  //printf("Start doc block at %d\n",yyLineNr);
 					  removeSlashes=(yytext[1]=='/');
 					  tmpDocType=-1;
@@ -6222,9 +6271,16 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
                                           g_nestedComment=FALSE;
   					  BEGIN(DocCopyBlock);
   					}
-<DocBlock>"~~~"[~]*                     {
+<DocBlock>^({B}*"*"+)?{B}{0,3}"~~~"[~]*                {
                                           docBlock+=yytext;
                                           docBlockName="~~~";
+                                          g_fencedSize=yyleng;
+                                          g_nestedComment=FALSE;
+                                          BEGIN(DocCopyBlock);
+                                        }
+<DocBlock>^({B}*"*"+)?{B}{0,3}"```"[`]*                {
+                                          docBlock+=yytext;
+                                          docBlockName="```";
                                           g_fencedSize=yyleng;
                                           g_nestedComment=FALSE;
                                           BEGIN(DocCopyBlock);
@@ -6340,7 +6396,14 @@ OPERATOR  "operator"{B}*({ARITHOP}|{ASSIGNOP}|{LOGICOP}|{BITOP})
 					    REJECT;
 					  }
   					}
-<DocCopyBlock>"~~~"[~]*                 {
+<DocCopyBlock>^({B}*"*"+)?{B}{0,3}"~~~"[~]* {
+                                          docBlock+=yytext;
+                                          if (g_fencedSize==yyleng)
+                                          {
+                                            BEGIN(DocBlock);
+                                          }
+                                        }
+<DocCopyBlock>^({B}*"*"+)?{B}{0,3}"```"[`]*                 {
                                           docBlock+=yytext;
                                           if (g_fencedSize==yyleng)
                                           {
@@ -6685,7 +6748,8 @@ static void parseCompounds(Entry *rt)
       initEntry();
 
       // deep copy group list from parent (see bug 727732)
-      if (rt->groups)
+      static bool autoGroupNested = Config_getBool("GROUP_NESTED_COMPOUNDS");
+      if (rt->groups && ce->section!=Entry::ENUM_SEC && !(ce->spec&Entry::Enum))
       {
         QListIterator<Grouping> gli(*rt->groups);
         Grouping *g;

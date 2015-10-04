@@ -3,7 +3,7 @@
  * 
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -156,8 +156,6 @@ static const char svgZoomFooter[] =
 
 //--------------------------------------------------------------------
 
-static const int maxCmdLine = 40960;
-
 /*! mapping from protection levels to color names */
 static const char *normalEdgeColorMap[] =
 {
@@ -166,7 +164,8 @@ static const char *normalEdgeColorMap[] =
   "firebrick4",    // Private
   "darkorchid3",   // "use" relation
   "grey75",        // Undocumented
-  "orange"         // template relation
+  "orange",        // template relation
+  "orange"         // type constraint
 };
 
 static const char *normalArrowStyleMap[] =
@@ -192,7 +191,8 @@ static const char *umlEdgeColorMap[] =
   "firebrick4",    // Private
   "grey25",        // "use" relation
   "grey75",        // Undocumented
-  "orange"         // template relation
+  "orange",        // template relation
+  "orange"         // type constraint
 };
 
 static const char *umlArrowStyleMap[] =
@@ -383,12 +383,15 @@ static bool convertMapFile(FTextStream &t,const char *mapName,
   while (!f.atEnd()) // foreach line
   {
     QCString buf(maxLineLen);
-    int numBytes = f.readLine(buf.data(),maxLineLen);
-    buf[numBytes-1]='\0';
-
-    if (buf.left(5)=="<area")
+    int numBytes = f.readLine(buf.rawData(),maxLineLen);
+    if (numBytes>0)
     {
-      t << replaceRef(buf,relPath,urlOnly,context);
+      buf.resize(numBytes+1);
+
+      if (buf.left(5)=="<area")
+      {
+        t << replaceRef(buf,relPath,urlOnly,context);
+      }
     }
   }
   return TRUE;
@@ -658,7 +661,8 @@ static bool writeSVGFigureLink(FTextStream &out,const QCString &relPath,
 // support the PNG format, we need to check the result.
 static void checkDotResult(const QCString &imgName)
 {
-  if (Config_getEnum("DOT_IMAGE_FORMAT")=="png")
+  QCString imgExt = getDotImageExtension();
+  if (imgExt=="png")
   {
     FILE *f = portable_fopen(imgName,"rb");
     if (f)
@@ -733,7 +737,7 @@ static bool checkAndUpdateMd5Signature(const QCString &baseName,
   {
     // read checksum
     QCString md5stored(33);
-    int bytesRead=f.readBlock(md5stored.data(),32);
+    int bytesRead=f.readBlock(md5stored.rawData(),32);
     md5stored[32]='\0';
     // compare checksum
     if (bytesRead==32 && md5==md5stored)
@@ -812,7 +816,11 @@ void DotRunner::addPostProcessing(const char *cmd,const char *args)
 bool DotRunner::run()
 {
   int exitCode=0;
-  QCString dotExe   = Config_getString("DOT_PATH")+"dot";
+  // we need to use data here to make a copy of the string, as Config_getString can be called by
+  // multiple threads simulaneously and the reference counting is not thread safe.
+  QCString dotExe   = Config_getString("DOT_PATH").data();
+  dotExe+="dot";
+
   bool multiTargets = Config_getBool("DOT_MULTI_TARGETS");
   QCString dotArgs;
   QListIterator<QCString> li(m_jobs);
@@ -988,11 +996,12 @@ bool DotFilePatcher::run()
   while (!fi.atEnd()) // foreach line
   {
     QCString line(maxLineLen);
-    int numBytes = fi.readLine(line.data(),maxLineLen);
+    int numBytes = fi.readLine(line.rawData(),maxLineLen);
     if (numBytes<=0)
     {
       break;
     }
+    line.resize(numBytes+1);
 
     //printf("line=[%s]\n",line.stripWhiteSpace().data());
     int i;
@@ -1135,11 +1144,12 @@ bool DotFilePatcher::run()
     while (!fi.atEnd()) // foreach line
     {
       QCString line(maxLineLen);
-      int numBytes = fi.readLine(line.data(),maxLineLen);
+      int numBytes = fi.readLine(line.rawData(),maxLineLen);
       if (numBytes<=0)
       {
         break;
       }
+      line.resize(numBytes+1);
       Map *map = m_maps.at(0); // there is only one 'map' for a SVG file
       t << replaceRef(line,map->relPath,map->urlOnly,map->context,"_top");
     }
@@ -1964,8 +1974,8 @@ void DotNode::writeXML(FTextStream &t,bool isClassGraph)
   if (!m_url.isEmpty())
   {
     QCString url(m_url);
-    char *refPtr = url.data();
-    char *urlPtr = strchr(url.data(),'$');
+    const char *refPtr = url.data();
+    char *urlPtr = strchr(url.rawData(),'$');
     if (urlPtr)
     {
       *urlPtr++='\0';
@@ -1996,6 +2006,7 @@ void DotNode::writeXML(FTextStream &t,bool isClassGraph)
           case EdgeInfo::Red:     t << "private-inheritance"; break;
           case EdgeInfo::Purple:  t << "usage"; break;
           case EdgeInfo::Orange:  t << "template-instance"; break;
+          case EdgeInfo::Orange2: t << "type-constraint"; break;
           case EdgeInfo::Grey:    ASSERT(0); break;
         }
       }
@@ -2032,8 +2043,8 @@ void DotNode::writeDocbook(FTextStream &t,bool isClassGraph)
   if (!m_url.isEmpty())
   {
     QCString url(m_url);
-    char *refPtr = url.data();
-    char *urlPtr = strchr(url.data(),'$');
+    const char *refPtr = url.data();
+    char *urlPtr = strchr(url.rawData(),'$');
     if (urlPtr)
     {
       *urlPtr++='\0';
@@ -2064,6 +2075,7 @@ void DotNode::writeDocbook(FTextStream &t,bool isClassGraph)
           case EdgeInfo::Red:     t << "private-inheritance"; break;
           case EdgeInfo::Purple:  t << "usage"; break;
           case EdgeInfo::Orange:  t << "template-instance"; break;
+          case EdgeInfo::Orange2: t << "type-constraint"; break;
           case EdgeInfo::Grey:    ASSERT(0); break;
         }
       }
@@ -2105,8 +2117,8 @@ void DotNode::writeDEF(FTextStream &t)
   if (!m_url.isEmpty())
   {
     QCString url(m_url);
-    char *refPtr = url.data();
-    char *urlPtr = strchr(url.data(),'$');
+    const char *refPtr = url.data();
+    char *urlPtr = strchr(url.rawData(),'$');
     if (urlPtr)
     {
       *urlPtr++='\0';
@@ -2141,6 +2153,7 @@ void DotNode::writeDEF(FTextStream &t)
         case EdgeInfo::Red:     t << "private-inheritance"; break;
         case EdgeInfo::Purple:  t << "usage"; break;
         case EdgeInfo::Orange:  t << "template-instance"; break;
+        case EdgeInfo::Orange2: t << "type-constraint"; break;
         case EdgeInfo::Grey:    ASSERT(0); break;
       }
       t << ';' << endl;
@@ -2266,7 +2279,8 @@ void DotGfxHierarchyTable::createGraph(DotNode *n,FTextStream &out,
 {
   QDir d(path);
   QCString baseName;
-  QCString imgExt = Config_getEnum("DOT_IMAGE_FORMAT");
+  QCString imgExt = getDotImageExtension();
+  QCString imgFmt = Config_getEnum("DOT_IMAGE_FORMAT");
   baseName.sprintf("inherit_graph_%d",id);
   QCString imgName = baseName+"."+ imgExt;
   QCString mapName = baseName+".map";
@@ -2300,7 +2314,7 @@ void DotGfxHierarchyTable::createGraph(DotNode *n,FTextStream &out,
   uchar md5_sig[16];
   QCString sigStr(33);
   MD5Buffer((const unsigned char *)theGraph.data(),theGraph.length(),md5_sig);
-  MD5SigToString(md5_sig,sigStr.data(),33);
+  MD5SigToString(md5_sig,sigStr.rawData(),33);
   bool regenerate=FALSE;
   if (checkAndUpdateMd5Signature(absBaseName,sigStr) || 
       !checkDeliverables(absImgName,absMapName))
@@ -2316,7 +2330,7 @@ void DotGfxHierarchyTable::createGraph(DotNode *n,FTextStream &out,
     resetReNumbering();
 
     DotRunner *dotRun = new DotRunner(dotName,d.absPath().data(),TRUE,absImgName);
-    dotRun->addJob(imgExt,absImgName);
+    dotRun->addJob(imgFmt,absImgName);
     dotRun->addJob(MAP_CMD,absMapName);
     DotManager::instance()->addRun(dotRun);
   }
@@ -2584,7 +2598,7 @@ void DotClassGraph::addClass(ClassDef *cd,DotNode *n,int prot,
 {
   if (Config_getBool("HIDE_UNDOC_CLASSES") && !cd->isLinkable()) return;
 
-  int edgeStyle = (label || prot==EdgeInfo::Orange) ? EdgeInfo::Dashed : EdgeInfo::Solid;
+  int edgeStyle = (label || prot==EdgeInfo::Orange || prot==EdgeInfo::Orange2) ? EdgeInfo::Dashed : EdgeInfo::Solid;
   QCString className;
   if (usedName) // name is a typedef
   {
@@ -2790,6 +2804,7 @@ bool DotClassGraph::determineVisibleNodes(DotNode *rootNode,
 
 void DotClassGraph::buildGraph(ClassDef *cd,DotNode *n,bool base,int distance)
 {
+  static bool templateRelations = Config_getBool("TEMPLATE_RELATIONS");
   //printf("DocClassGraph::buildGraph(%s,distance=%d,base=%d)\n",
   //    cd->name().data(),distance,base);
   // ---- Add inheritance relations
@@ -2849,10 +2864,43 @@ void DotClassGraph::buildGraph(ClassDef *cd,DotNode *n,bool base,int distance)
       }
     }
   }
+  if (templateRelations && base)
+  {
+    ConstraintClassDict *dict = cd->templateTypeConstraints();
+    if (dict)
+    {
+      ConstraintClassDictIterator ccdi(*dict);
+      ConstraintClassDef *ccd;
+      for (;(ccd=ccdi.current());++ccdi)
+      {
+        QCString label;
+        QDictIterator<void> dvi(*ccd->accessors);
+        const char *s;
+        bool first=TRUE;
+        int count=0;
+        int maxLabels=10;
+        for (;(s=dvi.currentKey()) && count<maxLabels;++dvi,++count)
+        {
+          if (first)
+          {
+            label=s;
+            first=FALSE;
+          }
+          else
+          {
+            label+=QCString("\n")+s;
+          }
+        }
+        if (count==maxLabels) label+="\n...";
+        //printf("addClass: %s templSpec=%s\n",ucd->classDef->name().data(),ucd->templSpecifiers.data());
+        addClass(ccd->classDef,n,EdgeInfo::Orange2,label,0,
+            0,TRUE,distance);
+      }
+    }
+  }
 
   // ---- Add template instantiation relations
 
-  static bool templateRelations = Config_getBool("TEMPLATE_RELATIONS");
   if (templateRelations)
   {
     if (base) // template relations for base classes
@@ -3028,7 +3076,7 @@ QCString computeMd5Signature(DotNode *root,
   uchar md5_sig[16];
   QCString sigStr(33);
   MD5Buffer((const unsigned char *)buf.data(),buf.length(),md5_sig);
-  MD5SigToString(md5_sig,sigStr.data(),33);
+  MD5SigToString(md5_sig,sigStr.rawData(),33);
   if (reNumber)
   {
     resetReNumbering();
@@ -3121,7 +3169,8 @@ QCString DotClassGraph::writeGraph(FTextStream &out,
   baseName = convertNameToFile(diskName());
 
   // derive target file names from baseName
-  QCString imgExt = Config_getEnum("DOT_IMAGE_FORMAT");
+  QCString imgExt = getDotImageExtension();
+  QCString imgFmt = Config_getEnum("DOT_IMAGE_FORMAT");
   QCString absBaseName = d.absPath().utf8()+"/"+baseName;
   QCString absDotName  = absBaseName+".dot";
   QCString absMapName  = absBaseName+".map";
@@ -3147,11 +3196,9 @@ QCString DotClassGraph::writeGraph(FTextStream &out,
     regenerate=TRUE;
     if (graphFormat==GOF_BITMAP) // run dot to create a bitmap image
     {
-      QCString dotArgs(maxCmdLine);
-
       DotRunner *dotRun = new DotRunner(absDotName,
                               d.absPath().data(),TRUE,absImgName);
-      dotRun->addJob(imgExt,absImgName);
+      dotRun->addJob(imgFmt,absImgName);
       if (generateImageMap) dotRun->addJob(MAP_CMD,absMapName);
       DotManager::instance()->addRun(dotRun);
 
@@ -3479,7 +3526,8 @@ QCString DotInclDepGraph::writeGraph(FTextStream &out,
   QCString mapName=escapeCharsInString(m_startNode->m_label,FALSE);
   if (m_inverse) mapName+="dep";
 
-  QCString imgExt = Config_getEnum("DOT_IMAGE_FORMAT");
+  QCString imgExt = getDotImageExtension();
+  QCString imgFmt = Config_getEnum("DOT_IMAGE_FORMAT");
   QCString absBaseName = d.absPath().utf8()+"/"+baseName;
   QCString absDotName  = absBaseName+".dot";
   QCString absMapName  = absBaseName+".map";
@@ -3506,9 +3554,8 @@ QCString DotInclDepGraph::writeGraph(FTextStream &out,
     if (graphFormat==GOF_BITMAP)
     {
       // run dot to create a bitmap image
-      QCString dotArgs(maxCmdLine);
       DotRunner *dotRun = new DotRunner(absDotName,d.absPath().data(),TRUE,absImgName);
-      dotRun->addJob(imgExt,absImgName);
+      dotRun->addJob(imgFmt,absImgName);
       if (generateImageMap) dotRun->addJob(MAP_CMD,absMapName);
       DotManager::instance()->addRun(dotRun);
     }
@@ -3792,7 +3839,8 @@ QCString DotCallGraph::writeGraph(FTextStream &out, GraphOutputFormat graphForma
   QCString baseName = m_diskName + (m_inverse ? "_icgraph" : "_cgraph");
   QCString mapName  = baseName;
 
-  QCString imgExt = Config_getEnum("DOT_IMAGE_FORMAT");
+  QCString imgExt = getDotImageExtension();
+  QCString imgFmt = Config_getEnum("DOT_IMAGE_FORMAT");
   QCString absBaseName = d.absPath().utf8()+"/"+baseName;
   QCString absDotName  = absBaseName+".dot";
   QCString absMapName  = absBaseName+".map";
@@ -3819,9 +3867,8 @@ QCString DotCallGraph::writeGraph(FTextStream &out, GraphOutputFormat graphForma
     if (graphFormat==GOF_BITMAP)
     {
       // run dot to create a bitmap image
-      QCString dotArgs(maxCmdLine);
       DotRunner *dotRun = new DotRunner(absDotName,d.absPath().data(),TRUE,absImgName);
-      dotRun->addJob(imgExt,absImgName);
+      dotRun->addJob(imgFmt,absImgName);
       if (generateImageMap) dotRun->addJob(MAP_CMD,absMapName);
       DotManager::instance()->addRun(dotRun);
 
@@ -3947,7 +3994,8 @@ QCString DotDirDeps::writeGraph(FTextStream &out,
   QCString baseName=m_dir->getOutputFileBase()+"_dep";
   QCString mapName=escapeCharsInString(baseName,FALSE);
 
-  QCString imgExt = Config_getEnum("DOT_IMAGE_FORMAT");
+  QCString imgExt = getDotImageExtension();
+  QCString imgFmt = Config_getEnum("DOT_IMAGE_FORMAT");
   QCString absBaseName = d.absPath().utf8()+"/"+baseName;
   QCString absDotName  = absBaseName+".dot";
   QCString absMapName  = absBaseName+".map";
@@ -3962,7 +4010,7 @@ QCString DotDirDeps::writeGraph(FTextStream &out,
   uchar md5_sig[16];
   QCString sigStr(33);
   MD5Buffer((const unsigned char *)theGraph.data(),theGraph.length(),md5_sig);
-  MD5SigToString(md5_sig,sigStr.data(),33);
+  MD5SigToString(md5_sig,sigStr.rawData(),33);
   bool regenerate=FALSE;
   if (checkAndUpdateMd5Signature(absBaseName,sigStr) ||
       !checkDeliverables(graphFormat==GOF_BITMAP ? absImgName :
@@ -3984,9 +4032,8 @@ QCString DotDirDeps::writeGraph(FTextStream &out,
     if (graphFormat==GOF_BITMAP)
     {
       // run dot to create a bitmap image
-      QCString dotArgs(maxCmdLine);
       DotRunner *dotRun = new DotRunner(absDotName,d.absPath().data(),TRUE,absImgName);
-      dotRun->addJob(imgExt,absImgName);
+      dotRun->addJob(imgFmt,absImgName);
       if (generateImageMap) dotRun->addJob(MAP_CMD,absMapName);
       DotManager::instance()->addRun(dotRun);
     }
@@ -4108,10 +4155,11 @@ void generateGraphLegend(const char *path)
   uchar md5_sig[16];
   QCString sigStr(33);
   MD5Buffer((const unsigned char *)theGraph.data(),theGraph.length(),md5_sig);
-  MD5SigToString(md5_sig,sigStr.data(),33);
+  MD5SigToString(md5_sig,sigStr.rawData(),33);
   QCString absBaseName = (QCString)path+"/graph_legend";
   QCString absDotName  = absBaseName+".dot";
-  QCString imgExt      = Config_getEnum("DOT_IMAGE_FORMAT");
+  QCString imgExt = getDotImageExtension();
+  QCString imgFmt = Config_getEnum("DOT_IMAGE_FORMAT");
   QCString imgName     = "graph_legend."+imgExt;
   QCString absImgName  = absBaseName+"."+imgExt;
   if (checkAndUpdateMd5Signature(absBaseName,sigStr) ||
@@ -4131,7 +4179,7 @@ void generateGraphLegend(const char *path)
     // run dot to generate the a bitmap image from the graph
 
     DotRunner *dotRun = new DotRunner(absDotName,d.absPath().data(),TRUE,absImgName);
-    dotRun->addJob(imgExt,absImgName);
+    dotRun->addJob(imgFmt,absImgName);
     DotManager::instance()->addRun(dotRun);
   }
   else
@@ -4159,14 +4207,15 @@ void writeDotGraphFromFile(const char *inFile,const char *outDir,
     err("Output dir %s does not exist!\n",outDir); exit(1);
   }
 
-  QCString imgExt = Config_getEnum("DOT_IMAGE_FORMAT");
+  QCString imgExt = getDotImageExtension();
+  QCString imgFmt = Config_getEnum("DOT_IMAGE_FORMAT");
   QCString imgName = (QCString)outFile+"."+imgExt;
   QCString absImgName = d.absPath().utf8()+"/"+imgName;
   QCString absOutFile = d.absPath().utf8()+"/"+outFile;
 
   DotRunner dotRun(inFile,d.absPath().data(),FALSE,absImgName);
   if (format==GOF_BITMAP)
-    dotRun.addJob(imgExt,absImgName);
+    dotRun.addJob(imgFmt,absImgName);
   else // format==GOF_EPS
   {
     if (Config_getBool("USE_PDFLATEX"))
@@ -4214,7 +4263,8 @@ void writeDotImageMapFromFile(FTextStream &t,
   }
 
   QCString mapName = baseName+".map";
-  QCString imgExt = Config_getEnum("DOT_IMAGE_FORMAT");
+  QCString imgExt = getDotImageExtension();
+  QCString imgFmt = Config_getEnum("DOT_IMAGE_FORMAT");
   QCString imgName = baseName+"."+imgExt;
   QCString absOutFile = d.absPath().utf8()+"/"+mapName;
 
@@ -4508,11 +4558,11 @@ QCString DotGroupCollaboration::writeGraph( FTextStream &t,
   uchar md5_sig[16];
   QCString sigStr(33);
   MD5Buffer((const unsigned char *)theGraph.data(),theGraph.length(),md5_sig);
-  MD5SigToString(md5_sig,sigStr.data(),33);
-  QCString imgExt      = Config_getEnum("DOT_IMAGE_FORMAT");
+  MD5SigToString(md5_sig,sigStr.rawData(),33);
+  QCString imgExt = getDotImageExtension();
+  QCString imgFmt = Config_getEnum("DOT_IMAGE_FORMAT");
   QCString baseName    = m_diskName;
   QCString imgName     = baseName+"."+imgExt;
-  QCString mapName     = baseName+".map";
   QCString absPath     = d.absPath().data();
   QCString absBaseName = absPath+"/"+baseName;
   QCString absDotName  = absBaseName+".dot";
@@ -4539,10 +4589,8 @@ QCString DotGroupCollaboration::writeGraph( FTextStream &t,
 
     if (graphFormat==GOF_BITMAP) // run dot to create a bitmap image
     {
-      QCString dotArgs(maxCmdLine);
-
       DotRunner *dotRun = new DotRunner(absDotName,d.absPath().data(),FALSE);
-      dotRun->addJob(imgExt,absImgName);
+      dotRun->addJob(imgFmt,absImgName);
       if (writeImageMap) dotRun->addJob(MAP_CMD,absMapName);
       DotManager::instance()->addRun(dotRun);
 

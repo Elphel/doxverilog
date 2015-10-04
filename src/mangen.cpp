@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -107,7 +107,6 @@ ManGenerator::~ManGenerator()
 
 void ManGenerator::init()
 {
-  QCString ext = getExtension();
   QCString &manOutput = Config_getString("MAN_OUTPUT");
   
   QDir d(manOutput);
@@ -307,6 +306,7 @@ void ManGenerator::docify(const char *str)
     {
       switch(c)
       {
+        case '-':  t << "\\-"; break; // see  bug747780
         case '.':  t << "\\&."; break; // see  bug652277
         case '\\': t << "\\\\"; col++; break;
         case '\n': t << "\n"; col=0; break;

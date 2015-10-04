@@ -3,7 +3,7 @@
  * 
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -45,7 +45,7 @@ enum EmbeddedOutputFormat { EOF_Html, EOF_LaTeX, EOF_Rtf, EOF_DocBook };
 /** Attributes of an edge of a dot graph */
 struct EdgeInfo
 {
-  enum Colors { Blue=0, Green=1, Red=2, Purple=3, Grey=4, Orange=5 };
+  enum Colors { Blue=0, Green=1, Red=2, Purple=3, Grey=4, Orange=5, Orange2=6 };
   enum Styles { Solid=0, Dashed=1 };
   EdgeInfo() : m_color(0), m_style(0), m_labColor(0) {}
  ~EdgeInfo() {}

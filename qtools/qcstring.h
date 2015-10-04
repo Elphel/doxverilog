@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 1997-2004 by Dimitri van Heesch.
+** Copyright (C) 1997-2015 by Dimitri van Heesch.
 **
 ** Permission to use, copy, modify, and distribute this software and its
 ** documentation under the terms of the GNU General Public License is hereby
@@ -132,9 +132,13 @@ class QCString
 {
 public:
     /** creates an empty string */
-    QCString() : m_rep()
+    
+	const char *pToMrep;
+	
+	QCString() : m_rep()
     {
-    }
+    pToMrep = m_rep.data();
+	}
 
     /** destroys the string */
    ~QCString()
@@ -144,7 +148,8 @@ public:
     /** makes a copy of a string. */
     QCString( const QCString &s ) : m_rep(s.m_rep)
     {
-    }
+     pToMrep=m_rep.data();
+	}
 
     /** creates a string with room for size characters
      *  @param[in] size the number of character to allocate (including the 0-terminator)
@@ -158,24 +163,28 @@ public:
      */
     QCString( const char *str ) : m_rep(str)
     {
-    }
+     pToMrep=m_rep.data();
+	}
 
     /** creates a string from \a str and copies over the first \a maxlen characters. */
     QCString( const char *str, uint maxlen ) : m_rep(str,maxlen)
     {
-    }
+     pToMrep=m_rep.data();
+	}
 
     /** replaces the contents by that of string \a s. */
     QCString &operator=( const QCString &s )
     {
       m_rep = s.m_rep;
-      return *this;
+      pToMrep=m_rep.data();
+	  return *this;
     }
 
     /** replaces the contents by that of C string \a str. */
     QCString &operator=( const char *str)
     {
       m_rep = str;
+	  pToMrep=m_rep.data();
       return *this;
     }
 
@@ -204,9 +213,18 @@ public:
     }
 
     /** Returns a pointer to the contents of the string in the form of a 0-terminated C string */
-    char *data() const
+    const char *data() const
     {
       return m_rep.data();
+    }
+
+    /** Returns a writable pointer to the data.
+     *  @warning if the string is shared it will modifying the string directly and
+     *  this will overwrite all copies as well!
+     */
+    char *rawData() const
+    {
+      return m_rep.rawData();
     }
 
     /** Resizes the string to hold \a newlen characters
@@ -242,7 +260,7 @@ public:
     {
       if (length()==0) return QCString();
       QCString cs(length()+1);
-      memcpy(cs.data(),data(),length());
+      memcpy(cs.rawData(),data(),length());
       return cs;
     }
 
@@ -299,8 +317,9 @@ public:
       int len1 = length();
       int len2 = (int)strlen(str);
       resize(len1+len2+1);
-      memcpy(data()+len1,str,len2);
-      return *this;
+      memcpy(rawData()+len1,str,len2);
+      pToMrep=m_rep.data();
+	  return *this;
     }
 
     /** Appends character \a c to this string and returns a reference to the result. */
@@ -308,7 +327,7 @@ public:
     {
       int len = length();
       resize(len+2);
-      data()[len]=c;
+      rawData()[len]=c;
       return *this;
     }
 
@@ -568,9 +587,21 @@ public:
         }
         uint length() const
         {
-          return u.s.isShort ? u.s.len : u.l.d->len;
+          uint l = u.s.isShort ? u.s.len : u.l.d->len;
+          return l;
         }
-        char *data() const
+        const char *data() const
+        {
+          if (u.s.isShort)
+          {
+            return u.s.len==0 ? 0 : u.s.str;
+          }
+          else
+          {
+            return u.l.d->len==0 ? 0 : u.l.d->toStr();
+          }
+        }
+        char *rawData() const
         {
           if (u.s.isShort)
           {
@@ -578,6 +609,7 @@ public:
           }
           else
           {
+            //assert(u.l.d->refCount==0); // string may not be shared when accessed raw
             return u.l.d->len==0 ? 0 : u.l.d->toStr();
           }
         }
@@ -645,24 +677,20 @@ public:
         bool fill( char c, int len )
         {
           if (len<0) len=length();
-          if (len!=(int)length())
+          if (!u.s.isShort) // detach from shared string
+          {
+            resize(len+1);
+          }
+          else if (len!=(int)length())
           {
             if (len>0)
             {
               resize(len+1);
             }
-            else
-            {
-              if (!u.s.isShort)
-              {
-                u.l.d->dispose();
-              }
-              initEmpty();
-            }
           }
           if (len>0)
           {
-            memset(data(),c,len);
+            memset(rawData(),c,len);
           }
           return TRUE;
         }
@@ -764,7 +792,7 @@ Q_EXPORT inline QCString operator+( const QCString &s1, char c2 )
 {
     QCString tmp( s1.data() );
     tmp += c2;
-    return tmp;
+	return tmp;
 }
 
 Q_EXPORT inline QCString operator+( char c1, const QCString &s2 )

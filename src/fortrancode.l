@@ -23,7 +23,7 @@
        - links to interface functions 
        - references to variables
 **/
-
+%option never-interactive
 %{
 
 /*
@@ -50,14 +50,15 @@
 #include "filedef.h"
 #include "namespacedef.h"
 #include "tooltip.h"
+#include "fortrancode.h"
 
 // Toggle for some debugging info
 //#define DBG_CTX(x) fprintf x
 #define DBG_CTX(x) do { } while(0)
 
-#define YY_NEVER_INTERACTIVE 1
 #define YY_NO_TOP_STATE 1
 #define YY_NO_INPUT 1
+#define YY_NO_UNISTD_H 1
 
 /*
  * For fixed formatted code position 6 is of importance (continuation character).
@@ -211,9 +212,14 @@ static void endFontClass()
 
 static void startFontClass(const char *s)
 {
-  endFontClass();
-  g_code->startFontClass(s);
-  g_currentFontClass=s;
+  // if font class is already set don't stop and start it.
+  // strcmp does not like null pointers as input.
+  if (!g_currentFontClass || !s || strcmp(g_currentFontClass,s))
+  {
+    endFontClass();
+    g_code->startFontClass(s);
+    g_currentFontClass=s;
+  }
 }
 
 static void setCurrentDoc(const QCString &anchor)
@@ -724,7 +730,7 @@ ATTR_SPEC (IMPLICIT|ALLOCATABLE|DIMENSION{ARGS}|EXTERNAL|{INTENT_SPEC}|INTRINSIC
 ACCESS_SPEC (PROTECTED|PRIVATE|PUBLIC)
 /* Assume that attribute statements are almost the same as attributes. */
 ATTR_STMT {ATTR_SPEC}|DIMENSION
-FLOW      (DO|SELECT|CASE|SELECT{BS}(CASE|TYPE)|WHERE|IF|THEN|ELSE|WHILE|FORALL|ELSEWHERE|ELSEIF|RETURN|CONTINUE|EXIT)
+FLOW      (DO|SELECT|CASE|SELECT{BS}(CASE|TYPE)|WHERE|IF|THEN|ELSE|WHILE|FORALL|ELSEWHERE|ELSEIF|RETURN|CONTINUE|EXIT|GO{BS}TO)
 COMMANDS  (FORMAT|CONTAINS|MODULE{BS_}PROCEDURE|WRITE|READ|ALLOCATE|ALLOCATED|ASSOCIATED|PRESENT|DEALLOCATE|NULLIFY|SIZE|INQUIRE|OPEN|CLOSE|FLUSH|DATA|COMMON)
 IGNORE    (CALL)
 PREFIX    (RECURSIVE{BS_}|IMPURE{BS_}|PURE{BS_}|ELEMENTAL{BS_}){0,3}(RECURSIVE|IMPURE|PURE|ELEMENTAL)?
@@ -1179,11 +1185,22 @@ PREFIX    (RECURSIVE{BS_}|IMPURE{BS_}|PURE{BS_}|ELEMENTAL{BS_}){0,3}(RECURSIVE|I
             }
                                           YY_FTN_RESET
   					}
-<*>^{BS}"type"{BS}"="                     { g_code->codify(yytext); }
+<*>^{BS}"type"{BS}"="                   { g_code->codify(yytext); }
 
-<*>.					{ 
-  					  g_code->codify(yytext);
-					}
+<*>.                                    { 
+                                          if (g_isFixedForm && yy_my_start > fixedCommentAfter)
+                                          {
+                                            //yy_push_state(YY_START);
+                                            //BEGIN(DocBlock);
+                                            //docBlock=yytext;
+                                            startFontClass("comment");
+                                            codifyLines(yytext);
+                                          }
+                                          else
+                                          {
+                                            g_code->codify(yytext);
+                                          }
+                                        }
 <*>{LOG_OPER}                           { // Fortran logical comparison keywords
                                           g_code->codify(yytext);
                                         }

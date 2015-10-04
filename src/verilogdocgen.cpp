@@ -51,7 +51,62 @@ static QDict<MemberDef> globalMemDict(5003);
 static QList<MemberDef> includeMemList;
 static QDict<MemberDef> classglobDict(17);
 static QDict<ClassDef>  classInnerDict(17);
+static void writeUCFLink(const MemberDef* mdef,OutputList &ol);
 
+static void writeLink(const MemberDef* mdef,OutputList &ol)
+{
+  ol.writeObjectLink(mdef->getReference(),
+      mdef->getOutputFileBase(),
+      mdef->anchor(),
+      mdef->name());
+}
+
+static QCString splitString(QCString& str,char c)
+{
+  QCString n=str;
+  int i=str.find(c);
+  if (i>0)
+  {
+    n=str.left(i);
+    str=str.remove(0,i+1);
+  }
+  return n;
+}
+
+static void startFonts(const QCString& q, const char *keyword,OutputList& ol)
+{
+  ol.startFontClass(keyword);
+  ol.docify(q.data());
+  ol.endFontClass();
+}
+
+static bool membersHaveSpecificType(MemberList *ml,uint64 type)
+{
+  if (ml==0) return FALSE;
+  MemberDef *mdd=0;
+  MemberListIterator mmli(*ml);
+  for ( ; (mdd=mmli.current()); ++mmli )
+  {
+    if (mdd->getMemberSpecifiers()==type) //is type in class
+    {
+      return TRUE;
+    }
+  }
+  if (ml->getMemberGroupList())
+  {
+    MemberGroupListIterator mgli(*ml->getMemberGroupList());
+    MemberGroup *mg;
+    while ((mg=mgli.current()))
+    {
+      if (mg->members())
+      {
+        if (membersHaveSpecificType(mg->members(),type)) return TRUE;
+      }
+      ++mgli;
+    }
+  }
+  return FALSE;
+}
 
 Entry* VerilogDocGen::getEntryAtLine(const Entry* ce,int line)
 {
@@ -230,7 +285,7 @@ QCString VerilogDocGen::convertTypeToString(int type,bool sing)
   MemberListIterator mmli(*ml);
   setType(ml);
  
-if (!VhdlDocGen::membersHaveSpecificType(ml,type)) return;
+if (!membersHaveSpecificType(ml,type)) return;
   
   if (title) 
   {
@@ -256,7 +311,7 @@ if (!VhdlDocGen::membersHaveSpecificType(ml,type)) return;
     while ((mg=mgli.current()))
     {
      // assert(0);
-    if (VhdlDocGen::membersHaveSpecificType(mg->members(),type))
+    if (membersHaveSpecificType(mg->members(),type))
     
      {
       //printf("mg->header=%s\n",mg->header().data());
@@ -454,7 +509,7 @@ void VerilogDocGen::writeVerilogDeclarations(MemberDef* mdef,OutputList &ol,
 		  mm=mdef->name().findRev('_');
         if(mm>0)		 
 		  mdef->setName(mdef->name().left(mm));
-		  VhdlDocGen::writeUCFLink(mdef,ol);
+		  writeUCFLink(mdef,ol);
         break;
    case VerilogDocGen::INCLUDE: 
      bool ambig;
@@ -967,7 +1022,7 @@ void writeFunctionProto(OutputList& ol,const ArgumentList* al,const MemberDef* m
       if (str==0)
 	VhdlDocGen::formatString(att,ol,mdef);
       else
-	VhdlDocGen::startFonts(att,str->data(),ol);         
+	startFonts(att,str->data(),ol);         
     }  
 ol.docify(":");
     //VhdlDocGen::startFonts("in ","stringliteral",ol);
@@ -976,7 +1031,7 @@ ol.docify(":");
     if (str==0)
       VhdlDocGen::formatString(qargs,ol,mdef);
     else
-      VhdlDocGen::startFonts(qargs,str->data(),ol);         
+      startFonts(qargs,str->data(),ol);         
   //   ol.endEmphasis();
      sem=TRUE;    
     ol.endBold();
@@ -1078,7 +1133,7 @@ void VerilogDocGen::writeSource(MemberDef *mdef,OutputList& ol,QCString & cname)
 }
 
 
-char* VerilogDocGen::removeLastWord(const char* word)
+const char* VerilogDocGen::removeLastWord(const char* word)
 {
   QRegExp exp("[\\s]");
   QCString str(word);
@@ -1112,6 +1167,33 @@ QCString VerilogDocGen::findFile(const char *fileName)
      s=includePath.next();
   } 
   return "";
+}
+
+static void writeUCFLink(const MemberDef* mdef,OutputList &ol)
+{
+
+  QCString largs(mdef->argsString());
+  QCString n= splitString(largs, '#');
+  // VhdlDocGen::adjustRecordMember(mdef);
+  bool equ=(n.length()==largs.length());
+
+  if (!equ)
+  {
+    ol.writeString(n.data());
+    ol.docify(" ");
+    ol.insertMemberAlign();
+  }
+
+  if (mdef->name().contains("dummy")==0)
+  {
+    writeLink(mdef,ol);
+  }
+  if (equ)
+  {
+    ol.insertMemberAlign();
+  }
+  ol.docify(" ");
+  VhdlDocGen::formatString(largs,ol,mdef);
 }
 
 

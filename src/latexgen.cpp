@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -421,7 +421,10 @@ static void writeDefaultHeaderPart1(FTextStream &t)
     const char *pkgName=extraPackages.first();
     while (pkgName)
     {
-      t << "\\usepackage{" << pkgName << "}\n";
+      if ((pkgName[0] == '[') || (pkgName[0] == '{'))
+        t << "\\usepackage" << pkgName << "\n";
+      else
+        t << "\\usepackage{" << pkgName << "}\n";
       pkgName=extraPackages.next();
     }
     t << "\n";
@@ -535,14 +538,18 @@ static void writeDefaultFooter(FTextStream &t)
   Doxygen::citeDict->writeLatexBibliography(t);
 
   // Index
+  t << "% Index\n";
   QCString unit;
   if (Config_getBool("COMPACT_LATEX"))
+  {
     unit = "section";
+  }
   else
+  {
     unit = "chapter";
-  t << "% Index\n"
-       "\\backmatter\n"
-       "\\newpage\n"
+    t << "\\backmatter\n";
+  }
+  t << "\\newpage\n"
        "\\phantomsection\n"
        "\\clearemptydoublepage\n"
        "\\addcontentsline{toc}{" << unit << "}{" << theTranslator->trRTFGeneralIndex() << "}\n"
@@ -1437,18 +1444,18 @@ void LatexGenerator::endDoxyAnchor(const char *fName,const char *anchor)
 void LatexGenerator::writeAnchor(const char *fName,const char *name)
 { 
   //printf("LatexGenerator::writeAnchor(%s,%s)\n",fName,name);
-  t << "\\label{" << name << "}" << endl; 
+  t << "\\label{" << stripPath(name) << "}" << endl; 
   static bool pdfHyperlinks = Config_getBool("PDF_HYPERLINKS");
   static bool usePDFLatex   = Config_getBool("USE_PDFLATEX");
   if (usePDFLatex && pdfHyperlinks)
   {
     if (fName)
     {
-      t << "\\hypertarget{" << stripPath(fName) << "_" << name << "}{}" << endl;
+      t << "\\hypertarget{" << stripPath(fName) << "_" << stripPath(name) << "}{}" << endl;
     }
     else
     {
-      t << "\\hypertarget{" << name << "}{}" << endl;
+      t << "\\hypertarget{" << stripPath(name) << "}{}" << endl;
     }
   }
 }

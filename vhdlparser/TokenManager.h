@@ -5,8 +5,6 @@
 #include "JavaCC.h"
 #include "Token.h"
 
-using namespace std;
-
 namespace vhdl {
 namespace parser {
 /**
@@ -18,11 +16,12 @@ namespace parser {
 class TokenManager {
 public:
   /** This gets the next token from the input stream.
-   *  A token of kind 0 (<EOF>) should be returned on EOF.
+   *  A token of kind 0 (\<EOF\>) should be returned on EOF.
    */
   virtual       ~TokenManager() { }
   virtual Token *getNextToken() = 0;
   virtual void   lexicalError() {
+  	fprintf(stderr,"Lexical error encountered.");
   }
 
 };

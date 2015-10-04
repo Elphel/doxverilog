@@ -2,7 +2,7 @@
  *
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby
@@ -1012,7 +1012,7 @@ class TranslatorPolish : public TranslatorAdapter_1_8_2
         "};\n"
         "\\endcode\n"
         "Rezultat na następującym wykresie:"
-        "<p><center><img src=\"graph_legend."+Config_getEnum("DOT_IMAGE_FORMAT")+"\"></center></p>\n"
+        "<p><center><img src=\"graph_legend."+getDotImageExtension()+"\"></center></p>\n"
         "<p>\n"
         "Prostokąty w powyższym wykresie mają następujące znaczenie:\n"
         "</p>\n"

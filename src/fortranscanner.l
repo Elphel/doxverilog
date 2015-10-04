@@ -37,7 +37,7 @@
  *
  * - Must track yyLineNr when using REJECT, unput() or similar commands.
  */
-
+%option never-interactive
 %{
 
 #include <stdio.h> 
@@ -48,7 +48,6 @@
 #include <qarray.h>
 #include <qstack.h>
 #include <qregexp.h>
-#include <unistd.h> 
 #include <qfile.h>
 #include <qmap.h>
   
@@ -69,10 +68,10 @@
 //#define DBG_CTX(x) fprintf x
 #define DBG_CTX(x) do { } while(0)
 
-#define YY_NEVER_INTERACTIVE 1
 #define YY_NO_INPUT 1
+#define YY_NO_UNISTD_H 1
 
-enum ScanVar { V_IGNORE, V_VARIABLE, V_PARAMETER};
+enum ScanVar { V_IGNORE, V_VARIABLE, V_PARAMETER, V_RESULT};
 enum InterfaceType { IF_NONE, IF_SPECIFIC, IF_GENERIC, IF_ABSTRACT };
 
 // {{{ ----- Helper structs -----
@@ -165,7 +164,6 @@ static ScanVar          v_type       = V_IGNORE; // type of parsed variable
 static QList<Entry>     moduleProcedures; // list of all interfaces which contain unresolved 
                                           // module procedures
 static QCString         docBlock;
-static QCString         docBlockName;
 static bool             docBlockInBody = FALSE;
 static bool             docBlockJavaStyle;
 
@@ -202,6 +200,7 @@ static int yyread(char *buf,int max_size);
 static void startCommentBlock(bool);
 static void handleCommentBlock(const QCString &doc,bool brief);
 static void subrHandleCommentBlock(const QCString &doc,bool brief);
+static void subrHandleCommentBlockResult(const QCString &doc,bool brief);
 static void addCurrentEntry(int case_insens);
 static void addModule(const char *name, bool isModule=FALSE);
 static void addSubprogram(const char *text);
@@ -485,7 +484,7 @@ SCOPENAME ({ID}{BS}"::"{BS})*
 
 <InterfaceBody>^{BS}end{BS}interface({BS_}{ID})? {
                                           // end scope only if GENERIC interface
-                                          last_entry->parent()->endBodyLine = yyLineNr - 1;
+                                          if (ifType == IF_GENERIC)last_entry->parent()->endBodyLine = yyLineNr - 1;
                                           if (ifType == IF_GENERIC && !endScope(current_root))
                                             yyterminate();
 
@@ -844,6 +843,7 @@ private                                 {
 						QCString rght;
 						if (strt != -1)
 						{
+                                                  v_type = V_RESULT;
 						  lft = "";
 						  rght = "";
 						  if (strt != 0) lft = current_root->type.left(strt).stripWhiteSpace();
@@ -864,6 +864,10 @@ private                                 {
 						  }
 						  if (current_root->type.length() > 0) current_root->type += " ";
 						  current_root->type += "function";
+					          if (!docBlock.isNull()) 
+					          {
+  					            subrHandleCommentBlockResult(docBlock,TRUE);
+					          }
 						}
 						else
 						{
@@ -982,6 +986,8 @@ private                                 {
                                          result=result.stripWhiteSpace();
                                          addSubprogram(result);
                                          BEGIN(Subprog);
+				         current->bodyLine = yyLineNr + lineCountPrepass + 1; // we have to be at the line after the definition and we have to take continuation lines into account.
+				         current->startLine = yyLineNr;
                                        }
 
 <Start,ModuleBody,SubprogBody,InterfaceBody,ModuleBodyContains,SubprogBodyContains>^{BS}({PREFIX}{BS_})?{SUBPROG}{BS_} {
@@ -1104,6 +1110,10 @@ private                                 {
 					  else if (v_type == V_PARAMETER) 
 					  {
 					    subrHandleCommentBlock(docBlock,TRUE);
+                                          }
+					  else if (v_type == V_RESULT) 
+					  {
+					    subrHandleCommentBlockResult(docBlock,TRUE);
                                           }
 					  yy_pop_state();
 					  docBlock.resize(0);
@@ -1400,11 +1410,15 @@ static const char* prepassFixedForm(const char* contents)
   int prevLineLength=0;
   int prevLineAmpOrExclIndex=-1;
   bool emptyLabel=TRUE;
+  bool commented=FALSE;
+  bool inSingle=FALSE;
+  bool inDouble=FALSE;
+  bool inBackslash=FALSE;
   int newContentsSize = strlen(contents)+3; // \000, \n (when necessary) and one spare character (to avoid reallocation)
   char* newContents = (char*)malloc(newContentsSize);
 
   for(int i=0, j=0;;i++,j++) {
-    if(j>=newContentsSize-1) { // check for one spare character, which may be eventually used below (by &)
+    if(j>=newContentsSize-3) { // check for spare characters, which may be eventually used below (by & and '! ')
       newContents = (char*)realloc(newContents, newContentsSize+1000);
       newContentsSize = newContentsSize+1000;
     }
@@ -1417,9 +1431,11 @@ static const char* prepassFixedForm(const char* contents)
         prevLineAmpOrExclIndex=getAmpOrExclAtTheEnd(&contents[i-prevLineLength+1], prevLineLength);
         column=0;
 	emptyLabel=TRUE;
+        commented=FALSE;
         newContents[j]=c;
         break;
       case ' ':
+      case '\t':
         newContents[j]=c;
         break;
       case '\000':
@@ -1433,21 +1449,58 @@ static const char* prepassFixedForm(const char* contents)
           newContents[newContentsSize + 1] = '\000';
         }
         return newContents;
+      case '"':
+      case '\'':
+      case '\\':
+        if ((column <= fixedCommentAfter) && (column!=6) && !commented)
+	{
+          // we have some special cases in respect to strings and exscaped string characters
+	  newContents[j]=c;
+          if (c == '\\')
+          {
+            inBackslash = !inBackslash;
+            break;
+          }
+          else if (c == '\'')
+          {
+            if (!inDouble) inSingle = !inSingle;
+            break;
+          }
+          else if (c == '"')
+          {
+            if (!inSingle) inDouble = !inDouble;
+            break;
+          }
+        }
+        inBackslash = FALSE;
+        // fallthrough
       case 'C':
       case 'c':
       case '*':
-        if (column!=6)
+      case '!':
+        if ((column <= fixedCommentAfter) && (column!=6))
 	{
 	  emptyLabel=FALSE;
 	  if(column==1)
+          {
 	    newContents[j]='!';
-	  else
+            commented = TRUE;
+          }
+	  else if ((c == '!') && !inDouble && !inSingle)
+          {
 	    newContents[j]=c;
+            commented = TRUE;
+          }
+	  else
+          {
+	    newContents[j]=c;
+          }
 	  break;
 	}
+        // fallthrough
       default:
         if(column==6 && emptyLabel) { // continuation
-          if (c != '0') { // 0 not allowed as continuatioin character, see f95 standard paragraph 3.3.2.3
+          if (c != '0') { // 0 not allowed as continuation character, see f95 standard paragraph 3.3.2.3
             newContents[j]=' ';
 
             if(prevLineAmpOrExclIndex==-1) { // add & just before end of previous line
@@ -1460,6 +1513,15 @@ static const char* prepassFixedForm(const char* contents)
 	  } else {
 	    newContents[j]=c; // , just handle like space
           }
+	} else if ((column > fixedCommentAfter) && !commented) {
+          // first non commented non blank character after position fixedCommentAfter
+          if (c != '!') {
+            // I'm not a possible start of doxygen comment
+	    newContents[j++]='!';
+	    newContents[j++]=' '; // so that '<' and '>' as first character are not converted to doxygen comment
+          }
+	  newContents[j]=c;
+          commented = TRUE;
 	} else {
 	  newContents[j]=c;
 	  emptyLabel=FALSE;
@@ -2222,14 +2284,10 @@ static void subrHandleCommentBlock(const QCString &doc,bool brief)
   current->inbodyDocs = "";
 
   // strip \\param or @param, so we can do some extra checking. We will add it later on again.
-  if (loc_doc.find("\\param") == 0)
-  {
-    loc_doc = loc_doc.right(loc_doc.length()-strlen("\\param")).stripWhiteSpace();
-  }
-  else if (loc_doc.find("@param") == 0)
-  {
-    loc_doc = loc_doc.right(loc_doc.length()-strlen("@param")).stripWhiteSpace();
-  }
+  if (!loc_doc.stripPrefix("\\param") &&
+      !loc_doc.stripPrefix("@param")
+     ) (void)loc_doc; // Do nothing work has been done by stripPrefix; (void)loc_doc: to overcome 'empty controlled statement' warning
+  loc_doc.stripWhiteSpace();
 
   // direction as defined with the declaration of the parameter
   int dir1 = modifiers[current_root][argName.lower()].direction;
@@ -2242,6 +2300,7 @@ static void subrHandleCommentBlock(const QCString &doc,bool brief)
     {
       // strip direction
       loc_doc = loc_doc.right(loc_doc.length()-strlen(directionParam[SymbolModifiers::IN]));
+      loc_doc.stripWhiteSpace();
       // in case of emty documentation or (now) just name, consider it as no documemntation
       if (loc_doc.isEmpty() || (loc_doc.lower() == argName.lower()))
       {
@@ -2268,6 +2327,7 @@ static void subrHandleCommentBlock(const QCString &doc,bool brief)
         (directionParam[dir1] == directionParam[SymbolModifiers::OUT]))
     {
       loc_doc = loc_doc.right(loc_doc.length()-strlen(directionParam[SymbolModifiers::OUT]));
+      loc_doc.stripWhiteSpace();
       if (loc_doc.isEmpty() || (loc_doc.lower() == argName.lower()))
       {
         current=tmp_entry;
@@ -2291,6 +2351,7 @@ static void subrHandleCommentBlock(const QCString &doc,bool brief)
         (directionParam[dir1] == directionParam[SymbolModifiers::INOUT]))
     {
       loc_doc = loc_doc.right(loc_doc.length()-strlen(directionParam[SymbolModifiers::INOUT]));
+      loc_doc.stripWhiteSpace();
       if (loc_doc.isEmpty() || (loc_doc.lower() == argName.lower()))
       {
         current=tmp_entry;
@@ -2318,6 +2379,37 @@ static void subrHandleCommentBlock(const QCString &doc,bool brief)
     handleCommentBlock(QCString("\n\n@param ") + directionParam[dir1] + " " + 
                        argName + " " + loc_doc,brief);
   }
+
+  // reset current back to the part inside the routine
+  current=tmp_entry;
+}
+//----------------------------------------------------------------------------
+/// Handle result description as defined after the declaration of the parameter
+static void subrHandleCommentBlockResult(const QCString &doc,bool brief)
+{
+  QCString loc_doc;
+  loc_doc = doc.stripWhiteSpace();
+
+  Entry *tmp_entry = current; 
+  current = subrCurrent.getFirst(); // temporarily switch to the entry of the subroutine / function
+
+  // Still in the specification section so no inbodyDocs yet, but parameter documentation
+  current->inbodyDocs = "";
+
+  // strip \\returns or @returns. We will add it later on again.
+  if (!loc_doc.stripPrefix("\\returns") &&
+      !loc_doc.stripPrefix("\\return") &&
+      !loc_doc.stripPrefix("@returns") &&
+      !loc_doc.stripPrefix("@return")
+     ) (void)loc_doc; // Do nothing work has been done by stripPrefix; (void)loc_doc: to overcome 'empty controlled statement' warning
+  loc_doc.stripWhiteSpace();
+
+  if (loc_doc.isEmpty() || (loc_doc.lower() == argName.lower()))
+  {
+    current=tmp_entry;
+    return;
+  }
+  handleCommentBlock(QCString("\n\n@returns ") + loc_doc,brief);
 
   // reset current back to the part inside the routine
   current=tmp_entry;

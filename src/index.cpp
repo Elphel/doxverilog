@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -48,8 +48,6 @@
 #include "namespacedef.h"
 #include "filename.h"
 #include "verilogdocgen.h"
-
-
 #define MAX_ITEMS_BEFORE_MULTIPAGE_INDEX 200
 #define MAX_ITEMS_BEFORE_QUICK_INDEX 30
 
@@ -511,7 +509,7 @@ static void writeClassTree(OutputList &ol,const BaseClassList *bcl,bool hideSupe
         //printf("Class %s at %p visited=%d\n",cd->name().data(),cd,cd->visited);
         bool wasVisited=cd->visited;
         cd->visited=TRUE;
-        if (cd->getLanguage()==SrcLangExt_VHDL|| cd->getLanguage()==SrcLangExt_VERILOG)	
+        if (cd->getLanguage()==SrcLangExt_VHDL || cd->getLanguage()==SrcLangExt_VERILOG)	
         {
           writeClassTree(ol,cd->baseClasses(),wasVisited,level+1,ftv,addToIndex);
         }
@@ -877,7 +875,7 @@ static void writeClassTreeForList(OutputList &ol,ClassSDict *cl,bool &started,FT
             ftv->addContentsItem(hasChildren,cd->displayName(),0,0,0,FALSE,FALSE,cd); 
           }
         }
-        if ((cd->getLanguage()==SrcLangExt_VHDL || cd->getLanguage()==SrcLangExt_VERILOG ) && hasChildren) 
+        if ((cd->getLanguage()==SrcLangExt_VHDL || cd->getLanguage()==SrcLangExt_VERILOG) && hasChildren) 
         {
           writeClassTree(ol,cd->baseClasses(),cd->visited,1,ftv,addToIndex);
           cd->visited=TRUE;
@@ -1603,7 +1601,6 @@ static void writeAnnotatedClassList(OutputList &ol)
     }
     if (cd->isLinkableInProject() && cd->templateMaster()==0)
     {
-      QCString type=cd->compoundTypeString();
       ol.startIndexKey();
       if (cd->getLanguage()==SrcLangExt_VHDL)
       {
@@ -2146,13 +2143,13 @@ static void writeNamespaceLinkForMember(OutputList &ol,MemberDef *md,const char 
                              QCString &prevNamespaceName)
 {
   NamespaceDef *nd=md->getNamespaceDef();
-  if (nd && prevNamespaceName!=nd->name())
+  if (nd && prevNamespaceName!=nd->displayName())
   {
     ol.docify(separator);
     ol.writeObjectLink(md->getReference(),md->getOutputFileBase(),md->anchor(),
-        nd->name());
+        nd->displayName());
     ol.writeString("\n");
-    prevNamespaceName = nd->name();
+    prevNamespaceName = nd->displayName();
   }
 }
 
@@ -2273,8 +2270,6 @@ void addClassMemberNameToIndex(MemberDef *md)
   {
     VerilogDocGen::adjustMemberName(md);
   }
-  
-
   
   if (md->isLinkableInProject() && 
       (cd=md->getClassDef())    && 
@@ -3122,7 +3117,7 @@ static void writePages(PageDef *pd,FTVHelp *ftv)
 
     if (ftv)
     {
-      //printf("*** adding %s\n",pageTitle.data());
+      //printf("*** adding %s hasSubPages=%d hasSections=%d\n",pageTitle.data(),hasSubPages,hasSections);
       ftv->addContentsItem(
           hasSubPages,pageTitle,
           pd->getReference(),pd->getOutputFileBase(),
@@ -3131,7 +3126,7 @@ static void writePages(PageDef *pd,FTVHelp *ftv)
     if (addToIndex && pd!=Doxygen::mainPage)
     {
       Doxygen::indexList->addContentsItem(
-          hasSubPages,pageTitle,
+          hasSubPages || hasSections,pageTitle,
           pd->getReference(),pd->getOutputFileBase(),
           0,hasSubPages,TRUE);
     }
@@ -3274,7 +3269,8 @@ void writeGraphInfo(OutputList &ol)
   QCString legendDocs = theTranslator->trLegendDocs();
   int s = legendDocs.find("<center>");
   int e = legendDocs.find("</center>");
-  if (Config_getEnum("DOT_IMAGE_FORMAT")=="svg" && s!=-1 && e!=-1)
+  QCString imgExt = getDotImageExtension();
+  if (imgExt=="svg" && s!=-1 && e!=-1)
   {
     legendDocs = legendDocs.left(s+8) + "[!-- SVG 0 --]\n" + legendDocs.mid(e); 
     //printf("legendDocs=%s\n",legendDocs.data());
@@ -4147,7 +4143,7 @@ static void writeIndexHierarchyEntries(OutputList &ol,const QList<LayoutNavEntry
         case LayoutNavEntry::Classes: 
           if (annotatedClasses>0 && addToIndex)
           {
-            Doxygen::indexList->addContentsItem(TRUE,lne->title(),0,0,0); 
+            Doxygen::indexList->addContentsItem(TRUE,lne->title(),0,"annotated",0); 
             Doxygen::indexList->incContentsDepth();
             needsClosing=TRUE;
           }

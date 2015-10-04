@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -188,6 +188,7 @@ class MemberDef : public Definition
     bool isLinkable() const;
     bool hasDocumentation() const;  // overrides hasDocumentation in definition.h
     //bool hasUserDocumentation() const; // overrides hasUserDocumentation
+    bool isDeleted() const;
     bool isBriefSectionVisible() const;
     bool isDetailedSectionVisible(bool inGroup,bool inFile) const;
     bool isDetailedSectionLinkable() const;

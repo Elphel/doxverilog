@@ -293,7 +293,8 @@ prag_trans_on	({ws}*{pragma_tools}{ws}+{translate_on}{ws}*)
 
                                        if(def)  
                                       {
-                                       yytext=def->args.data();
+                                      QCString tmp=def->args.data();
+                                     // yytext=tmp.data();
                                       yyleng=def->args.length();
                                        return VP_TEXT;
                                       }

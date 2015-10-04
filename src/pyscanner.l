@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -21,7 +21,7 @@
  *  taught by Peter H. Froehlich <phf@acm.org>.
  */
 
-
+%option never-interactive
 %{
 
 /*
@@ -35,7 +35,6 @@
 #include <qarray.h>
 #include <qstack.h>
 #include <qregexp.h>
-#include <unistd.h>
 #include <qfile.h>
 #include <qfileinfo.h>
   
@@ -55,8 +54,8 @@
 //#define DBG_CTX(x) fprintf x
 #define DBG_CTX(x) do { } while(0)
 
-#define YY_NEVER_INTERACTIVE 1
 #define YY_NO_INPUT 1
+#define YY_NO_UNISTD_H 1
 
 /* -----------------------------------------------------------------
  *
@@ -83,7 +82,6 @@ static Specifier 	virt;
 
 static int              docBlockContext;
 static QCString         docBlock;
-static QCString         docBlockName;
 static bool             docBlockInBody;
 static bool             docBlockJavaStyle;
 static bool             docBrief;
@@ -97,7 +95,6 @@ static int              g_indent = 0;
 static int              g_curIndent = 0;
 
 static QDict<QCString>  g_packageNameCache(257);
-static QCString         g_packageScope;
 
 static char             g_atomStart;
 static char             g_atomEnd;
@@ -931,7 +928,6 @@ STARTDOCSYMS      "##"
     "="		        { // default value
                           // TODO: this rule is too simple, need to be able to
                           // match things like =")" as well!
-      			  QCString defVal=&yytext[1];
 			  g_defVal.resize(0);
 			  g_braceCount=0;
 			  BEGIN(FunctionParamDefVal);

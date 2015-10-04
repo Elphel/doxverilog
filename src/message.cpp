@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby
@@ -151,7 +151,7 @@ static void format_warn(const char *file,int line,const char *text)
 
 static void do_warn(const char *tag, const char *file, int line, const char *prefix, const char *fmt, va_list args)
 {
-  if (!Config_getBool(tag)) return; // warning type disabled
+  if (tag && !Config_getBool(tag)) return; // warning type disabled
   const int bufSize = 40960;
   char text[bufSize];
   int l=0;
@@ -216,6 +216,14 @@ void err(const char *fmt, ...)
   va_end(args); 
 }
 
+extern void err_full(const char *file,int line,const char *fmt, ...)
+{
+  va_list args;
+  va_start(args, fmt);
+  do_warn(NULL, file, line, error_str, fmt, args);
+  va_end(args); 
+}
+
 void printlex(int dbg, bool enter, const char *lexName, const char *fileName)
 {
   const char *enter_txt = "entering";
@@ -230,15 +238,15 @@ void printlex(int dbg, bool enter, const char *lexName, const char *fileName)
   if (dbg)
   {
     if (fileName)
-      fprintf(stderr,"--%s lexical analyzer: %s (for: %s)\n",enter_txt, lexName, fileName);
+      fprintf(stderr,"--%s lexical analyzer: %s (for: %s)\n",enter_txt, qPrint(lexName), qPrint(fileName));
     else
-      fprintf(stderr,"--%s lexical analyzer: %s\n",enter_txt, lexName);
+      fprintf(stderr,"--%s lexical analyzer: %s\n",enter_txt, qPrint(lexName));
   }
   else
   {
     if (fileName)
-      Debug::print(Debug::Lex,0,"%s lexical analyzer: %s (for: %s)\n",enter_txt_uc, lexName, fileName);
+      Debug::print(Debug::Lex,0,"%s lexical analyzer: %s (for: %s)\n",enter_txt_uc, qPrint(lexName), qPrint(fileName));
     else
-      Debug::print(Debug::Lex,0,"%s lexical analyzer: %s\n",enter_txt_uc, lexName);
+      Debug::print(Debug::Lex,0,"%s lexical analyzer: %s\n",enter_txt_uc, qPrint(lexName));
   }
 }

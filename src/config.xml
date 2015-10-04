@@ -6,7 +6,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -29,7 +29,9 @@ parsed by \c doxygen. The file may contain tabs and newlines for
 formatting purposes. The statements in the file are case-sensitive.
 Comments may be placed anywhere within the file (except within quotes).
 Comments beginning with two hash characters (\c \#\#) are kept when updating
-the configuration file and are placed in front of the TAG are in front of.
+the configuration file and are placed in front of the TAG they are in front of.
+Comments beginning with two hash characters (\c \#\#) at the beginning of the
+configuration file are also kept and placed at the beginning of the file.
 Comments beginning with two hash characters (\c \#\#) at the end of the
 configuration file are also kept and placed at the end of the file.
 Comments begin with the hash character (\c \#) and ends at the end of the line.
@@ -580,20 +582,17 @@ Go to the <a href="commands.html">next</a> section or return to the
 ]]>
       </docs>
     </option>
-    <option type='bool' id='OPTIMIZE_OUTPUT_VERILOG' defval='0'>
+<option type='bool' id='OPTIMIZE_OUTPUT_VERILOG' defval='0'>
       <docs>
-        <![CDATA[
+<![CDATA[
  Set the \c OPTIMIZE_OUTPUT_VERILOG tag to \c YES if your project consists of VERILOG 
  sources. Doxygen will then generate output that is tailored for VERILOG.
 ]]>
       </docs>
     </option>
-    <option type='bool' id='HIDE_PORT' defval='0'>
+<option type='bool' id='HIDE_PORT' defval='1'>
       <docs>
-        <![CDATA[
- Set the \c HIDE_PORT tag to \c YES ports are not displayed.
-]]>
-      </docs>
+    </docs>
     </option>
     <option type='list' id='EXTENSION_MAPPING' format='string'>
       <docs>
@@ -689,6 +688,15 @@ Go to the <a href="commands.html">next</a> section or return to the
  tag is set to \c YES then doxygen will reuse the documentation of the first
  member in the group (if any) for the other members of the group. By default
  all members of a group must be documented explicitly.
+]]>
+      </docs>
+    </option>
+    <option type='bool' id='GROUP_NESTED_COMPOUNDS' defval='0'>
+      <docs>
+<![CDATA[
+ If one adds a struct or class to a group and this option is enabled, then also
+ any nested class or struct is added to the same group. By default this option
+ is disabled and one has to add nested compounds explicitly via \ref cmdingroup "\\ingroup".
 ]]>
       </docs>
     </option>
@@ -1256,7 +1264,9 @@ FILE_VERSION_INFO = "cleartool desc -fmt \%Vn"
  The \c INPUT tag is used to specify the files and/or directories that contain 
  documented source files. You may enter file names like 
  \c myfile.cpp or directories like \c /usr/src/myproject. 
- Separate the files or directories with spaces.
+ Separate the files or directories with spaces. See also
+ \ref cfg_file_patterns "FILE_PATTERNS"  and
+ \ref cfg_extension_mapping "EXTENSION_MAPPING"
 
  \note If this tag is empty the current directory is searched.
 ]]>
@@ -1280,7 +1290,11 @@ FILE_VERSION_INFO = "cleartool desc -fmt \%Vn"
  If the value of the \ref cfg_input "INPUT" tag contains directories, you can use the 
  \c FILE_PATTERNS tag to specify one or more wildcard patterns 
  (like `*.cpp` and `*.h`) to filter out the source-files 
- in the directories. If left blank the following patterns are tested:
+ in the directories.<br>
+ Note that for custom extensions or not directly supported extensions you also
+ need to set \ref cfg_extension_mapping "EXTENSION_MAPPING" for the extension
+ otherwise the files are not read by doxygen.<br>
+ If left blank the following patterns are tested:
 ]]>
       </docs>
       <value name='*.c'/>
@@ -1321,8 +1335,6 @@ FILE_VERSION_INFO = "cleartool desc -fmt \%Vn"
       <value name='*.tcl'/>
       <value name='*.vhd'/>
       <value name='*.vhdl'/>
-      <value name='*.v'/>
-      <value name='*.V'/>
       <value name='*.ucf'/>
       <value name='*.qsf'/>
       <value name='*.as'/>
@@ -1904,13 +1916,13 @@ hr.footer {
 ]]>
       </docs>
     </option>
-    <option type='bool' id='HTML_TIMESTAMP' defval='1' depends='GENERATE_HTML'>
+    <option type='bool' id='HTML_TIMESTAMP' defval='0' depends='GENERATE_HTML'>
       <docs>
 <![CDATA[
  If the \c HTML_TIMESTAMP tag is set to \c YES then the footer of 
  each generated HTML page will contain the date and time when the page 
- was generated. Setting this to \c NO can help when comparing the output of 
- multiple runs.
+ was generated. Setting this to \c YES can help to show when doxygen was last run 
+ and thus if the documentation is up to date.
 ]]>
       </docs>
     </option>
@@ -2507,10 +2519,19 @@ EXTRA_SEARCH_MAPPINGS = tagname1=loc1 tagname2=loc2 ...
       <docs>
 <![CDATA[
  The \c EXTRA_PACKAGES tag can be used to specify one or more \f$\mbox{\LaTeX}\f$ 
- package names that should be included in the \f$\mbox{\LaTeX}\f$ output.
- To get the times font for instance you can specify 
+ package names that should be included in the \f$\mbox{\LaTeX}\f$ output. The package
+ can be specified just by its name or with the correct syntax as to be used with the
+ \f$\mbox{\LaTeX}\f$ `\usepackage` command.
+
+ To get the `times` font for instance you can specify :
 \verbatim
-EXTRA_PACKAGES=times
+  EXTRA_PACKAGES=times
+or 
+  EXTRA_PACKAGES={times}
+\endverbatim
+ To use the option `intlimits` with the `amsmath` package you can specify:
+\verbatim
+   EXTRA_PACKAGES=[intlimits]{amsmath}
 \endverbatim
  If left blank no extra packages will be included.
 ]]>
@@ -3249,7 +3270,9 @@ to be found in the default search path.
  generate a call dependency graph for every global function or class method. 
  <br>Note that enabling this option will significantly increase the time of a run.
  So in most cases it will be better to enable call graphs for selected 
- functions only using the \ref cmdcallgraph "\\callgraph" command.
+ functions only using the \ref cmdcallgraph "\\callgraph" command. 
+ Disabling a call graph can be accomplished by means of the command 
+ \ref cmdhidecallgraph "\\hidecallgraph".
 ]]>
       </docs>
     </option>
@@ -3260,7 +3283,9 @@ to be found in the default search path.
  generate a caller dependency graph for every global function or class method. 
  <br>Note that enabling this option will significantly increase the time of a run.
  So in most cases it will be better to enable caller graphs for selected 
- functions only using the \ref cmdcallergraph "\\callergraph" command.
+ functions only using the \ref cmdcallergraph "\\callergraph" command. 
+ Disabling a caller graph can be accomplished by means of the command 
+ \ref cmdhidecallergraph "\\hidecallergraph".
 ]]>
       </docs>
     </option>
@@ -3286,7 +3311,9 @@ to be found in the default search path.
       <docs>
 <![CDATA[
  The \c DOT_IMAGE_FORMAT tag can be used to set the image format of the images
- generated by \c dot.
+ generated by \c dot. For an explanation of the image formats see the section output formats
+ in the documentation of the \c dot tool
+ (<a href="http://www.graphviz.org/">Graphviz</a>).
  \note If you choose \c svg you need to set 
  \ref cfg_html_file_extension "HTML_FILE_EXTENSION" to \c xhtml in order to make the SVG files
  visible in IE 9+ (other browsers do not have this requirement).
@@ -3296,6 +3323,14 @@ to be found in the default search path.
       <value name='jpg'/>
       <value name='gif'/>
       <value name='svg'/>
+      <value name='png:gd'/>
+      <value name='png:gd:gd'/>
+      <value name='png:cairo'/>
+      <value name='png:cairo:gd'/>
+      <value name='png:cairo:cairo'/>
+      <value name='png:cairo:gdiplus'/>
+      <value name='png:gdiplus'/>
+      <value name='png:gdiplus:gdiplus'/>
     </option>
     <option type='bool' id='INTERACTIVE_SVG' defval='0' depends='HAVE_DOT'>
       <docs>

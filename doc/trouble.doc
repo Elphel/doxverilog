@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -18,8 +18,6 @@
 
 \section knowproblems Known Problems
 <ul>
-<li>If you have problems building doxygen from sources, please 
-    read \ref unix_problems "this section" first.
 <li>Doxygen is <em>not</em> a real compiler, it is only a lexical scanner.
     This means that it can and will not detect errors in your source code.
 <li>Doxygen has a build in preprocessor, but this works slightly different than

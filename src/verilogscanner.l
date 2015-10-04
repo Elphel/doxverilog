@@ -1,5 +1,5 @@
 /******************************************************************************
-* Copyright (c) M.Kreis,2015
+* Copyright (c) M.Kreis,2009 
 * This program is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
 * the Free Software Foundation; either version 2 of the License, or
@@ -118,16 +118,16 @@ static void writeFont(const char *s,const char* text);
 static void generateMemLink(CodeOutputInterface &ol,QCString &clName,QCString& memberName);
 static bool writeColoredWord(QCString& word );
 static void startCodeLine();
-static bool generateClassOrGlobalLink(CodeOutputInterface &ol,char *clName, bool typeOnly=FALSE);
+static bool generateClassOrGlobalLink(CodeOutputInterface &ol,const char *clName, bool typeOnly=FALSE);
 static bool generateMemLink(CodeOutputInterface &ol,QCString &clName,QCString& memberName,int type);
-static void codifyLines(char *text,char *cl=NULL,bool undoc=false);
+static void codifyLines(const char *text,const char *cl=NULL,bool undoc=false);
 static void addToSearchIndex(const char *text);
 static void writeMultiLineCodeLink(CodeOutputInterface &ol,
                   const char *ref,const char *file,
                   const char *anchor,const char *text,Definition *d);
 static void startFontClass(const char *s);
 static void endFontClass();
-static void writeWord(char *word,char* curr_class=NULL);
+static void writeWord(const char *word,const char* curr_class=NULL);
 
 //-------------------------------------------------------------------
 
@@ -148,6 +148,8 @@ static  void writeInclude(QCString);
 static QDict<QCString> verilogKeyDict(17,false);
 static QDict<QCString> verilogGlobalDict(17,false);
 static QDict<QCString> verilogDefineDict(17,false);
+static QDict<QCString> dirList(17,false);
+
 static const QCString g_verilogkeyword("vhdlkeyword");
 static const QCString g_verilogDefinition("preprocessor");
 
@@ -276,7 +278,7 @@ static void makeInlineDoc(int endCode)
 
 }// makeInlineDoc
 
-static bool isConstraintFile(QCString fileName,char *type)
+static bool isConstraintFile(QCString fileName,const char *type)
 {
   int i=fileName.findRev(type);
   int j=fileName.length();
@@ -287,7 +289,7 @@ static bool isConstraintFile(QCString fileName,char *type)
 }
 
 
-static bool  checkMultiComment(QCString& qcs){
+bool  checkMultiComment(QCString& qcs){
   QList<Entry> *pTemp=VerilogDocGen::getEntryAtLine1(curRoots,iDocLine);
  if (!pTemp->isEmpty())
   {
@@ -314,7 +316,7 @@ static bool  checkMultiComment(QCString& qcs){
        globalMemberList.insert(pNew->name,pNew);
 }
 
- bool checkString(QCString &name)
+bool checkString(QCString &name)
 {
   if (name.isEmpty()) return FALSE;
   static QRegExp regg("[ \t\"]");
@@ -451,13 +453,15 @@ static void buildKeyMap()
     verilogKeyDict.setAutoDelete(true);
     verilogDefineDict.setAutoDelete(true);
 	qlist.setAutoDelete(true);
-	
+	dirList.setAutoDelete(true);
 	
 	globalMemberList.setAutoDelete(true);
  
 	QCString p=VerilogKewWordMap[0];
     
- 	while(!p.isEmpty())
+    dirList.insert("martin",new QCString("martin"));
+    dirList.insert("BBB",new QCString("BBB"));  
+	while(!p.isEmpty())
 	{
 		verilogKeyDict.insert(p,new QCString(p.data()));
     	p=VerilogKewWordMap[++j];	  
@@ -509,9 +513,6 @@ void writeVerilogFont(const char* col,const char* text)
 
 static void writeVWord(QCString& qcs){
 static bool stripComment=Config_getBool("STRIP_CODE_COMMENTS");
-   
-  printf("\n 1. write %s...",qcs.data());
-  
    if(qcs.isEmpty())return;
     QCString temp=qcs.copy();
 	if(qcs.stripPrefix("\n")){
@@ -527,16 +528,14 @@ static bool stripComment=Config_getBool("STRIP_CODE_COMMENTS");
          yyLineNr+=temp.contains("\n");
 	    return;
         }
-        else {
-		  printf("\n 2. write %s...",temp.data());
+        else 
           writeFont("keyword",temp.data());
-		  }
           return;
-       }
+          }
     
-    if(qcs.stripPrefix("§")){           
-        deleteVerilogChars(qcs,"§");
-	 deleteVerilogChars(qcs,"²");
+    if(qcs.stripPrefix("#+#")){           
+        deleteVerilogChars(qcs,"#+#");
+	 deleteVerilogChars(qcs,"$");
 			
 		   startFontClass("undoc");
 			 codifyLines(qcs.data(),0,true);
@@ -636,10 +635,10 @@ void writePrevVerilogWords(const QCString& qcs){
 
  uint len=qlist.count();
  uint v=0;
-  
+  if(len==0 || qcs.isEmpty()) return;
   for(uint j=0;j<len;j++) {
     QCString *word=(QCString*)qlist.getFirst();
-	printf("\n+++ %s",word->data()); 
+//	printf("\n++++++++++++++++++ %s",qcs.data()); 
 //if(qcs.contains("`"))
 //	 printVerilogStringList();
 	 if(strcmp(qcs.data(),word->data()) != 0)
@@ -670,7 +669,7 @@ void printVerilogStringList()
 }
 
 
-void codifyVerilogString(char* c,char* color)
+void codifyVerilogString(const char* c,const char* color)
 {
  if(color==NULL)
   g_code->codify(c);
@@ -806,13 +805,13 @@ static void writeMultiLineCodeLink(CodeOutputInterface &ol,
   }
 }
 
-bool generateVerilogClassOrGlobalLink(char *clName)
+bool generateVerilogClassOrGlobalLink(const char *clName)
 {
   return generateClassOrGlobalLink(*g_code,clName,FALSE);
 }
 
 
-static bool generateClassOrGlobalLink(CodeOutputInterface &ol,char *clName, bool typeOnly)
+static bool generateClassOrGlobalLink(CodeOutputInterface &ol,const char *clName, bool typeOnly)
 {
   QCString className=QCString(clName);
 
@@ -875,7 +874,7 @@ static int countLines()
  *  and will be linked.
  */
 
-static void writeWord(char *word,char* curr_class)
+static void writeWord(const char *word,const char* curr_class)
 {
    if(word==NULL)return;
    const QCString *ss=VerilogDocGen::findKeyWord(word);
@@ -894,13 +893,16 @@ static void writeWord(char *word,char* curr_class)
 /*! write a code fragment `text' that may span multiple lines, inserting
  * line numbers for each line.
  */
-static void codifyLines(char *text,char *cl,bool undoc)
+static void codifyLines(const char *text,const char *cl,bool undoc)
 {
- // printf("codifyLines(%d,\"%d\")\n",yyLineNr,strlen(text));
+  //printf("codifyLines(%d,\"%d\")\n",yyLineNr,strlen(text));
   if(text==NULL) return;
-  char *p=text,*sp=p;
+
+ const char *p=text;
+  const char *sp=p;
   char c;
   bool done=FALSE;
+  int index=0;
   while (!done)
   {
     sp=p;
@@ -908,9 +910,12 @@ static void codifyLines(char *text,char *cl,bool undoc)
     if (c=='\n')
     {
       yyLineNr++;
-      *(p-1)='\0';
+     // *(p-1)='\0';
+     // val[index-1]='\0';
+     QCString line = sp;
+      line = line.left((int)(p-sp)-1);
      if(!undoc) 
-       writeWord(sp,cl);
+       writeWord(line.data(),cl);
 	 else 
 	  g_code->codify(sp);
 	  endCodeLine();
@@ -925,6 +930,7 @@ static void codifyLines(char *text,char *cl,bool undoc)
 	  done=TRUE;
     }
   }
+ 
 }
 
 
@@ -1018,7 +1024,7 @@ static void endFontClass()
 
 //---------------------------------------------------------------
 
-static void addText(char* c,int len);
+static void addText(const char* c,int len);
 static void addToken(char c);
 static int startLex();
 static void resetScanner(const char* s,MyParserConv* parse);
@@ -1196,7 +1202,7 @@ GATETYPE  	"and"|"nand"|"or"|"nor"|"xor"|"xnor"|"buf"|"bufif0"|"bufif1"|"not"|"n
                  }
 
 
-<Start>[§][^²]+[²] {// grey out undefined code
+<Start>"#+#"[^$]+[$] {// grey out undefined code
                     QCString uu(verilogscannerYYtext);
                     if(g_parseCode)
                     {
@@ -1228,7 +1234,7 @@ GATETYPE  	"and"|"nand"|"or"|"nor"|"xor"|"xnor"|"buf"|"bufif0"|"bufif1"|"not"|"n
  
                  if(g_parseCode) 
                  {
-                    //  VhdlDocGen::deleteAllChars(q,'§');                                              
+                    //  VhdlDocGen::deleteAllChars(q,'#+#');                                              
                       uint le=q.length()-1;
                       bool newLine=(q.at(le)=='\\');
                       QCString com=checkComment(q);
@@ -1784,7 +1790,7 @@ GATETYPE  	"and"|"nand"|"or"|"nor"|"xor"|"xnor"|"buf"|"bufif0"|"bufif1"|"not"|"n
 
  QCString getLastLetter(){ return lastLetter; }
 
- void  addText (char *word, int len)
+ void  addText (const char *word, int len)
  {
   	  while(len-->0)
         g_buf[iSize++]=*word++;
@@ -1804,17 +1810,16 @@ int getVerilogEndModuleLine()
  return yyEndModLine; 
  };
 
-void VerilogScanner::resetCodeParserState(){}
-bool VerilogScanner::needsPreprocessing(const QCString &extension){ return true; }
-void VerilogScanner::parsePrototype(const char *text){ }
+void  VerilogScanner::resetCodeParserState(){}
+bool  VerilogScanner::needsPreprocessing(const QCString &extension){ return true; }
+void  VerilogScanner::parsePrototype(const char *text){ }
 
-void VerilogScanner::parseInput(const char *fileName,const char *fileBuf,Entry *root,
+void  VerilogScanner::parseInput(const char *fileName,const char *fileBuf,Entry *root,
                                      bool /*sameTranslationUnit*/,
                                      QStrList & /*filesInSameTranslationUnit*/)
 {
         yyFileName= QCString(fileName);
-	  fprintf(stderr," \n parse Verilog File: %s  \n",yyFileName.data());
-				 
+	
 //verilogscannerYY_flex_debug=1;
       bool xilinx_ucf=isConstraintFile(yyFileName,".ucf");
       bool altera_qsf=isConstraintFile(yyFileName,".qsf");
@@ -1870,7 +1875,7 @@ for(uint j=0;j<qsl.count();j++)
 */
 }// parseConstraint
 
-   void VerilogScanner::parseCode(CodeOutputInterface &codeOutIntf,
+   void  VerilogScanner::parseCode(CodeOutputInterface &codeOutIntf,
     const char *scopeName,
     const QCString &input,
     SrcLangExt /*lang*/,
@@ -1883,25 +1888,24 @@ for(uint j=0;j<qsl.count();j++)
     MemberDef *memberDef,
     bool showLineNumbers,
     Definition *searchCtx,
-	bool
+    bool collectXRefs
     )
 				  { 
 				  num_chars=0;
-         
+
   			 TooltipManager::instance()->clearTooltips();
 
 				 //  Definition *di=(Definition*)fileDef;
 				   QCString pPuffer(" ",1);
 				   if(!fileDef)
 				   {
-				    fprintf(stderr," spe code << %s >> \n",input.data());
+				//    fprintf(stderr," spe code << %s >> \n",input.data());
 				    return;
-                   }
+                                     }
 				   assert(fileDef);
 				     yyFileName=fileDef->fileName();
                     g_code = &codeOutIntf;
-                 fprintf(stderr," \n %s  \n",yyFileName.data());
-				 
+                		  
                    QCString ff(yyFileName);
                    if (Config_getBool("ENABLE_PREPROCESSING") && startLine==-1)
                      {
@@ -1911,11 +1915,11 @@ for(uint j=0;j<qsl.count();j++)
                        pPuffer=defProc.performPreprocessing(fi).data();
                      //  cerr<<pPuffer.data();
                    //     if(ff.data())
-                       // fprintf(stderr,"\nPreprocessing code of file %s...\n",ff.data());
+                    //    fprintf(stderr,"\nPreprocessing code of file %s...\n",ff.data());
                         }
                    else
                     pPuffer+=input.data();
-                  // printf("%s",pPuffer.data());
+                    fprintf(stderr,"%s",yyFileName.data());
                       initVerilogParser(0,true);
                      VerilogDocGen::buildGlobalVerilogVariableDict(fileDef,true);
                   
@@ -2209,7 +2213,7 @@ QCString checkComment(QCString& q)
   QRegExp ep("[`a-zA-Z0-9_'?]+");
   QRegExp ep2("[\\s]+");
  //  j = reg.match(temp.data(),0,&len);
- int index=q.find("§");
+ int index=q.find("#+#");
  if(index>-1)
   q=q.remove(index,1);
  

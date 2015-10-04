@@ -2,7 +2,7 @@
  *
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby
@@ -1001,7 +1001,7 @@ class TranslatorIndonesian : public TranslatorAdapter_1_8_0
         "\\endcode\n"
         "Apabila tag \\c MAX_DOT_GRAPH_HEIGHT di file konfigurasi "
         "diset ke 240 kode di atas akan menghasilkan bagan berikut:"
-        "<p><center><img alt=\"\" src=\"graph_legend."+Config_getEnum("DOT_IMAGE_FORMAT")+"\"></center>\n"
+        "<p><center><img alt=\"\" src=\"graph_legend."+getDotImageExtension()+"\"></center>\n"
         "<p>\n"
         "Kotak-kotak pada bagan di atas mempunyai arti sebagai berikut:\n"
         "<ul>\n"

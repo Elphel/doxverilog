@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -105,7 +105,6 @@ bool Htags::execute(const QCString &htmldir)
 bool Htags::loadFilemap(const QCString &htmlDir)
 {
   QCString fileMapName = htmlDir+"/HTML/FILEMAP";
-  QCString fileMap;
   QFileInfo fi(fileMapName);
   /*
    * Construct FILEMAP dictionary using QDict.
@@ -126,8 +125,10 @@ bool Htags::loadFilemap(const QCString &htmlDir)
     line.at(maxlen)='\0';
     if (f.open(IO_ReadOnly))
     {
-      while (f.readLine(line.data(),maxlen)>0)
+      int len;
+      while ((len=f.readLine(line.rawData(),maxlen))>0)
       {
+        line.resize(len+1);
         //printf("Read line: %s",line.data());
         int sep = line.find('\t');
         if (sep!=-1)

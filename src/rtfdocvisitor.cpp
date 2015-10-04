@@ -3,7 +3,7 @@
  * 
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -1414,6 +1414,11 @@ void RTFDocVisitor::visitPre(DocXRefItem *x)
   if (x->title().isEmpty()) return;
   bool anonymousEnum = x->file()=="@";
   DBG_RTF("{\\comment RTFDocVisitor::visitPre(DocXRefItem)}\n");
+  if (!m_lastIsPara)
+  {
+    m_t << "\\par" << endl;
+    m_lastIsPara=TRUE;
+  }
   m_t << "{"; // start param list
   //m_t << "{\\b "; // start bold
   m_t << "{" << rtf_Style["Heading5"]->reference << endl;
@@ -1671,7 +1676,8 @@ void RTFDocVisitor::writeDotFile(const QCString &fileName)
   m_t << "{" << endl;
   m_t << rtf_Style_Reset;
   m_t << "\\pard \\qc {\\field\\flddirty {\\*\\fldinst INCLUDEPICTURE \"";
-  m_t << baseName << "." << Config_getEnum("DOT_IMAGE_FORMAT");
+  QCString imgExt = getDotImageExtension();
+  m_t << baseName << "." << imgExt;
   m_t << "\" \\\\d \\\\*MERGEFORMAT}{\\fldrslt IMAGE}}\\par" << endl;
   m_t << "}" << endl;
   m_lastIsPara=TRUE;

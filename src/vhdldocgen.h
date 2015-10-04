@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright (C) 1997-2013 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -245,14 +245,8 @@ class VhdlDocGen
              cu->spec==VhdlDocGen::ARCHITECTURE ||
              cu->spec==VhdlDocGen::PACKAGE_BODY;
     }
-	
- static bool membersHaveSpecificType(MemberList *ml,uint64 type);
- static void resetCodeVhdlParserState();
 
-public:
-	 static void writeUCFLink(const MemberDef* mdef,OutputList &ol);
-public:
-	static void startFonts(const QCString& q, const char *keyword,OutputList& ol);
+  static void resetCodeVhdlParserState();
 
   private:
     static void findAllArchitectures(QList<QCString>& ql,const ClassDef *cd);

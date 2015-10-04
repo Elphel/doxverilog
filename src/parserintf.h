@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -130,7 +130,7 @@ class ParserInterface
      *  comment block parser was invoked.
      */
     virtual void parsePrototype(const char *text) = 0;
-	QCString name;
+
 };
 
 //-----------------------------------------------------------------------------
@@ -145,6 +145,7 @@ class ParserManager
   public:
     /** Creates the parser manager object. 
      */
+  
     ParserManager()
       : m_defaultParser(0) { m_parsers.setAutoDelete(TRUE); }
    ~ParserManager()
@@ -165,7 +166,7 @@ class ParserManager
      */
     void registerParser(const char *name,ParserInterface *parser)
     {
-      m_parsers.insert(name,parser);
+       m_parsers.insert(name,parser);
     }
 
     /** Registers a file \a extension with a parser with name \a parserName. 
@@ -174,9 +175,9 @@ class ParserManager
     bool registerExtension(const char *extension, const char *parserName)
     {
       if (parserName==0 || extension==0) return FALSE;
-      ParserInterface *intf = m_parsers.find(parserName);     
-	  if (intf==0) return FALSE;
-	   if (m_extensions.find(extension)!=0) // extension already exists
+      ParserInterface *intf = m_parsers.find(parserName);
+      if (intf==0) return FALSE;
+      if (m_extensions.find(extension)!=0) // extension already exists
       {
         m_extensions.remove(extension); // remove it
       }
@@ -189,14 +190,15 @@ class ParserManager
      *  the interface to the default parser will be returned.
      */
     ParserInterface *getParser(const char *extension)
-    {
+    { 
       QCString ext = QCString(extension).lower();
-      if (ext.isEmpty()) ext=".no_extension";
+      
+if (ext.isEmpty()) ext=".no_extension";
+
       ParserInterface *intf = m_extensions.find(ext);
-   //   fprintf(stderr,"\n get parser for extension %s  \n",ext.data());
-	  if (intf==0 && ext.length()>4)
+      if (intf==0 && ext.length()>4)
       {
-      	  intf = m_extensions.find(ext.left(4));
+       intf = m_extensions.find(ext.left(4));
       }
       return intf ? intf : m_defaultParser;
     }

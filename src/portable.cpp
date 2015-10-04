@@ -45,7 +45,7 @@ int portable_system(const char *command,const char *args,bool commandHasConsole)
   fullCmd += " ";
   fullCmd += args;
 #ifndef NODEBUG
-  Debug::print(Debug::ExtCmd,0,"Executing external command `%s`\n",fullCmd.data());
+  Debug::print(Debug::ExtCmd,0,"Executing external command `%s`\n",qPrint(fullCmd));
 #endif
 
 #if !defined(_WIN32) || defined(__CYGWIN__)
@@ -194,7 +194,10 @@ uint portable_pid()
   return pid;
 }
 
-static char **last_environ;
+#if defined(_WIN32) && !defined(__CYGWIN__)
+#else
+  static char **last_environ;
+#endif
 
 void portable_setenv(const char *name,const char *value)
 {

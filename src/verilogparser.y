@@ -88,7 +88,7 @@ static void parseReg(Entry* e);
 static void parsePortDir(Entry* e,int type);
 static void parseParam(Entry* e);
 static void parseListOfPorts();
-static void parseAlways(char * s=0,bool b=false);
+static void parseAlways(const char * s=0,bool b=false);
 static void parseModuleInst(QCString& first,QCString& sec);
 
 
@@ -1976,7 +1976,7 @@ if(pc) return;
   current_rootVerilog->name=QCString("XXX"); // dummy name for root
 }
 
- Entry* VerilogDocGen::makeNewEntry(char* name,int sec,int spec,int line,bool add){
+ Entry* VerilogDocGen::makeNewEntry(const char* name,int sec,int spec,int line,bool add){
  
   Entry *e=current;
  /*
@@ -2484,7 +2484,7 @@ while(mod.stripPrefix(" "));
   {prevType="";type="";}
 }
 
-void parseAlways(char * s,bool bBody)
+void parseAlways(const char * s,bool bBody)
 {
 
 if(currVerilogType!=VerilogDocGen::ALWAYS || generateItem) return ;

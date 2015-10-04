@@ -2,7 +2,7 @@
  *
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby
@@ -994,7 +994,7 @@ class TranslatorArmenian : public TranslatorAdapter_1_8_0
         "};\n"
         "\\endcode\n"
         "Սրանով կստանանք հետևյալ գրաֆը."
-        "<p><center><img src=\"graph_legend."+Config_getEnum("DOT_IMAGE_FORMAT")+"\"></center>\n"
+        "<p><center><img src=\"graph_legend."+getDotImageExtension()+"\"></center>\n"
         "<p>\n"
         "Այս գրաֆի ուղղանկյունները ունեն հետևյալ իմաստը.\n"
         "<ul>\n"

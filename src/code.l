@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -14,7 +14,7 @@
  * input used in their production; they are not affected by this license.
  *
  */
-
+%option never-interactive
 %{
 
 /*
@@ -46,7 +46,7 @@
 //#define DBG_CTX(x) fprintf x
 #define DBG_CTX(x) do { } while(0)
 
-#define YY_NEVER_INTERACTIVE 1
+#define YY_NO_UNISTD_H 1
 
 #define CLASSBLOCK (int *)4
 #define SCOPEBLOCK (int *)8
@@ -1236,7 +1236,6 @@ static void generateMemberLink(CodeOutputInterface &ol,const QCString &varName,
       {
 	int vi;
 	QCString vn=varName;
-	QCString scope;
 	if ((vi=vn.findRev("::"))!=-1 || (vi=vn.findRev('.'))!=-1)  // explicit scope A::b(), probably static member
 	{
 	  ClassDef *jcd = getClass(vn.left(vi));

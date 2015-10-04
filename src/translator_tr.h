@@ -2,7 +2,7 @@
  *
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby
@@ -1016,7 +1016,7 @@ class TranslatorTurkish : public TranslatorAdapter_1_7_5
         "};\n"
         "\\endcode\n"
         "Bu kod aşağıdaki şemayı oluşturur:"
-        "<p><center><img alt=\"\" src=\"graph_legend."+Config_getEnum("DOT_IMAGE_FORMAT")+"\"></center>\n"
+        "<p><center><img alt=\"\" src=\"graph_legend."+getDotImageExtension()+"\"></center>\n"
         "<p>\n"
         "Yukarıdaki şemadaki kutular aşağıda açıklanmıştır:\n"
         "<ul>\n"

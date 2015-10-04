@@ -2,7 +2,7 @@
  *
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby
@@ -1021,7 +1021,7 @@ class TranslatorVietnamese : public TranslatorAdapter_1_6_0
         "};\n"
         "\\endcode\n"
         "Kết quả trong biểu đồ sau đây:"
-        "<p><center><img alt=\"\" src=\"graph_legend."+Config_getEnum("DOT_IMAGE_FORMAT")+"\"></center>\n"
+        "<p><center><img alt=\"\" src=\"graph_legend."+getDotImageExtension()+"\"></center>\n"
         "<p>\n"
         "Các hộp trong biểu đồ trên có ý nghĩa như sau:\n"
         "<ul>\n"

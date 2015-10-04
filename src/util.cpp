@@ -1,7 +1,7 @@
 /*****************************************************************************
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -9,8 +9,7 @@
  * for any purpose. It is provided "as is" without express or implied warranty.
  * See the GNU General Public License for more details.
  *
- * Documents produced by Doxygen are derivative works derived from the
- * input used in their production; they are not affected by this license.
+ * Documents produced by Doxygen are derivative works derived from license.
  *
  */
 
@@ -1448,7 +1447,7 @@ static ClassDef *getResolvedClassRec(Definition *scope,
   // below is a more efficient coding of
   // QCString key=scope->name()+"+"+name+"+"+explicitScopePart;
   QCString key(scopeNameLen+nameLen+explicitPartLen+fileScopeLen+1);
-  char *p=key.data();
+  char *p=key.rawData();
   qstrcpy(p,scope->name()); *(p+scopeNameLen-1)='+';
   p+=scopeNameLen;
   qstrcpy(p,name); *(p+nameLen-1)='+';
@@ -1724,7 +1723,7 @@ nextChar:
       growBuf.addChar(' ');
     }
     else if (i>0 && c=='>' && // current char is a >
-        (isId(s.at(i-1)) || isspace((uchar)s.at(i-1)) || s.at(i-1)=='*' || s.at(i-1)=='&') && // prev char is an id char or space
+        (isId(s.at(i-1)) || isspace((uchar)s.at(i-1)) || s.at(i-1)=='*' || s.at(i-1)=='&' || s.at(i-1)=='.') && // prev char is an id char or space
         (i<8 || !findOperator(s,i)) // string in front is not "operator"
         )
     {
@@ -1741,9 +1740,11 @@ nextChar:
     }
     else if (i>0 &&
          (
-          (s.at(i-1)==')' && isId(c))
+          (s.at(i-1)==')' && isId(c)) // ")id" -> ") id"
           ||
-          (c=='\''  && s.at(i-1)==' ')
+          (c=='\''  && s.at(i-1)==' ')  // "'id" -> "' id"
+          ||
+          (i>1 && s.at(i-2)==' ' && s.at(i-1)==' ') // "  id" -> " id"
          )
         )
     {
@@ -2223,11 +2224,20 @@ QCString tempArgListToString(ArgumentList *al,SrcLangExt lang)
       if (i>0)
       {
         result+=a->type.right(a->type.length()-i-1);
+        if (a->type.find("...")!=-1)
+        {
+          result+="...";
+        }
       }
       else // nothing found -> take whole name
       {
         result+=a->type;
       }
+    }
+    if (!a->typeConstraint.isEmpty() && lang==SrcLangExt_Java)
+    {
+      result+=" extends "; // TODO: now Java specific, C# has where...
+      result+=a->typeConstraint;
     }
     ++ali;
     a=ali.current();
@@ -2379,8 +2389,8 @@ QCString transcodeCharacterStringToUTF8(const QCString &input)
   {
     size_t iLeft=inputSize;
     size_t oLeft=outputSize;
-    char *inputPtr = input.data();
-    char *outputPtr = output.data();
+    char *inputPtr = input.rawData();
+    char *outputPtr = output.rawData();
     if (!portable_iconv(cd, &inputPtr, &iLeft, &outputPtr, &oLeft))
     {
       outputSize-=(int)oLeft;
@@ -2418,12 +2428,12 @@ QCString fileToString(const char *name,bool filter,bool isSourceCode)
       QCString contents(bSize);
       int totalSize=0;
       int size;
-      while ((size=f.readBlock(contents.data()+totalSize,bSize))==bSize)
+      while ((size=f.readBlock(contents.rawData()+totalSize,bSize))==bSize)
       {
         totalSize+=bSize;
-        contents.resize(totalSize+bSize); 
+        contents.resize(totalSize+bSize);
       }
-      totalSize = filterCRLF(contents.data(),totalSize+size)+2;
+      totalSize = filterCRLF(contents.rawData(),totalSize+size)+2;
       contents.resize(totalSize);
       contents.at(totalSize-2)='\n'; // to help the scanner
       contents.at(totalSize-1)='\0';
@@ -3317,7 +3327,7 @@ static QCString getCanonicalTypeForIdentifier(
 {
   if (count>10) return word; // oops recursion
 
-  QCString symName,scope,result,templSpec,tmpName;
+  QCString symName,result,templSpec,tmpName;
   //DefinitionList *defList=0;
   if (tSpec && !tSpec->isEmpty()) 
     templSpec = stripDeclKeywords(getCanonicalTemplateSpec(d,fs,*tSpec));
@@ -4110,8 +4120,6 @@ bool getDefs(const QCString &scName,
         continue;
 
       if (!args) break;
-
-      QCString className = mmd->getClassDef()->name();
 
       ArgumentList *mmdAl = mmd->argumentList();
       if (matchArguments2(mmd->getOuterScope(),mmd->getFileDef(),mmdAl,
@@ -5060,7 +5068,7 @@ QCString substitute(const QCString &s,const QCString &src,const QCString &dst)
   }
   QCString result(resLen+1);
   char *r;
-  for (r=result.data(), p=s; (q=strstr(p,src))!=0; p=q+srcLen)
+  for (r=result.rawData(), p=s; (q=strstr(p,src))!=0; p=q+srcLen)
   {
     int l = (int)(q-p);
     memcpy(r,p,l);
@@ -5231,6 +5239,7 @@ QCString escapeCharsInString(const char *name,bool allowDots,bool allowUnderscor
       case '=': growBuf.addStr("_0A"); break;
       case '$': growBuf.addStr("_0B"); break;
       case '\\': growBuf.addStr("_0C"); break;
+      case '@': growBuf.addStr("_0D"); break;
       default: 
                 if (c<0)
                 {
@@ -5340,7 +5349,7 @@ QCString convertNameToFile(const char *name,bool allowDots,bool allowUnderscore)
       uchar md5_sig[16];
       QCString sigStr(33);
       MD5Buffer((const unsigned char *)result.data(),resultLen,md5_sig);
-      MD5SigToString(md5_sig,sigStr.data(),33);
+      MD5SigToString(md5_sig,sigStr.rawData(),33);
       result=result.left(128-32)+sigStr; 
     }
   }
@@ -6454,6 +6463,8 @@ void filterLatexString(FTextStream &t,const char *str,
   //printf("filterLatexString(%s)\n",str);
   //if (strlen(str)<2) stackTrace();
   const unsigned char *p=(const unsigned char *)str;
+  const unsigned char *q;
+  int cnt;
   unsigned char c;
   unsigned char pc='\0';
   while (*p)
@@ -6480,7 +6491,35 @@ void filterLatexString(FTextStream &t,const char *str,
         case '$':  t << "\\$";           break;
         case '%':  t << "\\%";           break;
         case '^':  t << "$^\\wedge$";    break;
-        case '&':  t << "\\&";           break;
+        case '&':  // possibility to have a special symbol
+                   q = p;
+                   cnt = 2; // we have to count & and ; as well
+                   while ((*q >= 'a' && *q <= 'z') || (*q >= 'A' && *q <= 'Z') || (*q >= '0' && *q <= '9'))
+                   {
+                     cnt++;
+                     q++;
+                   }
+                   if (*q == ';')
+                   {
+                      --p; // we need & as well
+                      DocSymbol::SymType res = HtmlEntityMapper::instance()->name2sym(QCString((char *)p).left(cnt));
+                      if (res == DocSymbol::Sym_Unknown)
+                      {
+                        p++;
+                        t << "\\&";
+                      }
+                      else
+                      {
+                        t << HtmlEntityMapper::instance()->latex(res);
+                        q++;
+                        p = q;
+                      }
+                   }
+                   else
+                   {
+                     t << "\\&";
+                   }
+                   break;
         case '*':  t << "$\\ast$";       break;
         case '_':  if (!insideTabbing) t << "\\+";  
                    t << "\\_"; 
@@ -6550,7 +6589,7 @@ QCString rtfFormatBmkStr(const char *name)
     g_tagDict.insert( key, tag );
 
     // This is the increment part
-    char* nxtTag = g_nextTag.data() + g_nextTag.length() - 1;
+    char* nxtTag = g_nextTag.rawData() + g_nextTag.length() - 1;
     for ( unsigned int i = 0; i < g_nextTag.length(); ++i, --nxtTag )
     {
       if ( ( ++(*nxtTag) ) > 'Z' )
@@ -6742,12 +6781,12 @@ g_lang2extMap[] =
   { "fortranfree", "fortranfree",   SrcLangExt_Fortran  },
   { "fortranfixed", "fortranfixed", SrcLangExt_Fortran  },
   { "vhdl",        "vhdl",          SrcLangExt_VHDL     },
-  { "dbusxml",     "dbusxml",       SrcLangExt_XML      },
-  { "tcl",         "tcl",           SrcLangExt_Tcl      },
-  { "ucf",        "v",    SrcLangExt_VERILOG   },
+ { "ucf",        "v",    SrcLangExt_VERILOG   },
   { "qsf",        "v",    SrcLangExt_VERILOG   },
   { "v",        "v",    SrcLangExt_VERILOG    },
- { "md",          "md",            SrcLangExt_Markdown },
+  { "xml",         "xml",           SrcLangExt_XML      },
+  { "tcl",         "tcl",           SrcLangExt_Tcl      },
+  { "md",          "md",            SrcLangExt_Markdown },
   { 0,             0,              (SrcLangExt)0        }
 };
 
@@ -6837,12 +6876,14 @@ void initDefaultExtensionMapping()
   updateLanguageMapping(".tcl",      "tcl");
   updateLanguageMapping(".ucf",      "vhdl");
   updateLanguageMapping(".qsf",      "vhdl");
+  updateLanguageMapping(".v",      "v");
   updateLanguageMapping(".md",       "md");
-  updateLanguageMapping(".v",       "v");
-  updateLanguageMapping(".V",       "v");
   updateLanguageMapping(".markdown", "md");
+}
 
-  //updateLanguageMapping(".xml",   "dbusxml");
+void addCodeOnlyMappings()
+{
+  updateLanguageMapping(".xml",   "xml");
 }
 
 SrcLangExt getLanguageFromFileName(const QCString fileName)
@@ -7487,7 +7528,7 @@ bool readInputFile(const char *fileName,BufStr &inBuf,bool filter,bool isSourceC
   else
   {
     QCString cmd=filterName+" \""+fileName+"\"";
-    Debug::print(Debug::ExtCmd,0,"Executing popen(`%s`)\n",cmd.data());
+    Debug::print(Debug::ExtCmd,0,"Executing popen(`%s`)\n",qPrint(cmd));
     FILE *f=portable_popen(cmd,"r");
     if (!f)
     {
@@ -7505,7 +7546,7 @@ bool readInputFile(const char *fileName,BufStr &inBuf,bool filter,bool isSourceC
     portable_pclose(f);
     inBuf.at(inBuf.curPos()) ='\0';
     Debug::print(Debug::FilterOutput, 0, "Filter output\n");
-    Debug::print(Debug::FilterOutput,0,"-------------\n%s\n-------------\n",inBuf.data());
+    Debug::print(Debug::FilterOutput,0,"-------------\n%s\n-------------\n",qPrint(inBuf));
   }
 
   int start=0;
@@ -7653,8 +7694,12 @@ QCString externalRef(const QCString &relPath,const QCString &ref,bool href)
       if (!relPath.isEmpty() && l>0 && result.at(0)=='.')
       { // relative path -> prepend relPath.
         result.prepend(relPath);
+        l+=relPath.length();
       }
-      if (!href) result.prepend("doxygen=\""+ref+":");
+      if (!href){
+        result.prepend("doxygen=\""+ref+":");
+        l+=10+ref.length();
+      }
       if (l>0 && result.at(l-1)!='/') result+='/';
       if (!href) result.append("\" ");
     }
@@ -7837,7 +7882,7 @@ QCString langToString(SrcLangExt lang)
     case SrcLangExt_Python:   return "Python";
     case SrcLangExt_Fortran:  return "Fortran";
     case SrcLangExt_VHDL:     return "VHDL";
-	case SrcLangExt_VERILOG:     return "VERILOG";
+    case SrcLangExt_VERILOG:  return "VERILOG";
     case SrcLangExt_XML:      return "XML";
     case SrcLangExt_Tcl:      return "Tcl";
     case SrcLangExt_Markdown: return "Markdown";
@@ -7848,7 +7893,7 @@ QCString langToString(SrcLangExt lang)
 /** Returns the scope separator to use given the programming language \a lang */
 QCString getLanguageSpecificSeparator(SrcLangExt lang,bool classScope)
 {
-  if (lang==SrcLangExt_Java || lang==SrcLangExt_CSharp || lang==SrcLangExt_VERILOG || lang==SrcLangExt_VHDL || lang==SrcLangExt_Python)
+  if (lang==SrcLangExt_Java || lang==SrcLangExt_CSharp || lang==SrcLangExt_VERILOG || lang==SrcLangExt_Python)
   {
     return ".";
   }
@@ -7974,12 +8019,10 @@ void addDocCrossReference(MemberDef *src,MemberDef *dst)
 {
   static bool referencedByRelation = Config_getBool("REFERENCED_BY_RELATION");
   static bool referencesRelation   = Config_getBool("REFERENCES_RELATION");
-  static bool callerGraph          = Config_getBool("CALLER_GRAPH");
-  static bool callGraph            = Config_getBool("CALL_GRAPH");
 
   //printf("--> addDocCrossReference src=%s,dst=%s\n",src->name().data(),dst->name().data());
   if (dst->isTypedef() || dst->isEnumerate()) return; // don't add types
-  if ((referencedByRelation || callerGraph || dst->hasCallerGraph()) && 
+  if ((referencedByRelation || dst->hasCallerGraph()) && 
       src->showInCallGraph()
      )
   {
@@ -7995,7 +8038,7 @@ void addDocCrossReference(MemberDef *src,MemberDef *dst)
       mdDecl->addSourceReferencedBy(src);
     }
   }
-  if ((referencesRelation || callGraph || src->hasCallGraph()) && 
+  if ((referencesRelation || src->hasCallGraph()) && 
       src->showInCallGraph()
      )
   {
@@ -8345,3 +8388,9 @@ bool mainPageHasTitle()
   return TRUE;
 }
 
+QCString getDotImageExtension(void)
+{
+  QCString imgExt      = Config_getEnum("DOT_IMAGE_FORMAT");
+  imgExt = imgExt.replace( QRegExp(":.*"), "" );
+  return imgExt;
+}

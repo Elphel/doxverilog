@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -14,10 +14,8 @@
  * input used in their production; they are not affected by this license.
  *
  */
-
+%option never-interactive
 %{
-
-#define YY_NEVER_INTERACTIVE 1
 
   
 #include <stdio.h>
@@ -39,6 +37,7 @@
 #include <assert.h>
 
 #define YY_NO_INPUT 1
+#define YY_NO_UNISTD_H 1
 
 #define ADDCHAR(c)    g_outBuf->addChar(c)
 #define ADDARRAY(a,s) g_outBuf->addArray(a,s)
@@ -1028,6 +1027,7 @@ void convertCppComments(BufStr *inBuf,BufStr *outBuf,const char *fileName)
         "Nesting level %d %s",g_nestingCount+1,tmp.data()); // add one for "normal" expected end of comment
   }
   g_commentStack.clear();
+  g_nestingCount = 0;
   if (Debug::isFlagSet(Debug::CommentCnv))
   {
     g_outBuf->at(g_outBuf->curPos())='\0';

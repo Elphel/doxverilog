@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -393,6 +393,12 @@ static void writeTemplateArgumentList(ArgumentList *al,
         t << indentStr << "    <defval>";
         linkifyText(TextGeneratorXMLImpl(t),scope,fileScope,0,a->defval);
         t << "</defval>" << endl;
+      }
+      if (!a->typeConstraint.isEmpty())
+      {
+        t << indentStr << "    <typeconstraint>";
+        linkifyText(TextGeneratorXMLImpl(t),scope,fileScope,0,a->typeConstraint);
+        t << "</typeconstraint>" << endl;
       }
       t << indentStr << "  </param>" << endl;
     }
@@ -972,7 +978,7 @@ static void generateXMLForMember(MemberDef *md,FTextStream &ti,FTextStream &t,De
   if (md->getDefLine()!=-1)
   {
     t << "        <location file=\"" 
-      << md->getDefFileName() << "\" line=\"" 
+      << stripFromPath(md->getDefFileName()) << "\" line=\"" 
       << md->getDefLine() << "\"" << " column=\"" 
       << md->getDefColumn() << "\"" ;
     if (md->getStartBodyLine()!=-1)
@@ -980,7 +986,7 @@ static void generateXMLForMember(MemberDef *md,FTextStream &ti,FTextStream &t,De
       FileDef *bodyDef = md->getBodyDef();
       if (bodyDef)
       {
-        t << " bodyfile=\"" << bodyDef->absFilePath() << "\"";
+        t << " bodyfile=\"" << stripFromPath(bodyDef->absFilePath()) << "\"";
       }
       t << " bodystart=\"" << md->getStartBodyLine() << "\" bodyend=\"" 
         << md->getEndBodyLine() << "\"";
@@ -1398,7 +1404,7 @@ static void generateXMLForClass(ClassDef *cd,FTextStream &ti)
     t << "    </collaborationgraph>" << endl;
   }
   t << "    <location file=\"" 
-    << cd->getDefFileName() << "\" line=\"" 
+    << stripFromPath(cd->getDefFileName()) << "\" line=\"" 
     << cd->getDefLine() << "\"" << " column=\"" 
     << cd->getDefColumn() << "\"" ;
     if (cd->getStartBodyLine()!=-1)
@@ -1406,7 +1412,7 @@ static void generateXMLForClass(ClassDef *cd,FTextStream &ti)
       FileDef *bodyDef = cd->getBodyDef();
       if (bodyDef)
       {
-        t << " bodyfile=\"" << bodyDef->absFilePath() << "\"";
+        t << " bodyfile=\"" << stripFromPath(bodyDef->absFilePath()) << "\"";
       }
       t << " bodystart=\"" << cd->getStartBodyLine() << "\" bodyend=\"" 
         << cd->getEndBodyLine() << "\"";
@@ -1486,7 +1492,7 @@ static void generateXMLForNamespace(NamespaceDef *nd,FTextStream &ti)
   writeXMLDocBlock(t,nd->docFile(),nd->docLine(),nd,0,nd->documentation());
   t << "    </detaileddescription>" << endl;
   t << "    <location file=\""
-    << nd->getDefFileName() << "\" line=\""
+    << stripFromPath(nd->getDefFileName()) << "\" line=\""
     << nd->getDefLine() << "\"" << " column=\""
     << nd->getDefColumn() << "\"/>" << endl ;
   t << "  </compounddef>" << endl;
@@ -1628,7 +1634,7 @@ static void generateXMLForFile(FileDef *fd,FTextStream &ti)
     writeXMLCodeBlock(t,fd);
     t << "    </programlisting>" << endl;
   }
-  t << "    <location file=\"" << fd->getDefFileName() << "\"/>" << endl;
+  t << "    <location file=\"" << stripFromPath(fd->getDefFileName()) << "\"/>" << endl;
   t << "  </compounddef>" << endl;
   t << "</doxygen>" << endl;
 
@@ -1742,7 +1748,7 @@ static void generateXMLForDir(DirDef *dd,FTextStream &ti)
   t << "    <detaileddescription>" << endl;
   writeXMLDocBlock(t,dd->docFile(),dd->docLine(),dd,0,dd->documentation());
   t << "    </detaileddescription>" << endl;
-  t << "    <location file=\"" << dd->name() << "\"/>" << endl; 
+  t << "    <location file=\"" << stripFromPath(dd->name()) << "\"/>" << endl; 
   t << "  </compounddef>" << endl;
   t << "</doxygen>" << endl;
 
@@ -1865,7 +1871,7 @@ void generateXML()
     if (len>0)
     {
       QCString s(len+1);
-      qstrncpy(s.data(),startLine,len);
+      qstrncpy(s.rawData(),startLine,len);
       s[len]='\0';
       if (s.find("<!-- Automatically insert here the HTML entities -->")!=-1)
       {

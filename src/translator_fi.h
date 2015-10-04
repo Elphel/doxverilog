@@ -2,7 +2,7 @@
  *
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby
@@ -1101,7 +1101,7 @@ class TranslatorFinnish : public TranslatorAdapter_1_6_0
         "{\n"
         "  private:\n"
         "    Kaytetty *m_kaytettyLuokka;\n"
-        "}\n";
+        "}\n"
         // "class Inherited : public PublicBase,\n"
         // "                  protected ProtectedBase,\n"
         // "                  private PrivateBase,\n"
@@ -1114,7 +1114,7 @@ class TranslatorFinnish : public TranslatorAdapter_1_6_0
         "\\endcode\n"
         "Tuloksena on seuraavanlainen kaavio:"
         //"This will result in the following graph:"
-        "<p><center><img alt=\"\" src=\"graph_legend."+Config_getEnum("DOT_IMAGE_FORMAT")+"\"></center>\n"
+        "<p><center><img alt=\"\" src=\"graph_legend."+getDotImageExtension()+"\"></center>\n"
         "<p>\n"
         "Ylläolevassa kaaviossa laatikoilla on seuraavat merkitykset\n:"
         // "The boxes in the above graph have the following meaning:\n"

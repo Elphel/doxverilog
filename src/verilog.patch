@@ -1,0 +1,877 @@
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 155bf77..aac7baa 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -92,6 +92,7 @@ FLEX_TARGET(pycode         pycode.l         ${GENERATED_SRC}/pycode.cpp
+ FLEX_TARGET(fortranscanner fortranscanner.l ${GENERATED_SRC}/fortranscanner.cpp COMPILE_FLAGS "-PfortranscannerYY -i")
+ FLEX_TARGET(fortrancode    fortrancode.l    ${GENERATED_SRC}/fortrancode.cpp    COMPILE_FLAGS "-PfortrancodeYY -i")
+ FLEX_TARGET(vhdlcode       vhdlcode.l       ${GENERATED_SRC}/vhdlcode.cpp       COMPILE_FLAGS "-PvhdlcodeYY -i")
++FLEX_TARGET(verilogscanner       verilogscanner.l       ${GENERATED_SRC}/verilogscanner.cpp       COMPILE_FLAGS "-PverilogscannerYY -i")
+ FLEX_TARGET(tclscanner     tclscanner.l     ${GENERATED_SRC}/tclscanner.cpp     COMPILE_FLAGS "-PtclscannerYY -i")
+ FLEX_TARGET(pre            pre.l            ${GENERATED_SRC}/pre.cpp            COMPILE_FLAGS "-PpreYY")
+ FLEX_TARGET(declinfo       declinfo.l       ${GENERATED_SRC}/declinfo.cpp       COMPILE_FLAGS "-PdeclinfoYY")
+@@ -102,8 +103,11 @@ FLEX_TARGET(commentscan    commentscan.l    ${GENERATED_SRC}/commentscan.cpp
+ FLEX_TARGET(constexp       constexp.l       ${GENERATED_SRC}/constexp.cpp       COMPILE_FLAGS "-PconstexpYY")
+ FLEX_TARGET(xmlcode        xmlcode.l        ${GENERATED_SRC}/xmlcode.cpp        COMPILE_FLAGS "-PxmlcodeYY")
+ FLEX_TARGET(config         config.l         ${GENERATED_SRC}/config.cpp         COMPILE_FLAGS "-PconfigYY")
++FLEX_TARGET(VPreLex        VPreLex.l        ${GENERATED_SRC}/VPreLex.cpp        COMPILE_FLAGS "-PVPreLex")
++
+ 
+ BISON_TARGET(vhdlparser    vhdlparser.y     ${GENERATED_SRC}/vhdlparser.cpp     COMPILE_FLAGS "-l -p vhdlscannerYY")
++BISON_TARGET(verilogparser    verilogparser.y     ${GENERATED_SRC}/verilogparser.cpp     COMPILE_FLAGS "-l ")
+ BISON_TARGET(constexp      constexp.y       ${GENERATED_SRC}/ce_parse.cpp       COMPILE_FLAGS "-l -p constexpYY")
+ 
+ add_library(doxycfg
+@@ -130,6 +134,9 @@ add_library(_doxygen
+     ${GENERATED_SRC}/fortranscanner.cpp
+     ${GENERATED_SRC}/fortrancode.cpp
+     ${GENERATED_SRC}/vhdlcode.cpp
++    ${GENERATED_SRC}/verilogscanner.cpp
++    ${GENERATED_SRC}/verilogparser.cpp
++    ${GENERATED_SRC}/VPreLex.cpp
+     ${GENERATED_SRC}/tclscanner.cpp
+     ${GENERATED_SRC}/pre.cpp
+     ${GENERATED_SRC}/declinfo.cpp
+@@ -218,6 +225,9 @@ add_library(_doxygen
+     util.cpp
+     vhdldocgen.cpp
+     vhdljjparser.cpp
++    verilogdocgen.cpp
++    VFileLine.cpp
++    VPreProc.cpp
+     xmldocvisitor.cpp
+     xmlgen.cpp
+     docbookvisitor.cpp
+diff --git a/src/classdef.cpp b/src/classdef.cpp
+index 95428d6..ccf3988 100644
+--- a/src/classdef.cpp
++++ b/src/classdef.cpp
+@@ -44,7 +44,7 @@
+ #include "filedef.h"
+ #include "namespacedef.h"
+ #include "membergroup.h"
+-
++#include "verilogdocgen.h"
+ //-----------------------------------------------------------------------------
+ 
+ /** Private data associated with a ClassDef object. */
+@@ -315,7 +315,7 @@ QCString ClassDef::displayName(bool includeScope) const
+   SrcLangExt lang = getLanguage();
+   //static bool vhdlOpt = Config_getBool("OPTIMIZE_OUTPUT_VHDL");
+   QCString n;
+-  if (lang==SrcLangExt_VHDL)
++  if (lang==SrcLangExt_VHDL || lang==SrcLangExt_VERILOG)
+   {
+     n = VhdlDocGen::getClassName(this);
+   }
+@@ -422,7 +422,7 @@ void ClassDef::internalInsertMember(MemberDef *md,
+   //printf("insertInternalMember(%s) isHidden()=%d\n",md->name().data(),md->isHidden());
+   if (md->isHidden()) return;
+ 
+-  if (getLanguage()==SrcLangExt_VHDL)
++  if (getLanguage()==SrcLangExt_VHDL || getLanguage()==SrcLangExt_VERILOG)
+   {
+     QCString title=VhdlDocGen::trVhdlType(md->getMemberSpecifiers(),FALSE);
+     if (!m_impl->vhdlSummaryTitles.find(title))
+@@ -1065,7 +1065,10 @@ QCString ClassDef::generatedFromFiles() const
+   }
+   else if (isJavaEnum())
+   {
+-    result = theTranslator->trEnumGeneratedFromFiles(m_impl->files.count()==1);
++   if (lang==SrcLangExt_VERILOG) 
++   result = theTranslator->trGeneratedFromFiles(Module,false);
++   else
++   result = theTranslator->trEnumGeneratedFromFiles(m_impl->files.count()==1);
+   }
+   else if (m_impl->compType==Service)
+   {
+@@ -1480,6 +1483,12 @@ void ClassDef::endMemberDeclarations(OutputList &ol)
+   static bool inlineInheritedMembers = Config_getBool("INLINE_INHERITED_MEMB");
+   if (!inlineInheritedMembers && countAdditionalInheritedMembers()>0)
+   {
++    
++    if(Config_getBool("OPTIMIZE_OUTPUT_VERILOG"))
++	  {	
++		  ol.endMemberSections();
++	    	return;
++	  }
+     ol.startMemberHeader("inherited");
+     ol.parseText(theTranslator->trAdditionalInheritedMembers());
+     ol.endMemberHeader();
+@@ -1861,9 +1870,12 @@ void ClassDef::writeDeclarationLink(OutputList &ol,bool &found,const char *heade
+       {
+         ol.parseText(header);
+       }
+-      else if (lang==SrcLangExt_VHDL)
++      else if (lang==SrcLangExt_VHDL || lang==SrcLangExt_VERILOG)
+       {
+-        ol.parseText(VhdlDocGen::trVhdlType(VhdlDocGen::ARCHITECTURE,FALSE));
++        if(lang==SrcLangExt_VERILOG)
++		 ol.parseText("Modules");
++	  else
++          ol.parseText(VhdlDocGen::trVhdlType(VhdlDocGen::ARCHITECTURE,FALSE));
+       }
+       else
+       {
+@@ -1879,7 +1891,10 @@ void ClassDef::writeDeclarationLink(OutputList &ol,bool &found,const char *heade
+     ol.startMemberItem(anchor(),FALSE);
+     QCString ctype = compoundTypeString();
+     QCString cname = displayName(!localNames);
+-
++ 
++ if(lang==SrcLangExt_VERILOG)
++	   ctype=VhdlDocGen::getProtectionName((VhdlDocGen::VhdlClasses)protection());
++ 
+     if (lang!=SrcLangExt_VHDL) // for VHDL we swap the name and the type
+     {
+       ol.writeString(ctype);
+@@ -2440,7 +2455,7 @@ void ClassDef::writeMemberList(OutputList &ol)
+         {
+           ol.writeString("<span class=\"mlabel\">");
+           QStrList sl;
+-          if (lang==SrcLangExt_VHDL)
++          if (lang==SrcLangExt_VHDL || lang==SrcLangExt_VERILOG)
+           {
+             sl.append(VhdlDocGen::trVhdlType(md->getMemberSpecifiers())); //append vhdl type
+           }
+diff --git a/src/classdef.h b/src/classdef.h
+index 6cdd491..765152e 100644
+--- a/src/classdef.h
++++ b/src/classdef.h
+@@ -69,6 +69,7 @@ class ClassDef : public Definition
+                         Exception, //=Entry::EXCEPTION_SEC
+                         Service,   //=Entry::CLASS_SEC
+                         Singleton, //=Entry::CLASS_SEC
++                        Module
+                       };
+ 
+     /** Creates a new compound definition.
+diff --git a/src/config.l b/src/config.l
+index 1bbe320..1bb1c87 100644
+--- a/src/config.l
++++ b/src/config.l
+@@ -1462,6 +1462,7 @@ void Config::check()
+     filePatternList.append("*.for");
+     filePatternList.append("*.vhd");
+     filePatternList.append("*.vhdl");
++    filePatternList.append("*.v");
+     filePatternList.append("*.tcl");
+     filePatternList.append("*.md");
+     filePatternList.append("*.markdown");
+@@ -1488,6 +1489,7 @@ void Config::check()
+       filePatternList.append("*.VHDL");
+       filePatternList.append("*.TCL");
+       filePatternList.append("*.MD");
++      filePatternList.append("*.V");
+       filePatternList.append("*.MARKDOWN");
+     }
+   }
+@@ -1605,6 +1607,48 @@ void Config::check()
+     annotationFromBrief.append("the");
+   }
+ 
++ if (Config_getBool("OPTIMIZE_OUTPUT_VERILOG"))
++  {
++   Config_getBool("OPTIMIZE_OUTPUT_VHDL")       = TRUE;
++  }
++
++  // some default settings for vhdl
++  if (Config_getBool("OPTIMIZE_OUTPUT_VHDL") && 
++      (Config_getBool("INLINE_INHERITED_MEMB") || 
++       Config_getBool("INHERIT_DOCS") || 
++       !Config_getBool("HIDE_SCOPE_NAMES") ||
++       !Config_getBool("EXTRACT_PRIVATE") ||
++       !Config_getBool("EXTRACT_PACKAGE")
++      )
++     )
++  {
++    bool b1 = Config_getBool("INLINE_INHERITED_MEMB");
++    bool b2 = Config_getBool("INHERIT_DOCS");
++    bool b3 = Config_getBool("HIDE_SCOPE_NAMES");
++    bool b4 = Config_getBool("EXTRACT_PRIVATE");
++    bool b5 = Config_getBool("SKIP_FUNCTION_MACROS");
++    bool b6 = Config_getBool("EXTRACT_PACKAGE");
++    const char *s1,*s2,*s3,*s4,*s5,*s6;
++    if (b1)  s1="  INLINE_INHERITED_MEMB  = NO (was YES)\n"; else s1="";
++    if (b2)  s2="  INHERIT_DOCS           = NO (was YES)\n"; else s2="";
++    if (!b3) s3="  HIDE_SCOPE_NAMES       = YES (was NO)\n"; else s3="";
++    if (!b4) s4="  EXTRACT_PRIVATE        = YES (was NO)\n"; else s4="";
++    if (b5)  s5="  ENABLE_PREPROCESSING   = NO (was YES)\n"; else s5="";
++    if (!b6) s6="  EXTRACT_PACKAGE        = YES (was NO)\n"; else s6="";
++
++
++    config_err("Warning: enabling OPTIMIZE_OUTPUT_VHDL assumes the following settings:\n"
++	       "%s%s%s%s%s%s",s1,s2,s3,s4,s5,s6
++	      );
++
++    Config_getBool("INLINE_INHERITED_MEMB") = FALSE;
++    Config_getBool("INHERIT_DOCS")          = FALSE;
++    Config_getBool("HIDE_SCOPE_NAMES")      = TRUE;
++    Config_getBool("EXTRACT_PRIVATE")       = TRUE;
++    Config_getBool("ENABLE_PREPROCESSING")  = FALSE;
++    Config_getBool("EXTRACT_PACKAGE")       = TRUE;
++  }
++
+   // some default settings for vhdl
+   if (Config_getBool("OPTIMIZE_OUTPUT_VHDL") && 
+       (Config_getBool("INLINE_INHERITED_MEMB") || 
+diff --git a/src/config.xml b/src/config.xml
+index acbee8e..80d55eb 100644
+--- a/src/config.xml
++++ b/src/config.xml
+@@ -582,6 +582,18 @@ Go to the <a href="commands.html">next</a> section or return to the
+ ]]>
+       </docs>
+     </option>
++<option type='bool' id='OPTIMIZE_OUTPUT_VERILOG' defval='0'>
++      <docs>
++<![CDATA[
++ Set the \c OPTIMIZE_OUTPUT_VERILOG tag to \c YES if your project consists of VERILOG 
++ sources. Doxygen will then generate output that is tailored for VERILOG.
++]]>
++      </docs>
++    </option>
++<option type='bool' id='HIDE_PORT' defval='1'>
++      <docs>
++    </docs>
++    </option>
+     <option type='list' id='EXTENSION_MAPPING' format='string'>
+       <docs>
+ <![CDATA[
+diff --git a/src/doxygen.cpp b/src/doxygen.cpp
+index 647b5c8..2b22725 100644
+--- a/src/doxygen.cpp
++++ b/src/doxygen.cpp
+@@ -98,6 +98,8 @@
+ #include "settings.h"
+ #include "context.h"
+ #include "fileparser.h"
++#include "VPreProc.h"
++#include "verilogscanner.h"
+ 
+ // provided by the generated file resources.cpp
+ extern void initResources();
+@@ -9326,6 +9328,7 @@ static ParserInterface *getParserForFile(const char *fn)
+ {
+   QCString fileName=fn;
+   QCString extension;
++ 
+   int sep = fileName.findRev('/');
+   int ei = fileName.findRev('.');
+   if (ei!=-1 && (sep==-1 || ei>sep)) // matches dir/file.ext but not dir.1/file
+@@ -9336,7 +9339,8 @@ static ParserInterface *getParserForFile(const char *fn)
+   {
+     extension = ".no_extension";
+   }
+-
++ 
++  ParserInterface *pf=Doxygen::parserManager->getParser(extension);
+   return Doxygen::parserManager->getParser(extension);
+ }
+ 
+@@ -9349,6 +9353,7 @@ static void parseFile(ParserInterface *parser,
+ #else
+   static bool clangAssistedParsing = FALSE;
+ #endif
++
+   QCString fileName=fn;
+   QCString extension;
+   int ei = fileName.findRev('.');
+@@ -9369,8 +9374,22 @@ static void parseFile(ParserInterface *parser,
+   {
+     BufStr inBuf(fi.size()+4096);
+     msg("Preprocessing %s...\n",fn);
++    SrcLangExt lang = getLanguageFromFileName(fn);
++  
++    bool optVerilog = (lang==SrcLangExt_VHDL) || (lang==SrcLangExt_VERILOG);
++ 
++	if(optVerilog) 
++	 {
++	 VerilogPreProc defProc;
++     readInputFile(fileName,inBuf);
++      QCString s=defProc.performPreprocessing(fi,true).data();
++      preBuf.addArray(s.data(),s.length()); 
++	 }
++	 else 
++	 {
+     readInputFile(fileName,inBuf);
+     preprocessFile(fileName,inBuf,preBuf);
++    }
+   }
+   else // no preprocessing
+   {
+@@ -10018,8 +10037,9 @@ void initDoxygen()
+   Doxygen::parserManager->registerParser("vhdl",         new VHDLLanguageScanner);
+   Doxygen::parserManager->registerParser("xml",          new XMLScanner);
+   Doxygen::parserManager->registerParser("tcl",          new TclLanguageScanner);
+-  Doxygen::parserManager->registerParser("md",           new MarkdownFileParser);
+-
++Doxygen::parserManager->registerParser("v", new VerilogScanner("verilog"));  
++Doxygen::parserManager->registerParser("md",           new MarkdownFileParser);
++  
+   // register any additional parsers here...
+ 
+   initDefaultExtensionMapping();
+diff --git a/src/index.cpp b/src/index.cpp
+index e7ba8e7..abfb696 100644
+--- a/src/index.cpp
++++ b/src/index.cpp
+@@ -47,7 +47,7 @@
+ #include "classlist.h"
+ #include "namespacedef.h"
+ #include "filename.h"
+-
++#include "verilogdocgen.h"
+ #define MAX_ITEMS_BEFORE_MULTIPAGE_INDEX 200
+ #define MAX_ITEMS_BEFORE_QUICK_INDEX 30
+ 
+@@ -434,7 +434,7 @@ static void writeClassTree(OutputList &ol,const BaseClassList *bcl,bool hideSupe
+     }
+ 
+     bool b;
+-    if (cd->getLanguage()==SrcLangExt_VHDL)
++    if (cd->getLanguage()==SrcLangExt_VHDL || cd->getLanguage()==SrcLangExt_VERILOG)
+     {
+       b=hasVisibleRoot(cd->subClasses());
+     }
+@@ -509,7 +509,7 @@ static void writeClassTree(OutputList &ol,const BaseClassList *bcl,bool hideSupe
+         //printf("Class %s at %p visited=%d\n",cd->name().data(),cd,cd->visited);
+         bool wasVisited=cd->visited;
+         cd->visited=TRUE;
+-        if (cd->getLanguage()==SrcLangExt_VHDL)	
++        if (cd->getLanguage()==SrcLangExt_VHDL || cd->getLanguage()==SrcLangExt_VERILOG)	
+         {
+           writeClassTree(ol,cd->baseClasses(),wasVisited,level+1,ftv,addToIndex);
+         }
+@@ -809,7 +809,7 @@ static void writeClassTreeForList(OutputList &ol,ClassSDict *cl,bool &started,FT
+     //              cd->isVisibleInHierarchy()
+     //      );
+     bool b;
+-    if (cd->getLanguage()==SrcLangExt_VHDL)
++    if (cd->getLanguage()==SrcLangExt_VHDL || cd->getLanguage()==SrcLangExt_VERILOG)
+     {
+       if ((VhdlDocGen::VhdlClasses)cd->protection()!=VhdlDocGen::ENTITYCLASS)
+       {
+@@ -875,7 +875,7 @@ static void writeClassTreeForList(OutputList &ol,ClassSDict *cl,bool &started,FT
+             ftv->addContentsItem(hasChildren,cd->displayName(),0,0,0,FALSE,FALSE,cd); 
+           }
+         }
+-        if (cd->getLanguage()==SrcLangExt_VHDL && hasChildren) 
++        if ((cd->getLanguage()==SrcLangExt_VHDL || cd->getLanguage()==SrcLangExt_VERILOG) && hasChildren) 
+         {
+           writeClassTree(ol,cd->baseClasses(),cd->visited,1,ftv,addToIndex);
+           cd->visited=TRUE;
+@@ -2266,7 +2266,10 @@ void addClassMemberNameToIndex(MemberDef *md)
+   static bool hideFriendCompounds = Config_getBool("HIDE_FRIEND_COMPOUNDS");
+   ClassDef *cd=0;
+ 
+- 
++ if ( md->getLanguage()==SrcLangExt_VERILOG) // &&  (VhdlDocGen::isRecord(md) || VhdlDocGen::isUnit(md)))
++  {
++    VerilogDocGen::adjustMemberName(md);
++  }
+   
+   if (md->isLinkableInProject() && 
+       (cd=md->getClassDef())    && 
+diff --git a/src/memberdef.cpp b/src/memberdef.cpp
+index 7f93b51..98fad48 100644
+--- a/src/memberdef.cpp
++++ b/src/memberdef.cpp
+@@ -1947,7 +1947,7 @@ void MemberDef::getLabels(QStrList &sl,Definition *container) const
+     //ol.startTypewriter();
+     //ol.docify(" [");
+     SrcLangExt lang = getLanguage();
+-    bool optVhdl = lang==SrcLangExt_VHDL;
++    bool optVhdl = lang==SrcLangExt_VHDL || lang==SrcLangExt_VERILOG;
+     bool extractPrivate = Config_getBool("EXTRACT_PRIVATE");
+     if (optVhdl)
+     {
+@@ -2535,7 +2535,7 @@ void MemberDef::writeDocumentation(MemberList *ml,OutputList &ol,
+ 
+   SrcLangExt lang = getLanguage();
+   //printf("member=%s lang=%d\n",name().data(),lang);
+-  bool optVhdl = lang==SrcLangExt_VHDL;
++  bool optVhdl = (lang==SrcLangExt_VHDL) || (lang==SrcLangExt_VERILOG);
+   QCString sep = getLanguageSpecificSeparator(lang,TRUE);
+ 
+   QCString scopeName = scName;
+diff --git a/src/parserintf.h b/src/parserintf.h
+index cc95ea4..d4db505 100644
+--- a/src/parserintf.h
++++ b/src/parserintf.h
+@@ -145,6 +145,7 @@ class ParserManager
+   public:
+     /** Creates the parser manager object. 
+      */
++  
+     ParserManager()
+       : m_defaultParser(0) { m_parsers.setAutoDelete(TRUE); }
+    ~ParserManager()
+@@ -165,7 +166,7 @@ class ParserManager
+      */
+     void registerParser(const char *name,ParserInterface *parser)
+     {
+-      m_parsers.insert(name,parser);
++       m_parsers.insert(name,parser);
+     }
+ 
+     /** Registers a file \a extension with a parser with name \a parserName. 
+@@ -189,13 +190,15 @@ class ParserManager
+      *  the interface to the default parser will be returned.
+      */
+     ParserInterface *getParser(const char *extension)
+-    {
++    { 
+       QCString ext = QCString(extension).lower();
+-      if (ext.isEmpty()) ext=".no_extension";
++      
++if (ext.isEmpty()) ext=".no_extension";
++
+       ParserInterface *intf = m_extensions.find(ext);
+       if (intf==0 && ext.length()>4)
+       {
+-        intf = m_extensions.find(ext.left(4));
++       intf = m_extensions.find(ext.left(4));
+       }
+       return intf ? intf : m_defaultParser;
+     }
+diff --git a/src/translator_en.h b/src/translator_en.h
+index ba89726..7cfc5ac 100644
+--- a/src/translator_en.h
++++ b/src/translator_en.h
+@@ -755,6 +755,7 @@ class TranslatorEnglish : public Translator
+         case ClassDef::Protocol:   result+="protocol"; break;
+         case ClassDef::Category:   result+="category"; break;
+         case ClassDef::Exception:  result+="exception"; break;
++        case ClassDef::Module:  result+="module"; break;
+         default: break;
+       }
+       result+=" was generated from the following file";
+diff --git a/src/types.h b/src/types.h
+index f6c704c..79445bc 100644
+--- a/src/types.h
++++ b/src/types.h
+@@ -54,7 +54,8 @@ enum SrcLangExt
+   SrcLangExt_VHDL     = 0x02000,
+   SrcLangExt_XML      = 0x04000,
+   SrcLangExt_Tcl      = 0x08000,
+-  SrcLangExt_Markdown = 0x10000
++  SrcLangExt_Markdown = 0x10000,
++  SrcLangExt_VERILOG = 0x20000
+ };
+ 
+ /** Grouping info */
+diff --git a/src/util.cpp b/src/util.cpp
+index 3ee7ae5..71a2157 100644
+--- a/src/util.cpp
++++ b/src/util.cpp
+@@ -9,8 +9,7 @@
+  * for any purpose. It is provided "as is" without express or implied warranty.
+  * See the GNU General Public License for more details.
+  *
+- * Documents produced by Doxygen are derivative works derived from the
+- * input used in their production; they are not affected by this license.
++ * Documents produced by Doxygen are derivative works derived from license.
+  *
+  */
+ 
+@@ -5148,7 +5147,7 @@ bool classHasVisibleChildren(ClassDef *cd)
+ {
+   BaseClassList *bcl;
+ 
+-  if (cd->getLanguage()==SrcLangExt_VHDL) // reverse baseClass/subClass relation
++  if (cd->getLanguage()==SrcLangExt_VERILOG) // reverse baseClass/subClass relation
+   {
+     if (cd->baseClasses()==0) return FALSE;
+     bcl=cd->baseClasses();
+@@ -6782,6 +6781,9 @@ g_lang2extMap[] =
+   { "fortranfree", "fortranfree",   SrcLangExt_Fortran  },
+   { "fortranfixed", "fortranfixed", SrcLangExt_Fortran  },
+   { "vhdl",        "vhdl",          SrcLangExt_VHDL     },
++ { "ucf",        "v",    SrcLangExt_VERILOG   },
++  { "qsf",        "v",    SrcLangExt_VERILOG   },
++  { "v",        "v",    SrcLangExt_VERILOG    },
+   { "xml",         "xml",           SrcLangExt_XML      },
+   { "tcl",         "tcl",           SrcLangExt_Tcl      },
+   { "md",          "md",            SrcLangExt_Markdown },
+@@ -6874,6 +6876,7 @@ void initDefaultExtensionMapping()
+   updateLanguageMapping(".tcl",      "tcl");
+   updateLanguageMapping(".ucf",      "vhdl");
+   updateLanguageMapping(".qsf",      "vhdl");
++  updateLanguageMapping(".v",      "v");
+   updateLanguageMapping(".md",       "md");
+   updateLanguageMapping(".markdown", "md");
+ }
+@@ -7879,6 +7882,7 @@ QCString langToString(SrcLangExt lang)
+     case SrcLangExt_Python:   return "Python";
+     case SrcLangExt_Fortran:  return "Fortran";
+     case SrcLangExt_VHDL:     return "VHDL";
++    case SrcLangExt_VERILOG:  return "VERILOG";
+     case SrcLangExt_XML:      return "XML";
+     case SrcLangExt_Tcl:      return "Tcl";
+     case SrcLangExt_Markdown: return "Markdown";
+@@ -7889,7 +7893,7 @@ QCString langToString(SrcLangExt lang)
+ /** Returns the scope separator to use given the programming language \a lang */
+ QCString getLanguageSpecificSeparator(SrcLangExt lang,bool classScope)
+ {
+-  if (lang==SrcLangExt_Java || lang==SrcLangExt_CSharp || lang==SrcLangExt_VHDL || lang==SrcLangExt_Python)
++  if (lang==SrcLangExt_Java || lang==SrcLangExt_CSharp || lang==SrcLangExt_VERILOG || lang==SrcLangExt_Python)
+   {
+     return ".";
+   }
+diff --git a/src/vhdldocgen.cpp b/src/vhdldocgen.cpp
+index 029d0bd..b9a33b5 100644
+--- a/src/vhdldocgen.cpp
++++ b/src/vhdldocgen.cpp
+@@ -64,6 +64,10 @@
+ #include "VhdlParser.h"
+ 
+ #include "vhdlcode.h"
++#include "verilogdocgen.h"
++#include "verilogscanner.h"
++
++
+ #define theTranslator_vhdlType VhdlDocGen::trVhdlType
+ 
+ static QDict<QCString> g_vhdlKeyDict0(17,FALSE);
+@@ -967,6 +971,11 @@ QCString VhdlDocGen::getClassTitle(const ClassDef *cd)
+ {
+   QCString pageTitle;
+   if (cd==0) return "";
++
++  static bool optVerilog = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
++  if(optVerilog)
++   return VerilogDocGen::getClassTitle(cd);
++
+   pageTitle+=cd->displayName();
+   pageTitle=VhdlDocGen::getClassName(cd);
+   int ii=cd->protection();
+@@ -1141,8 +1150,14 @@ void VhdlDocGen::writeVhdlLink(const ClassDef* ccd ,OutputList& ol,QCString& typ
+  */
+ void VhdlDocGen::prepareComment(QCString& qcs)
+ {
++ 
++ static bool optVerilog       = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+   const char* s="--!";
+   int index=0;
++   if(optVerilog)
++     s=vlogComment;
++     else
++    s="--!";
+ 
+   while (TRUE)
+   {
+@@ -1233,7 +1248,15 @@ QCString VhdlDocGen::getIndexWord(const char* c,int index)
+ 
+ QCString VhdlDocGen::getProtectionName(int prot)
+ {
+-  if (prot==VhdlDocGen::ENTITYCLASS)
++  
++    static bool optVerilog    = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
++ if(optVerilog)
++	 {
++       if(prot==Public) return "Module";
++		   return "Primitive";
++	 }
++    
++    if (prot==VhdlDocGen::ENTITYCLASS)
+     return "entity";
+   else if (prot==VhdlDocGen::ARCHITECTURECLASS)
+     return "architecture";
+@@ -1247,7 +1270,13 @@ QCString VhdlDocGen::getProtectionName(int prot)
+ 
+ QCString VhdlDocGen::trTypeString(uint64 type)
+ {
+-  switch(type)
++ 
++	 static bool optVerilog       = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
++
++    if(optVerilog)
++    return VerilogDocGen::convertTypeToString(type);
++    
++    switch(type)
+   {
+     case VhdlDocGen::LIBRARY:        return "Library";
+     case VhdlDocGen::ENTITY:         return "Entity";
+@@ -1330,8 +1359,17 @@ QCString VhdlDocGen::getRecordNumber()
+ QCString VhdlDocGen::getProcessNumber()
+ {
+   static int stringCounter;
++  static bool optVerilog=Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
++
+   char buf[8];
+-  QCString qcs("PROCESS_");
++
++  QCString qcs;
++   if(optVerilog)
++     qcs="ALWAYS_";
++    else
++     qcs="PROCESS_";
++
++
+   sprintf(buf,"%d",stringCounter++);
+   qcs.append(&buf[0]);
+   return qcs;
+@@ -1413,13 +1451,28 @@ void VhdlDocGen::writeFormatString(const QCString& s,OutputList&ol,const MemberD
+ /*!
+  * returns TRUE if this string is a number
+  */
++
+ bool VhdlDocGen::isNumber(const QCString& s)
+ {
+   static QRegExp regg("[0-9][0-9eEfFbBcCdDaA_.#-+?xXzZ]*");
++   static QRegExp reggVerilog("[0-9]+[']*[0-9a-fA-FhHoOxXzZ._?]*");
++  static QRegExp reggVerilog1("['][0-9a-fA-FhHoOxXzZ._?]+");
++   static bool optVerilog=Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+ 
+   if (s.isEmpty()) return FALSE;
+   int j,len;
++     if(optVerilog){
++    QCString t=s;
++    VhdlDocGen::deleteAllChars(t,' ');
++     j = reggVerilog.match(t.data(),0,&len);
++     if ((j==0) && (len==(int)t.length())) return true; 
++     j = reggVerilog1.match(t.data(),0,&len);
++     if ((j==0) && (len==(int)t.length())) return true;
++     return false;
++    }  
++  else 
+   j = regg.match(s.data(),0,&len);
++
+   if ((j==0) && (len==(int)s.length())) return TRUE;
+   return FALSE;
+ 
+@@ -1433,6 +1486,13 @@ bool VhdlDocGen::isNumber(const QCString& s)
+ 
+ void VhdlDocGen::formatString(const QCString &s, OutputList& ol,const MemberDef* mdef)
+ {
++  static bool optVerilog  = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
++
++  if(optVerilog){
++      VhdlDocGen::writeFormatString(s,ol,mdef);
++       return;
++  }
++    
+   QCString qcs = s;
+   QCString temp;
+   qcs.stripPrefix(":");
+@@ -1661,7 +1721,9 @@ bool VhdlDocGen::writeFuncProcDocu(
+     const ArgumentList* al,
+     bool /*type*/)
+ {
+-  if (al==0) return FALSE;
++  
++    static bool optVerilog       = Config_getBool("OPTIMIZE_OUTPUT_VERILOG"); 
++    if (al==0) return FALSE;
+   //bool sem=FALSE;
+   ol.enableAll();
+ 
+@@ -1692,6 +1754,9 @@ bool VhdlDocGen::writeFuncProcDocu(
+       startFonts(arg->defval,"keywordtype",ol);
+       ol.docify(" ");
+     }
++
++  if(optVerilog)  
++      VerilogDocGen::adjustOpName(arg->name);
+     ol.endParameterType();
+ 
+     ol.startParameterName(TRUE);
+@@ -1774,7 +1839,14 @@ QCString VhdlDocGen::convertArgumentListToString(const ArgumentList* al,bool fun
+ void VhdlDocGen::writeVhdlDeclarations(MemberList* ml,
+     OutputList& ol,GroupDef* gd,ClassDef* cd,FileDef *fd,NamespaceDef* nd)
+ {
+-  VhdlDocGen::writeVHDLDeclarations(ml,ol,cd,nd,fd,gd,theTranslator_vhdlType(VhdlDocGen::LIBRARY,FALSE),0,FALSE,VhdlDocGen::LIBRARY);
++ 
++static bool optVerilog  = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
++
++	 if(optVerilog){
++       VerilogDocGen::writeVerilogDeclarations(ml,ol,0,cd);
++       return;   
++   }    
++    VhdlDocGen::writeVHDLDeclarations(ml,ol,cd,nd,fd,gd,theTranslator_vhdlType(VhdlDocGen::LIBRARY,FALSE),0,FALSE,VhdlDocGen::LIBRARY);
+   VhdlDocGen::writeVHDLDeclarations(ml,ol,cd,nd,fd,gd,theTranslator_vhdlType(VhdlDocGen::USE,FALSE),0,FALSE,VhdlDocGen::USE);
+   VhdlDocGen::writeVHDLDeclarations(ml,ol,cd,nd,fd,gd,theTranslator_vhdlType(VhdlDocGen::FUNCTION,FALSE),0,FALSE,VhdlDocGen::FUNCTION);
+   VhdlDocGen::writeVHDLDeclarations(ml,ol,cd,nd,fd,gd,theTranslator_vhdlType(VhdlDocGen::COMPONENT,FALSE),0,FALSE,VhdlDocGen::COMPONENT);
+@@ -1837,17 +1909,29 @@ static void setGlobalType(MemberList *ml)
+ }
+ 
+ /* writes a vhdl type documentation */
++
+ bool VhdlDocGen::writeVHDLTypeDocumentation(const MemberDef* mdef, const Definition *d, OutputList &ol)
+ {
+   ClassDef *cd=(ClassDef*)d;
+   bool hasParams = FALSE;
+ 
++  bool bParseVerilogFunc=false;
++   SrcLangExt lang = mdef->getLanguage();
++  
++    bool optVerilog = lang==SrcLangExt_VHDL || lang==SrcLangExt_VERILOG;
++   
++  if(optVerilog)
++   if(!mdef->isVariable())
++    bParseVerilogFunc=true;
++
++
++
+   if (cd==0) return hasParams;
+ 
+   QCString ttype=mdef->typeString();
+   QCString largs=mdef->argsString();
+ 
+-  if ((VhdlDocGen::isVhdlFunction(mdef) || VhdlDocGen::isProcedure(mdef) || VhdlDocGen::isProcess(mdef)))
++  if ((VhdlDocGen::isVhdlFunction(mdef) || VhdlDocGen::isProcedure(mdef) || VhdlDocGen::isProcess(mdef) || bParseVerilogFunc))
+   {
+     QCString nn=mdef->typeString();
+     nn=nn.stripWhiteSpace();
+@@ -1895,6 +1979,38 @@ bool VhdlDocGen::writeVHDLTypeDocumentation(const MemberDef* mdef, const Definit
+     }
+ 
+     // QCString largs=mdef->argsString();
++ if(optVerilog)
++      {
++       if(mdef->getMemberSpecifiers()==VerilogDocGen::FEATURE)
++       {
++	   QCString arg=mdef->definition();
++	   int kr=arg.find("\\?");	  
++	   if(kr>=0)
++	   {
++       arg=arg.left(kr-2);
++	   arg.stripPrefix("feature");
++	   arg=arg.simplifyWhiteSpace();
++	   arg.stripPrefix(mdef->name().data());
++	   arg.append("{ . . . }");
++	   VhdlDocGen::formatString(arg,ol,mdef);
++	   }
++	 else
++	 {
++     QCString ttype=mdef->typeString();
++	 ttype.stripPrefix("feature");
++	 VhdlDocGen::formatString(ttype,ol,mdef);
++	 }
++	 return true;  
++	  }
++      if(mdef->getMemberSpecifiers()==VerilogDocGen::PARAMETER)  
++	   VhdlDocGen::formatString(largs,ol,mdef);
++	  else
++	  {
++	   QCString ttype=mdef->typeString();
++	   VhdlDocGen::formatString(ttype,ol,mdef);
++	  }
++	 return true;
++	 }
+ 
+     bool c=largs=="context";
+     bool brec=largs.stripPrefix("record")  ;
+@@ -1918,9 +2034,11 @@ bool VhdlDocGen::writeVHDLTypeDocumentation(const MemberDef* mdef, const Definit
+       ol.docify(" ");
+     }
+   }
+-  return hasParams;
++  return hasParams; 
++
+ }
+ 
++
+ void VhdlDocGen::writeTagFile(MemberDef *mdef,FTextStream &tagFile)
+ {
+   tagFile << "    <member kind=\"";
+@@ -2419,8 +2537,20 @@ void VhdlDocGen::writeVHDLDeclarations(MemberList* ml,OutputList &ol,
+ bool VhdlDocGen::writeClassType( ClassDef *& cd,
+     OutputList &ol ,QCString & cname)
+ {
++  
++   static bool optVerilog    = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
++
++  QCString qcs;
++  if(optVerilog){
++   if(cd->protection()==Public)
++    qcs+=" Module";
++     else
++    qcs+=" Primitive";
++  }
++  else{  
+   int id=cd->protection();
+   QCString qcs = VhdlDocGen::trTypeString(id+2);
++  }
+   cname=VhdlDocGen::getClassName(cd);
+   ol.startBold();
+   ol.writeString(qcs.data());
+@@ -2432,7 +2562,13 @@ bool VhdlDocGen::writeClassType( ClassDef *& cd,
+ 
+ QCString VhdlDocGen::trVhdlType(uint64 type,bool sing)
+ {
+-  switch(type)
++  
++ static bool optVerilog    = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
++ 
++   if(optVerilog) return   VerilogDocGen::convertTypeToString(type,sing);
++
++    
++    switch(type)
+   {
+     case VhdlDocGen::LIBRARY:
+       if (sing) return "Library";
+@@ -2533,7 +2669,14 @@ QCString VhdlDocGen::trDesignUnitMembers()
+ 
+ QCString VhdlDocGen::trDesignUnitListDescription()
+ {
++  
++  static bool optVerilog = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
++ if(optVerilog)
+   return "Here is a list of all design unit members with links to "
++         "the Modules they belong to:";
++
++    
++    return "Here is a list of all design unit members with links to "
+     "the Entities  they belong to:";
+ }
+ 
+@@ -2549,7 +2692,10 @@ QCString VhdlDocGen::trDesignUnits()
+ 
+ QCString VhdlDocGen::trFunctionAndProc()
+ {
+-  return "Functions/Procedures/Processes";
++ 
++    if(Config_getBool("OPTIMIZE_OUTPUT_VERILOG"))
++   return "Functions/Tasks/Always Construct";
++    return "Functions/Procedures/Processes";
+ }
+ 
+ 
+@@ -2557,13 +2703,25 @@ QCString VhdlDocGen::trFunctionAndProc()
+ 
+ void VhdlDocGen::writeStringLink(const MemberDef *mdef,QCString mem, OutputList& ol)
+ {
+-  if (mdef)
++   bool optVerilog          = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
++   MemberDef* memdef=0;
++ 
++ if (mdef)
+   {
+     ClassDef *cd=mdef->getClassDef();
+     if (cd)
+     {
+       QCString n=cd->name();
+-      MemberDef* memdef=VhdlDocGen::findMember(n,mem);
++	    if(optVerilog){
++        if(mem.contains("`"))
++        memdef = findGlobalMember(mem);
++        if(memdef==0)
++        memdef=VerilogDocGen::findMember(n,mem,-1);
++      }
++      else
++     memdef=VhdlDocGen::findMember(n,mem);
++
++      
+       if (memdef && memdef->isLinkable())
+       {
+         ol.startBold();
+@@ -2577,8 +2735,6 @@ void VhdlDocGen::writeStringLink(const MemberDef *mdef,QCString mem, OutputList&
+   startFonts(mem,"vhdlchar",ol);
+ }// found component
+ 
+-
+-
+ void VhdlDocGen::writeSource(MemberDef *mdef,OutputList& ol,QCString & cname)
+ {
+   ParserInterface *pIntf = Doxygen::parserManager->getParser(".vhd");

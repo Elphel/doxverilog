@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -17,7 +17,7 @@
  * written by M. Kreis
  * supports VHDL-87/93/2008
  ******************************************************************************/
-
+%option never-interactive
 %{
 
 /*
@@ -44,8 +44,8 @@
 #include "filedef.h"
 #include "tooltip.h"
 
-#define YY_NEVER_INTERACTIVE 1
 #define YY_NO_INPUT 1
+#define YY_NO_UNISTD_H 1
   
 // Toggle for some debugging info
 //#define DBG_CTX(x) fprintf x
@@ -68,7 +68,6 @@ static bool       g_startCode = FALSE;
 static QCString   g_PrevString;
 static QCString   g_CurrClass;
 static QDict<QCString>g_vhdlKeyDict;   
-static QCString   g_tempClass;
 static QCString   g_tempComp;
 static QCString   g_PortMapComp;
 static MemberDef *g_vhdlMember;
@@ -77,7 +76,6 @@ static QCString   g_FuncProto;
 //-----------------------------------------------------------
   
 static CodeOutputInterface * g_code;
-static QCString      g_curClassName;
 static QCString      g_parmType;
 static QCString      g_parmName;
 static const char *  g_inputString;     //!< the code fragment as text
@@ -90,9 +88,6 @@ static Definition   *g_searchCtx;
 static QCString      g_exampleName;
 static QCString      g_exampleFile;
 
-static QCString      g_type;
-static QCString      g_name;
-static QCString      g_args;
 static QCString      g_classScope;
    
 static QCString      g_CurrScope;
@@ -190,8 +185,8 @@ static void startCodeLine()
     //QCString lineNumber,lineAnchor;
     //lineNumber.sprintf("%05d",g_yyLineNr);
     //lineAnchor.sprintf("l%05d",g_yyLineNr);
-     // if ((g_yyLineNr % 50) == 0) 
-           //  fprintf(stderr,"\n starting Line %d:",g_yyLineNr);
+    //  if ((g_yyLineNr % 500) == 0) 
+    //         fprintf(stderr,"\n starting Line %d:",g_yyLineNr);
     Definition *d   = g_sourceFileDef->getSourceDefinition(g_yyLineNr);
     //printf("startCodeLine %d d=%s\n", g_yyLineNr,d ? d->name().data() : "<null>");
     if (!g_includeCodeFragment && d)
@@ -620,7 +615,7 @@ static void appStringLower(QCString& qcs,const char* text)
 static QCString g_temp;
 
 /* writes and links a port map statement */
-static void codifyMapLines(char *text)
+static void codifyMapLines(const char *text)
 {
   if (text==0) return;
   g_temp.resize(0);       
@@ -628,7 +623,7 @@ static void codifyMapLines(char *text)
   int wordCounter=0;
   QCString ctemp;
   //printf("codifyLines(%d,\"%s\")\n",g_yyLineNr,text);
-  char *p=text; //,*sp=p;
+  const char *p=text; //,*sp=p;
   char c;
   bool done=FALSE;
   while (!done)
@@ -1055,7 +1050,6 @@ XILINX      "INST"|"NET"|"PIN"|"BLKNM"|"BUFG"|"COLLAPSE"|"CPLD"|"COMPGRP"|"CONFI
 
 
 <ClassesName>{FUNCNAME} {
-                         QDict<QCString> mem;
                          appStringLower(g_PrevString,vhdlcodeYYtext);
                          g_CurrClass.resize(0);
                          g_CurrClass.append(vhdlcodeYYtext);

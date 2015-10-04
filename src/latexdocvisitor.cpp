@@ -3,7 +3,7 @@
  * 
  *
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -932,7 +932,7 @@ void LatexDocVisitor::visitPost(DocHtmlTable *t)
 void LatexDocVisitor::visitPre(DocHtmlCaption *c)
 {
   if (m_hide) return;
-  m_t << "\\end{" << getTableName(c->parent()) << "}\n\\centering\n\\caption{";
+  m_t << "\\end{" << getTableName(c->parent()->parent()) << "}\n\\centering\n\\caption{";
 }
 
 void LatexDocVisitor::visitPost(DocHtmlCaption *) 
@@ -1578,22 +1578,11 @@ void LatexDocVisitor::startLink(const QCString &ref,const QCString &file,const Q
 {
   if (ref.isEmpty() && Config_getBool("PDF_HYPERLINKS")) // internal PDF link 
   {
-    if (ref.isEmpty()) {
-      m_t << "\\hyperlink{";
-      if (!file.isEmpty()) m_t << stripPath(file);
-      if (!file.isEmpty() && !anchor.isEmpty()) m_t << "_";
-      if (!anchor.isEmpty()) m_t << anchor;
-      m_t << "}{";
-    }
-    else
-    {
-      QCString *dest;
-      m_t << "\\href{";
-      if ((dest=Doxygen::tagDestinationDict[ref])) m_t << *dest << "/";
-      if (!file.isEmpty()) m_t << file << Doxygen::htmlFileExtension;
-      if (!anchor.isEmpty()) m_t << "#" << anchor;
-      m_t << "}{";
-    }
+    m_t << "\\hyperlink{";
+    if (!file.isEmpty()) m_t << stripPath(file);
+    if (!file.isEmpty() && !anchor.isEmpty()) m_t << "_";
+    if (!anchor.isEmpty()) m_t << anchor;
+    m_t << "}{";
   }
   else if (ref.isEmpty()) // internal non-PDF link
   {

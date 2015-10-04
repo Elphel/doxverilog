@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -310,7 +310,6 @@ void SearchIndex::write(const char *fileName)
   padding = size - padding;
 
   //int statsOffset = size;
-  QDictIterator<IndexWord> wdi(m_words);
   //IndexWord *iw;
   int *wordStatOffsets = new int[m_words.count()];
   
@@ -1077,7 +1076,6 @@ void writeJavascriptSearchIndex()
         for (li.toFirst();(dl=li.current());++li)
         {
           Definition *d = dl->getFirst();
-          QCString id = d->localName();
 
           if (!firstEntry)
           {

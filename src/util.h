@@ -2,7 +2,7 @@
  *
  * 
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby 
@@ -376,6 +376,7 @@ QCString stripLeadingAndTrailingEmptyLines(const QCString &s,int &docLine);
 bool updateLanguageMapping(const QCString &extension,const QCString &parser);
 SrcLangExt getLanguageFromFileName(const QCString fileName);
 void initDefaultExtensionMapping();
+void addCodeOnlyMappings();
 
 MemberDef *getMemberFromSymbol(Definition *scope,FileDef *fileScope, 
                                 const char *n);
@@ -442,6 +443,8 @@ QCString processMarkup(const QCString &s);
 bool protectionLevelVisible(Protection prot);
 
 QCString stripIndentation(const QCString &s);
+
+QCString getDotImageExtension(void);
 
 bool fileVisibleInIndex(FileDef *fd,bool &genSourceFile);
 

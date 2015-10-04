@@ -1,6 +1,6 @@
 /******************************************************************************
  *
- * Copyright (C) 1997-2014 by Dimitri van Heesch.
+ * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
  * documentation under the terms of the GNU General Public License is hereby
@@ -1808,7 +1808,10 @@ void MemberDef::writeDeclaration(OutputList &ol,
         ol.disableAllBut(OutputGenerator::Html);
         //ol.endEmphasis();
         ol.docify(" ");
-        if (separateMemberPages || (m_impl->group!=0 && gd==0)) // forward link to the page or group
+        if (separateMemberPages ||
+            (m_impl->group!=0 && gd==0) ||
+            (m_impl->nspace!=0 && nd==0)
+           ) // forward link to the page or group or namespace
         {
           ol.startTextLink(getOutputFileBase(),anchor());
         }
@@ -1943,8 +1946,7 @@ void MemberDef::getLabels(QStrList &sl,Definition *container) const
     //ol.writeLatexSpacing();
     //ol.startTypewriter();
     //ol.docify(" [");
-	  SrcLangExt lang = getLanguage();
-  
+    SrcLangExt lang = getLanguage();
     bool optVhdl = lang==SrcLangExt_VHDL || lang==SrcLangExt_VERILOG;
     bool extractPrivate = Config_getBool("EXTRACT_PRIVATE");
     if (optVhdl)
@@ -2044,7 +2046,7 @@ void MemberDef::getLabels(QStrList &sl,Definition *container) const
 void MemberDef::_writeCallGraph(OutputList &ol)
 {
   // write call graph
-  if ((m_impl->hasCallGraph || Config_getBool("CALL_GRAPH"))
+  if (m_impl->hasCallGraph
       && (isFunction() || isSlot() || isSignal()) && Config_getBool("HAVE_DOT")
      )
   {
@@ -2069,7 +2071,7 @@ void MemberDef::_writeCallGraph(OutputList &ol)
 
 void MemberDef::_writeCallerGraph(OutputList &ol)
 {
-  if ((m_impl->hasCallerGraph || Config_getBool("CALLER_GRAPH"))
+  if (m_impl->hasCallerGraph
       && (isFunction() || isSlot() || isSignal()) && Config_getBool("HAVE_DOT")
      )
   {
@@ -2554,7 +2556,6 @@ void MemberDef::writeDocumentation(MemberList *ml,OutputList &ol,
 
   QCString cname   = container->name();
   QCString cfname  = getOutputFileBase();
-  QCString cfiname = container->getOutputFileBase();
 
   // get member name
   QCString doxyName=name();
@@ -2589,6 +2590,10 @@ void MemberDef::writeDocumentation(MemberList *ml,OutputList &ol,
     {
       ldef=ldef.mid(2);
     }
+  }
+  else if (isFunction())
+  {
+    title+=argsString();
   }
   int i=0,l;
   static QRegExp r("@[0-9]+");
@@ -2990,13 +2995,13 @@ void MemberDef::writeDocumentation(MemberList *ml,OutputList &ol,
   {
     if (!hasDocumentedParams())
     {
-      warn_doc_error(docFile(),docLine(),
+      warn_doc_error(getDefFileName(),getDefLine(),
           "parameters of member %s are not (all) documented",
           qPrint(qualifiedName()));
     }
     if (!hasDocumentedReturnType() && isFunction() && hasDocumentation())
     {
-      warn_doc_error(docFile(),docLine(),
+      warn_doc_error(getDefFileName(),getDefLine(),
           "return type of member %s is not documented",
           qPrint(qualifiedName()));
     }
@@ -3205,7 +3210,13 @@ void MemberDef::warnIfUndocumented()
   if (cd)
     t="class", d=cd;
   else if (nd)
-    t="namespace", d=nd;
+  {
+    d=nd;
+    if (d->getLanguage() == SrcLangExt_Fortran)
+      t="module";
+    else
+      t="namespace";
+  }
   else if (gd)
     t="group", d=gd;
   else
@@ -3220,10 +3231,10 @@ void MemberDef::warnIfUndocumented()
       !isFriendClass() &&
       name().find('@')==-1 && d && d->name().find('@')==-1 &&
       protectionLevelVisible(m_impl->prot) &&
-      !isReference()
+      !isReference() && !isDeleted()
      )
   {
-    warn_undoc(getDefFileName(),getDefLine(),"Member %s%s (%s) of %s %s is not documented.",
+    warn_undoc(d->getDefFileName(),d->getDefLine(),"Member %s%s (%s) of %s %s is not documented.",
          qPrint(name()),qPrint(argsString()),qPrint(memberTypeName()),t,qPrint(d->name()));
   }
 }
@@ -3247,11 +3258,16 @@ bool MemberDef::isDocumentedFriendClass() const
          (fcd=getClass(baseName)) && fcd->isLinkable());
 }
 
+bool MemberDef::isDeleted() const
+{
+  return m_impl->defArgList && m_impl->defArgList->isDeleted;
+}
+
 bool MemberDef::hasDocumentation() const
 {
   return Definition::hasDocumentation() ||
          (m_impl->mtype==MemberType_Enumeration && m_impl->docEnumValues) ||  // has enum values
-         (m_impl->defArgList!=0 && m_impl->defArgList->hasDocumentation()); // has doc arguments
+         (m_impl->defArgList!=0 && m_impl->defArgList->hasDocumentation());   // has doc arguments
 }
 
 #if 0
@@ -3332,7 +3348,7 @@ void MemberDef::setAnchor()
   QCString sigStr(33);
   MD5Buffer((const unsigned char *)memAnchor.data(),memAnchor.length(),md5_sig);
   //printf("memAnchor=%s\n",memAnchor.data());
-  MD5SigToString(md5_sig,sigStr.data(),33);
+  MD5SigToString(md5_sig,sigStr.rawData(),33);
   m_impl->anc = "a"+sigStr;
 }
 
