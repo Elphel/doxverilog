@@ -19,7 +19,7 @@ This also works for MacOSX, but if XCode is installed you can also generate an X
 
 For Windows one can generate a Visual Studio project using
 
-  cmake -G "Visual Studio 12 2013" path\to\root\of\doxygen\source\tree
+  cmake -G "Visual Studio 11 2012" path\to\root\of\doxygen\source\tree
 
 (this is for Visual Studio 12, there are typically also generators for other versions of
 Visual Studio or other compiler environments like MinGW)

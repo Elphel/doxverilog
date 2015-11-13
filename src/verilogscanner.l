@@ -25,7 +25,7 @@
  * supports the IEEE Std 1364-2001 (Revision of IEEE Std 1364-1995)Verilog subset
  * %option debug
  *****************************************************************************/
-
+%option never-interactive
 %{
 #include "VPreProc.h"
 #include <stdio.h>
@@ -140,9 +140,9 @@ static  void writeInclude(QCString);
 
 
 
-#define YY_NEVER_INTERACTIVE 1
-#define YY_USER_ACTION num_chars +=verilogscannerYYleng ;
 
+#define YY_USER_ACTION num_chars +=verilogscannerYYleng ;
+#define YY_NO_UNISTD_H 1
 //-----------------------------------------------------------
 // dictionaries for keywords
 static QDict<QCString> verilogKeyDict(17,false);

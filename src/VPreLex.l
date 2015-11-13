@@ -3,7 +3,7 @@
 %option noc++
 
 %option prefix="VPreLex"
-
+%option never-interactive
 %{
 /******************************************************************************
  * DESCRIPTION: Verilog Preprocessor Lexer
@@ -38,6 +38,7 @@
 #include <iostream>
 #include "qcstring.h"
 #include "define.h"
+#define YY_NO_UNISTD_H 1
 // Flex 2.5.35 has compile warning in ECHO, so we'll default our own rule
 #define ECHO yyerror_f("Missing VPreLex.l rule: ECHO rule invoked in state %d: %s", YY_START, yytext);
 struct VPreProcImp;
