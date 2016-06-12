@@ -27,9 +27,6 @@
  */
 int main(int argc,char **argv)
 {
-  //argc=2;6jgh
-  argv[1]="verilog.cfg";
-  QCString het("mark sloan");
   initDoxygen();
   readConfiguration(argc,argv);
   checkConfiguration();
