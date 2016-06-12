@@ -2578,7 +2578,7 @@ int c_lex(void){
 
 void c_error(const char * err){
    if(err){// && !parseCode){
- //fprintf(stderr,"\n\nerror  at line [%d]... : in file [%s]\n\n",c_lloc.first_line,getVerilogParsingFile());
+ fprintf(stderr,"\n\nerror  at line [%d]... : in file [%s]\n\n",c_lloc.first_line,getVerilogParsingFile());
   vbufreset();
   //exit(0);  
   }
