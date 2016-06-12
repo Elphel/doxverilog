@@ -1337,7 +1337,7 @@ GATETYPE  	"and"|"nand"|"or"|"nor"|"xor"|"xnor"|"buf"|"bufif0"|"bufif1"|"not"|"n
 <Start>"end"        { if(check()) {   yyEndLine=yyLineNr;  strncpy(c_lval.cstr,verilogscannerYYtext,verilogscannerYYleng);c_lval.cstr[verilogscannerYYleng]='\0';return  END_TOK;}REJECT;}
 <Start>"begin" {if(check(false))  return  BEGIN_TOK; REJECT;}
 <Start>"fork" {if(check(false))  return  FORK_TOK; REJECT;}
-<Start>"generate" { if(check())     return  GENERATE_TOK;REJECT;}
+<Start>"generate" { if(check())  {yyPrevLine=yyLineNr;   return  GENERATE_TOK; }REJECT;}
 <Start>"endgenerate" { if(check())     return  ENDGENERATE_TOK;REJECT;}
 <Start>"genvar" { if(check())     return  GENVAR_TOK;REJECT;}
 <Start>"default" { if(check())     return  DEFAULT_TOK;REJECT;}

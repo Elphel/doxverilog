@@ -68,7 +68,7 @@ public:
 	  TASK,                //4104
 	  OUTPUT,          //4105
 	  INPUT,              //4106
-	   INOUT,             //4107
+	  INOUT,             //4107
 	  DEFPARAM,
 	  SPECPARAM,
 	  GENERATE,

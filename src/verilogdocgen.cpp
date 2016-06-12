@@ -241,8 +241,8 @@ QCString VerilogDocGen::convertTypeToString(int type,bool sing)
   if(sing) 
     return "Miscellaneous";
     return "Miscellaneous"; 
-  
-
+ case(VerilogDocGen::GENERATE): 
+	 return "GENERATE";
   default: return "";
   }
 
@@ -377,6 +377,10 @@ void VerilogDocGen::writeVerilogDeclarations(MemberList* ml,OutputList& ol,Group
       VerilogDocGen::writeVerilogDeclarations(ml,ol,cd,0,fd,gd,VerilogDocGen::convertTypeToString(VerilogDocGen::PARAMETER,FALSE),0,FALSE,VerilogDocGen::PARAMETER);
     VerilogDocGen::writeVerilogDeclarations(ml,ol,cd,0,fd,gd,VerilogDocGen::convertTypeToString(VerilogDocGen::MODULE,FALSE),0,FALSE,VerilogDocGen::MODULE);
   
+	VerilogDocGen::writeVerilogDeclarations(ml,ol,cd,0,fd,gd,VerilogDocGen::convertTypeToString(VerilogDocGen::GENERATE,FALSE),0,FALSE,VerilogDocGen::GENERATE
+		);
+  
+
 	  VerilogDocGen::writeVerilogDeclarations(ml,ol,cd,0,fd,gd,VerilogDocGen::convertTypeToString(VerilogDocGen::CONFIGURATION,FALSE),0,FALSE,VerilogDocGen::CONFIGURATION);   
 	  VerilogDocGen::writeVerilogDeclarations(ml,ol,cd,0,fd,gd,VerilogDocGen::convertTypeToString(VerilogDocGen::PORT,FALSE),0,FALSE,VerilogDocGen::PORT); 
       VerilogDocGen::writeVerilogDeclarations(ml,ol,cd,0,fd,gd,VerilogDocGen::convertTypeToString(VerilogDocGen::FEATURE,FALSE),0,FALSE,VerilogDocGen::FEATURE);
@@ -585,7 +589,8 @@ void VerilogDocGen::writeVerilogDeclarations(MemberDef* mdef,OutputList &ol,
    case VerilogDocGen::INPUT:
    case VerilogDocGen::OUTPUT:
    case VerilogDocGen::INOUT:
-   case VerilogDocGen::PARAMETER:   
+   case VerilogDocGen::PARAMETER: 
+   case VerilogDocGen::GENERATE:
          writeLink(mdef,ol);   
 	     ol.docify(" ");	   	
 		 ol.insertMemberAlign();

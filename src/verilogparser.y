@@ -90,7 +90,7 @@ static void parseParam(Entry* e);
 static void parseListOfPorts();
 static void parseAlways(const char * s=0,bool b=false);
 static void parseModuleInst(QCString& first,QCString& sec);
-
+static void parseGenerate();
 
 bool findExtendsComponent(QList<BaseInfo> *extend,QCString& compName);
 void addSubEntry(Entry* root, Entry* e);
@@ -991,7 +991,7 @@ named_port_connection : attribute_instance named_parameter_assignment
 //-----------------------------------------------------------------------------------------------------
 //generated_instantiation ::= generate { generate_item } endgenerate
 
-generated_instantiation :  GENERATE_TOK {CurrState=VerilogDocGen::STATE_GENERATE;generateItem=true;}  generate_item_list  ENDGENERATE_TOK {CurrState=0;generateItem=false;}
+generated_instantiation :  GENERATE_TOK {CurrState=VerilogDocGen::STATE_GENERATE;generateItem=true;parseGenerate();}  generate_item_list  ENDGENERATE_TOK {CurrState=0;generateItem=false;}
             					              |  GENERATE_TOK error  ENDGENERATE_TOK {CurrState=0;generateItem=false;}
             					              ;
             					              
@@ -2121,6 +2121,17 @@ if(currentVerilog)
   }
 }
 
+void parseGenerate(){
+if(parseCode) return;
+QCString name("GENERATE "); 
+QCString tmp;
+ tmp=tmp.setNum(getVerilogPrevLine());
+
+name+="["+tmp+"]";
+
+Entry* pTemp=VerilogDocGen::makeNewEntry(name.data(),Entry::VARIABLE_SEC,VerilogDocGen::GENERATE,getVerilogPrevLine());
+
+}
 
 void parseListOfPorts() {
  
@@ -2569,7 +2580,7 @@ void c_error(const char * err){
    if(err){// && !parseCode){
  //fprintf(stderr,"\n\nerror  at line [%d]... : in file [%s]\n\n",c_lloc.first_line,getVerilogParsingFile());
   vbufreset();
- // exit(0);  
+  //exit(0);  
   }
   
    } 
