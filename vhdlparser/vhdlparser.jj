@@ -699,7 +699,13 @@ void component_instantiation_statement() :  {QCString s,s1;}
 s=identifier() <COLON_T>
  s1=instantiation_unit()
  {
-       addCompInst(s.lower().data(),s1.lower().data(),0,getLine());
+       QCString s3;
+       if (s1.contains("|")) {
+         s3=VhdlDocGen::getIndexWord(s1.data(),0);
+         s1=VhdlDocGen::getIndexWord(s1.data(),1);
+       }
+
+       addCompInst(s.lower().data(),s1.lower().data(),s3.data(),getLine());
  }
         [ LOOKAHEAD(generic_map_aspect()) generic_map_aspect() ]
         [ port_map_aspect() ] <SEMI_T>
@@ -1367,10 +1373,10 @@ QCString index_subtype_definition() :  {QCString s;}
  s=type_mark() <RANGE_T> <BOX_T> { return s+" range <> ";}
 }
 
-QCString instantiation_unit() :  {QCString s,s1,s2;Token *tok=0;}
+QCString instantiation_unit() :  {QCString s,s1,s2;Token *tok;}
 {
-[ tok=<COMPONENT_T> ] s=identifier() {s1="component"; return s; }
-| tok=<ENTITY_T> s2=name() {s=tok->image.c_str()+s2;} [ <LPAREN_T> s1=identifier() <RPAREN_T> {s+="(";s+=s1;s+=")" ;}] { return s;}
+[ <COMPONENT_T> ] s=identifier() {s1="component "; return s; }
+| <ENTITY_T>  [LOOKAHEAD(2)<BASIC_IDENTIFIER> <DOT_T>] s2=name() {s="entity|"+s2;} [ <LPAREN_T> s1=identifier() <RPAREN_T> {s+="(";s+=s1;s+=")" ;}] { return s;}
 | <CONFIGURATION_T> s=name() {s1="configuration ";return s;}
 }
 
@@ -1501,7 +1507,7 @@ QCString library_clause() :  {QCString s;}
  (<LIBRARY_T> s=identifier_list() <SEMI_T>
  )
  {
-               if ( parse_sec==0 && Config_getBool("SHOW_INCLUDE_FILES") )
+               if ( parse_sec==0 && Config_getBool(SHOW_INCLUDE_FILES) )
                    {
                            addVhdlType(s.data(),getLine(),Entry::VARIABLE_SEC,VhdlDocGen::LIBRARY,s.data(),"_library_",Public);
                    }
@@ -2408,7 +2414,7 @@ QCString unconstraint_array_definition() :  {QCString s,s1,s2,s3;}
                    {
                     QStringList ql=QStringList::split(".",ql1[j],FALSE);
                     QCString it=ql[1].utf8();
-                     if ( parse_sec==0 && Config_getBool("SHOW_INCLUDE_FILES") )
+                     if ( parse_sec==0 && Config_getBool(SHOW_INCLUDE_FILES) )
                      {
                        VhdlParser::addVhdlType(it.data(),getLine(),Entry::VARIABLE_SEC,VhdlDocGen::USE,it.data(),"_use_",Public);
                      }
@@ -2848,8 +2854,9 @@ QCString param(): {QCString s,s1;Token *tok=0;}
                        if(tok)
                      {
                       s = tok->image.data();
-                         param_sec=0;
+
                     }
+                      param_sec=0;
                       return s+"("+s1+")";
                     }
 

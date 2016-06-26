@@ -7777,7 +7777,7 @@ bool readInputFile(const char *fileName,BufStr &inBuf,bool filter,bool isSourceC
     QFile f(fileName);
     if (!f.open(IO_ReadOnly))
     {
-      err("could2222 not open file %s\n",fileName);
+      err("could not open file %s\n",fileName);
       return FALSE;
     }
     size=fi.size();
