@@ -38,8 +38,8 @@ class ResourceMgr
     /** Registers an array of resources */
     void registerResources(const Resource resources[],int numResources);
 
-    /** Copies all resource belonging to a given category to a given target directory */
-    bool copyCategory(const char *categoryName,const char *targetDir) const;
+    /** Writes all resource belonging to a given category to a given target directory */
+    bool writeCategory(const char *categoryName,const char *targetDir) const;
 
     /** Copies a registered resource to a given target directory */
     bool copyResource(const char *name,const char *targetDir) const;
@@ -47,13 +47,13 @@ class ResourceMgr
     /** Copies a registered resource to a given target directory under a given target name */
     bool copyResourceAs(const char *name,const char *targetDir,const char *targetName) const;
 
-    /** Returns a pointer to the resource object with the given name. */
-    const Resource *get(const char *name) const;
-
     /** Gets the resource data as a C string */
     QCString getAsString(const char *name) const;
 
   private:
+    /** Returns a pointer to the resource object with the given name. */
+    const Resource *get(const char *name) const;
+
     ResourceMgr();
    ~ResourceMgr();
     class Private;

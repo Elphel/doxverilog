@@ -127,6 +127,9 @@
 //    - Updated for "new since 1.8.0" version
 //    - Some small corrections
 //
+//   2016/03/15 Carsten Schumann (carsten at familie-schumann dot info)
+//    - Updated for "new since 1.8.4" version
+//
 //   Todo:
 //    - see FIXME
 
@@ -245,7 +248,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
     /*! This is put above each page as a link to the list of annotated classes */
     virtual QCString trCompoundList()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Datenstrukturen";
       }
@@ -262,7 +265,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
     /*! This is put above each page as a link to all members of compounds. */
     virtual QCString trCompoundMembers()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Datenstruktur-Elemente";
       }
@@ -307,7 +310,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
     /*! This is an introduction to the annotated compound list. */
     virtual QCString trCompoundListDescription()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
 	return "Hier folgt die Aufzählung aller Datenstrukturen "
 	       "mit einer Kurzbeschreibung:";
@@ -327,7 +330,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
       {
         result+="dokumentierten ";
       }
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         result+="Strukturen und Varianten";
       }
@@ -338,7 +341,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
       result+=" mit Verweisen auf ";
       if (!extractAll)
       {
-        if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+        if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
         {
           result+="die Dokumentation zu jedem Element:";
         }
@@ -349,7 +352,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
       }
       else
       {
-        if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+        if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
         {
           result+="die zugehörigen Elemente:";
         }
@@ -366,7 +369,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
     {
       QCString result="Hier folgt die Aufzählung aller ";
       if (!extractAll) result+="dokumentierten ";
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         result+="Funktionen, Variablen, Makros, Aufzählungen und Typdefinitionen";
       }
@@ -417,7 +420,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
      */
     virtual QCString trCompoundIndex()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
 	return "Datenstruktur-Verzeichnis";
       else
         return "Klassen-Verzeichnis";
@@ -440,7 +443,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
      */
     virtual QCString trClassDocumentation()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Datenstruktur-Dokumentation";
       }
@@ -543,7 +546,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
      */
     virtual QCString trCompounds()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Datenstrukturen";
       }
@@ -605,6 +608,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
     /*! this text is used in the title page of a LaTeX document. */
     virtual QCString trGeneratedBy()
     { return "Erzeugt von"; }
+	
 
 //////////////////////////////////////////////////////////////////////////
 // new since 0.49-990307
@@ -977,7 +981,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
 
     virtual QCString trPublicAttribs()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Datenfelder";
       }
@@ -1195,7 +1199,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
     /*! Used for Java classes in the summary section of Java packages */
     virtual QCString trClasses()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
         return "Datenstrukturen";
       else
         return "Klassen";
@@ -1995,7 +1999,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
      */
     virtual QCString trProvidedByCategory()
     {
-      return "Bestandteil der Kategorie @1.";
+      return "Bestandteil der Kategorie @0.";
     }
 
     /*! Used in a method of an Objective-C category that extends a class.
@@ -2004,7 +2008,7 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
      */
     virtual QCString trExtendsClass()
     {
-      return "Erweitert Klasse @1.";
+      return "Erweitert Klasse @0.";
     }
 
     /*! Used as the header of a list of class methods in Objective-C.
@@ -2037,6 +2041,61 @@ class TranslatorGerman : public TranslatorAdapter_1_8_4
     {
       return "Übersicht";
     }
+//////////////////////////////////////////////////////////////////////////
+// new since 1.8.4
+//////////////////////////////////////////////////////////////////////////
+    /** old style UNO IDL services: implemented interfaces */
+    virtual QCString trInterfaces()
+    { return "Exportierte Interfaces"; }
+
+    /** old style UNO IDL services: inherited services */
+    virtual QCString trServices()
+    { return "Eingebundene Dienste"; }
+
+    /** UNO IDL constant groups */
+    virtual QCString trConstantGroups()
+    { return "Konstante Gruppen"; }
+
+    /** UNO IDL constant groups */
+    virtual QCString trConstantGroupReference(const char *namespaceName)
+    {
+      QCString result=namespaceName;
+      result+=" Konstantengruppen-Referenz";
+      return result;
+    }
+
+    /** UNO IDL service page title */
+    virtual QCString trServiceReference(const char *sName)
+    {
+      QCString result=(QCString)sName;
+      result+=" Dienstreferenz";
+      return result;
+    }
+    /** UNO IDL singleton page title */
+    virtual QCString trSingletonReference(const char *sName)
+    {
+      QCString result=(QCString)sName;
+      result+=" Singleton-Referenz";
+      return result;
+    }
+    /** UNO IDL service page */
+    virtual QCString trServiceGeneratedFromFiles(bool single)
+    {
+      QCString result=(QCString)"Die Dokumentation für diesen Dienst "
+                                "wurde generiert aus ";
+      if (single) result+="folgender Datei: "; else result+="folgenden Dateien: ";
+      return result;
+    }
+    /** UNO IDL singleton page */
+    virtual QCString trSingletonGeneratedFromFiles(bool single)
+    {
+      QCString result=(QCString)"Die Dokumentation für diesen Singleton wurde generiert aus ";
+
+      if (single) result+="folgender Datei:"; else result+="folgenden Dateien:";
+      return result;
+    }
+
+
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -57,6 +57,7 @@ class BufStr;
 class QFileInfo;
 class QStrList;
 class FTextStream;
+class QFile;
 
 //--------------------------------------------------------------------
 
@@ -274,7 +275,11 @@ QCString insertTemplateSpecifierInScope(const QCString &scope,const QCString &te
 
 QCString stripScope(const char *name);
 
+QCString convertToId(const char *s);
+
 QCString convertToHtml(const char *s,bool keepEntities=TRUE);
+
+QCString convertToLaTeX(const QCString &s,bool insideTabbing=FALSE,bool keepSpaces=FALSE);
 
 QCString convertToXML(const char *s);
 
@@ -334,7 +339,12 @@ void addGroupListToTitle(OutputList &ol,Definition *d);
 void filterLatexString(FTextStream &t,const char *str,
                        bool insideTabbing=FALSE,
                        bool insidePre=FALSE,
-                       bool insideItem=FALSE);
+                       bool insideItem=FALSE,
+                       bool keepSpaces=FALSE);
+
+QCString latexEscapeLabelName(const char *s,bool insideTabbing);
+QCString latexEscapeIndexChars(const char *s,bool insideTabbing);
+QCString latexEscapePDFString(const char *s);
 
 QCString rtfFormatBmkStr(const char *name);
 
@@ -464,6 +474,8 @@ void convertProtectionLevel(
                   );
 
 bool mainPageHasTitle();
+bool openOutputFile(const char *outFile,QFile &f);
+void writeExtraLatexPackages(FTextStream &t);
 
 #endif
 

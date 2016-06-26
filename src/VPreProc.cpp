@@ -122,9 +122,13 @@ public:
 //*************************************************************************
 /// Data for a preprocessor instantiation.
 
+
+
+
 struct VPreProcImp : public VPreProcOpaque {
-    typedef list<string> StrList;
-     int getNextStateToken(string & buf);
+public:
+	typedef list<string> StrList;
+    int getNextStateToken(string & buf);
     VPreProc*	m_preprocp;	///< Object we're holding data for
     int		m_debug;	///< Debugging level
     VPreLex*	m_lexp;		///< Current lexer state (NULL = closed)
@@ -168,7 +172,8 @@ struct VPreProcImp : public VPreProcOpaque {
     // For defines
     stack<VPreDefRef> m_defRefs; // Pending definine substitution
     stack<VPreIfEntry> m_ifdefStack;	///< Stack of true/false emitting evaluations
-    unsigned	m_defDepth;	///< How many `defines deep
+   
+	unsigned	m_defDepth;	///< How many `defines deep
     bool	m_defPutJoin;	///< Insert `` after substitution
 
     // For `` join
@@ -177,7 +182,7 @@ struct VPreProcImp : public VPreProcOpaque {
     // For getline()
     string	m_lineChars;	///< Characters left for next line
 
-    QCString m_QC;
+    string m_QC;
  
     string relString;
 
@@ -1095,9 +1100,23 @@ int VPreProcImp::getStateToken(string& buf) {
 	//    printf("\n###################22###################################");
     //    printf("\n %s %s",sbuffer.data(),yyourtext()) ;
     //   printf("\n###################77###################################");
-       sbuffer.insert(0,"`include ");
+        sbuffer.insert(0,"`include ");
         this->m_QC.append(sbuffer.data());
-		m_preprocp->include(m_lastSym);
+		string val=m_preprocp->include(m_lastSym);
+		int ll=this->m_finFilelinep->lineno();
+		//fprintf(stderr,"\n found include in line %d",ll);
+	   // string klk=	m_finFilelinep->filename();
+		string ff=	m_finFilelinep->filebasename();
+	
+		struct IncDef vInc;
+		
+		vInc.ss=m_lastSym;
+		vInc.incLine=ll;
+		vInc.incText=val;
+		vInc.incFile=ff;
+
+		m_preprocp->m_include.push(vInc);
+		
 		sbuffer.clear();
 		goto next_tok;
 	    }
@@ -1637,12 +1656,12 @@ string VerilogPreProc::performPreprocessing(const QFileInfo & fi,bool include)
    //   printf("\n FILE SIZE: %d \n",fi.size());
       string res = getall(fi.size());
  
-  //     cout<<"----------------------"<<endl<<res.data()<<endl<<"------.........------------ "<<endl;
+    //   cout<<"----------------------"<<endl<<res.data()<<endl<<"------.........------------ "<<endl;
 
       return res;
 }
 //------------------------------------------------------------------------------------------------------------------------
-     void VerilogPreProc::include(string filename) 
+     string VerilogPreProc::include(string filename) 
      {
       QCString qcs;
       QCString fn=filename.data();
@@ -1655,7 +1674,7 @@ string VerilogPreProc::performPreprocessing(const QFileInfo & fi,bool include)
        if(file.isEmpty())
        {
         cerr<<"could not open file: "<<filename.data()<<endl;
-        return;
+        return "";
         }
         else
         {
@@ -1668,14 +1687,16 @@ string VerilogPreProc::performPreprocessing(const QFileInfo & fi,bool include)
       VPreLex* pre=idatap->m_lexp;
        struct yy_buffer_state * buz = pre->currentBuffer();
       VerilogPreProc defProc;
-      defProc.performPreprocessing(fi,false);
-      yy_switch_to_buffer(buz);
-   
+     string result = defProc.performPreprocessing(fi,false);
+	         yy_switch_to_buffer(buz);
+	
+	// cerr << result;
+   return result;
   }	///< Request a include file be processed
      
     string VerilogPreProc::defSubstitute(string substitute)
      {
-    // cout<<"SUBSTITUDE:"<<substitute<<endl;
+     cout<<"SUBSTITUDE:"<<substitute<<endl;
       sbuffer.clear();
       return substitute;
      }	///< Return value to substitute for given post-parameter value
@@ -1785,6 +1806,7 @@ void VerilogPreProc::printDict()
             } 
             
  //////
+
 void  VerilogPreProc::getPredefs()
 {
  static bool firstTime=TRUE;
@@ -1794,7 +1816,7 @@ void  VerilogPreProc::getPredefs()
     // add predefined macros
     DefineDict* preDict=VerilogPreProc::getPreDefineDict();
     char *defStr;
-    QStrList &predefList = Config_getList("PREDEFINED");
+    QStrList &predefList = Config_getList(PREDEFINED);
     QStrListIterator sli(predefList);
     for (sli.toFirst();(defStr=sli.current());++sli)
     {
@@ -1907,4 +1929,44 @@ void  VerilogPreProc::getPredefs()
   }
 } 
  
+
+
+ void  VerilogPreProc:: insertIncludeText( string & s){
+	stack<IncDef> inc = this->m_include;
+		while(!inc.empty()){
+		IncDef iDef=inc.top();
+		inc.pop();
+		const char * ch=s.data();
+		int count=0;
+		int index=0;
+		int nextIndex;
+		char cc;
+
+		while(count!=iDef.incLine)
+		{
+		  cc=*ch;
+		  if(cc=='\n')
+		  {
+			  count++;
+			  if(count==(iDef.incLine-1))
+				  break;		 
+		  }
+		  *ch++;
+		  index++;
+		}	
+		
+		*ch++;
+		cc=*ch;
+		nextIndex=index+1;
+
+		while(cc!='\n')
+		{
+		  *ch++;
+		  cc=*ch;
+		  nextIndex++;
+		}
+		s.erase(index,nextIndex-index);
+		s.insert(index,iDef.incText);
+		}
+ }
  //////           

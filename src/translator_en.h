@@ -35,7 +35,7 @@
  files frees the maintainer from thinking about whether the
  first, the second, or both files should be included or not, and
  why.  This holds namely for localized translators because their
- base class is changed occasionaly to adapter classes when the
+ base class is changed occasionally to adapter classes when the
  Translator class changes the interface, or back to the
  Translator class (by the local maintainer) when the localized
  translator is made up-to-date again.
@@ -103,7 +103,7 @@ class TranslatorEnglish : public Translator
     /*! header that is put before the list of member attributes. */
     virtual QCString trMemberDataDocumentation()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Field Documentation";
       }
@@ -170,7 +170,7 @@ class TranslatorEnglish : public Translator
     /*! This is put above each page as a link to the list of annotated classes */
     virtual QCString trCompoundList()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Data Structures";
       }
@@ -187,7 +187,7 @@ class TranslatorEnglish : public Translator
     /*! This is put above each page as a link to all members of compounds. */
     virtual QCString trCompoundMembers()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Data Fields";
       }
@@ -200,7 +200,7 @@ class TranslatorEnglish : public Translator
     /*! This is put above each page as a link to all members of files. */
     virtual QCString trFileMembers()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Globals";
       }
@@ -241,7 +241,7 @@ class TranslatorEnglish : public Translator
     virtual QCString trCompoundListDescription()
     {
 
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Here are the data structures with brief descriptions:";
       }
@@ -260,7 +260,7 @@ class TranslatorEnglish : public Translator
       {
         result+="documented ";
       }
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         result+="struct and union fields";
       }
@@ -271,7 +271,7 @@ class TranslatorEnglish : public Translator
       result+=" with links to ";
       if (!extractAll)
       {
-        if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+        if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
         {
           result+="the struct/union documentation for each field:";
         }
@@ -282,7 +282,7 @@ class TranslatorEnglish : public Translator
       }
       else
       {
-        if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+        if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
         {
           result+="the structures/unions they belong to:";
         }
@@ -300,7 +300,7 @@ class TranslatorEnglish : public Translator
       QCString result="Here is a list of all ";
       if (!extractAll) result+="documented ";
 
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         result+="functions, variables, defines, enums, and typedefs";
       }
@@ -351,7 +351,7 @@ class TranslatorEnglish : public Translator
      */
     virtual QCString trCompoundIndex()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Data Structure Index";
       }
@@ -378,7 +378,7 @@ class TranslatorEnglish : public Translator
      */
     virtual QCString trClassDocumentation()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Data Structure Documentation";
       }
@@ -481,7 +481,7 @@ class TranslatorEnglish : public Translator
      */
     virtual QCString trCompounds()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Data Structures";
       }
@@ -746,7 +746,9 @@ class TranslatorEnglish : public Translator
         bool single)
     { // single is true implies a single file
       QCString result=(QCString)"The documentation for this ";
-      switch(compType)
+      if(Config_getBool(OPTIMIZE_OUTPUT_VERILOG))
+		  result+=" Module ";
+	  switch(compType)
       {
         case ClassDef::Class:      result+="class"; break;
         case ClassDef::Struct:     result+="struct"; break;
@@ -755,7 +757,6 @@ class TranslatorEnglish : public Translator
         case ClassDef::Protocol:   result+="protocol"; break;
         case ClassDef::Category:   result+="category"; break;
         case ClassDef::Exception:  result+="exception"; break;
-        case ClassDef::Module:  result+="module"; break;
         default: break;
       }
       result+=" was generated from the following file";
@@ -889,7 +890,7 @@ class TranslatorEnglish : public Translator
     }
     virtual QCString trPublicAttribs()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Data Fields";
       }
@@ -1037,10 +1038,10 @@ class TranslatorEnglish : public Translator
         "<li>%A dark green arrow is used for protected inheritance.</li>\n"
         "<li>%A dark red arrow is used for private inheritance.</li>\n"
         "<li>%A purple dashed arrow is used if a class is contained or used "
-        "by another class. The arrow is labeled with the variable(s) "
+        "by another class. The arrow is labelled with the variable(s) "
         "through which the pointed class or struct is accessible.</li>\n"
         "<li>%A yellow dashed arrow denotes a relation between a template instance and "
-        "the template class it was instantiated from. The arrow is labeled with "
+        "the template class it was instantiated from. The arrow is labelled with "
         "the template parameters of the instance.</li>\n"
         "</ul>\n";
     }
@@ -1087,7 +1088,7 @@ class TranslatorEnglish : public Translator
     /*! Used for Java classes in the summary section of Java packages */
     virtual QCString trClasses()
     {
-      if (Config_getBool("OPTIMIZE_OUTPUT_FOR_C"))
+      if (Config_getBool(OPTIMIZE_OUTPUT_FOR_C))
       {
         return "Data Structures";
       }
@@ -1495,7 +1496,7 @@ class TranslatorEnglish : public Translator
     { QCString result=dirName; result+=" Directory Reference"; return result; }
 
     /*! This returns the word directory with or without starting capital
-     *  (\a first_capital) and in sigular or plural form (\a singular).
+     *  (\a first_capital) and in singular or plural form (\a singular).
      */
     virtual QCString trDir(bool first_capital, bool singular)
     {
@@ -1862,7 +1863,7 @@ class TranslatorEnglish : public Translator
 
     /*! Header of a Java enum page (Java enums are represented as classes). */
     virtual QCString trEnumReference(const char *name)
-    { return QCString(name)+" Enum Reference"; }
+    { return QCString(name)+" Module Reference"; }
 
     /*! Used for a section containing inherited members */
     virtual QCString trInheritedFrom(const char *members,const char *what)
@@ -1894,7 +1895,7 @@ class TranslatorEnglish : public Translator
      */
     virtual QCString trProvidedByCategory()
     {
-      return "Provided by category @1.";
+      return "Provided by category @0.";
     }
 
     /*! Used in a method of an Objective-C category that extends a class.
@@ -1903,7 +1904,7 @@ class TranslatorEnglish : public Translator
      */
     virtual QCString trExtendsClass()
     {
-      return "Extends class @1.";
+      return "Extends class @0.";
     }
 
     /*! Used as the header of a list of class methods in Objective-C.

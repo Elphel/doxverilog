@@ -56,7 +56,7 @@ void ResourceMgr::registerResources(const Resource resources[],int numResources)
   }
 }
 
-bool ResourceMgr::copyCategory(const char *categoryName,const char *targetDir) const
+bool ResourceMgr::writeCategory(const char *categoryName,const char *targetDir) const
 {
   QDictIterator<Resource> it(p->resources);
   const Resource *res;
@@ -64,8 +64,11 @@ bool ResourceMgr::copyCategory(const char *categoryName,const char *targetDir) c
   {
     if (qstrcmp(res->category,categoryName)==0)
     {
-      if (!copyResource(res->name,targetDir))
+      QCString pathName = QCString(targetDir)+"/"+res->name;
+      QFile f(pathName);
+      if (!f.open(IO_WriteOnly) || f.writeBlock((const char *)res->data,res->size)!=res->size)
       {
+        err("Failed to write resource '%s' to directory '%s'\n",res->name,targetDir);
         return FALSE;
       }
     }
@@ -137,7 +140,7 @@ bool ResourceMgr::copyResourceAs(const char *name,const char *targetDir,const ch
             buf = replaceColorMarkers(buf);
             if (qstrcmp(name,"navtree.css")==0)
             {
-              t << substitute(buf,"$width",QCString().setNum(Config_getInt("TREEVIEW_WIDTH"))+"px");
+              t << substitute(buf,"$width",QCString().setNum(Config_getInt(TREEVIEW_WIDTH))+"px");
             }
             else
             {

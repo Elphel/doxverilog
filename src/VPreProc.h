@@ -47,12 +47,22 @@ class VDefine;
 /// This defines a preprocessor.  Functions are virtual so users can override them.
 /// After creating, call openFile(), then getline() in a loop.  The class will to the rest...
 
+struct IncDef {
+	string ss;
+	string incFile;
+	string incText;
+	int incLine;
+};
+
 class VPreProc {
 public:
     VPreProc();
     void configure(VFileLine* filelinep);
     virtual ~VPreProc();
-    
+   stack<IncDef> m_include;
+	
+
+
     // STATE
 private:
     int		m_keepComments;
@@ -102,7 +112,7 @@ public:
     // CALLBACK METHODS
     // This probably will want to be overridden for given child users of this class.
     virtual void comment(string cmt) = 0;		///< Comment detected (if keepComments==2)
-    virtual void include(string filename) = 0;	///< Request a include file be processed
+    virtual string include(string filename) = 0;	///< Request a include file be processed
     virtual void define(string name, string value, string params) = 0; ///< `define without any parameters
     virtual void undef(string name) = 0;		///< Remove a definition
     virtual void undefineall() = 0;			///< Remove all non-command-line definitions
@@ -121,22 +131,22 @@ private:
 
 #include "qfileinfo.h"
 
+struct VPreProcImp;
+
 class VerilogPreProc: public VPreProc
  {
- 
  private:
     string getIndexString(const string& x,bool upper);
     
     static DefineDict  *g_fileDefineDict;
     static DefineDict  *g_preDefineDict;
 
-
  public:
      VerilogPreProc():VPreProc(){}
      ~VerilogPreProc(){} 
-
-  
-   static DefineDict  *getFileDefineDict() 
+ 
+ 
+  static DefineDict  *getFileDefineDict() 
    { 
       if(g_fileDefineDict==0)
        {
@@ -147,24 +157,28 @@ class VerilogPreProc: public VPreProc
        return g_fileDefineDict;
    } 
     
-    static DefineDict  *getPreDefineDict() 
+   static DefineDict  *getPreDefineDict() 
    { 
       if(g_preDefineDict==0)
        {
        g_preDefineDict=new DefineDict();
        g_preDefineDict->setAutoDelete(true);
        }
-       
        return g_preDefineDict;
    } 
-    
+   
+   VPreProcImp* getImpll() { 
+	   VPreProcImp* idatap = (VPreProcImp*)(this->getImp());
+       return idatap; 
+   }
+
     void  getPredefs();
   
     string performPreprocessing(const QFileInfo & qf,bool include=false);
     
      void comment(string cmt) {}		///< Comment detected (if keepComments==2)
   
-     void include(string filename) ;
+     string include(string filename) ;
          
      void define(string name, string value, string params) ;
 
@@ -182,6 +196,9 @@ class VerilogPreProc: public VPreProc
      string defSubstitute(string substitute); 
      
      void printDict();
+	
+	 void insertIncludeText( string & text );
+      
     };
 
 #endif // Guard

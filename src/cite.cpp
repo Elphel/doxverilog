@@ -43,18 +43,18 @@ void CiteDict::writeLatexBibliography(FTextStream &t)
   if (m_entries.isEmpty())
     return;
 
-  QCString style = Config_getString("LATEX_BIB_STYLE");
+  QCString style = Config_getString(LATEX_BIB_STYLE);
   if (style.isEmpty())
     style="plain";
   QCString unit;
-  if (Config_getBool("COMPACT_LATEX"))
+  if (Config_getBool(COMPACT_LATEX))
     unit = "section";
   else
     unit = "chapter";
   t << "% Bibliography\n"
        "\\newpage\n"
        "\\phantomsection\n";
-  bool pdfHyperlinks = Config_getBool("PDF_HYPERLINKS");
+  bool pdfHyperlinks = Config_getBool(PDF_HYPERLINKS);
   if (!pdfHyperlinks)
   {
     t << "\\clearemptydoublepage\n";
@@ -62,7 +62,7 @@ void CiteDict::writeLatexBibliography(FTextStream &t)
   }
   t << "\\bibliographystyle{" << style << "}\n"
        "\\bibliography{";
-  QStrList &citeDataList = Config_getList("CITE_BIB_FILES");
+  QStrList &citeDataList = Config_getList(CITE_BIB_FILES);
   int i = 0;
   const char *bibdata = citeDataList.first();
   while (bibdata)
@@ -107,7 +107,7 @@ void CiteDict::clear()
 
 bool CiteDict::isEmpty() const
 {
-  QStrList &citeBibFiles = Config_getList("CITE_BIB_FILES");
+  QStrList &citeBibFiles = Config_getList(CITE_BIB_FILES);
   return (citeBibFiles.count()==0 || m_entries.isEmpty());
 }
 
@@ -120,7 +120,7 @@ void CiteDict::generatePage() const
 
   // 1. generate file with markers and citations to OUTPUT_DIRECTORY
   QFile f;
-  QCString outputDir = Config_getString("OUTPUT_DIRECTORY");
+  QCString outputDir = Config_getString(OUTPUT_DIRECTORY);
   QCString citeListFile = outputDir+"/citelist.doc";
   f.setName(citeListFile);
   if (!f.open(IO_WriteOnly)) 
@@ -154,7 +154,7 @@ void CiteDict::generatePage() const
   //    so bibtex can find them without path (bibtex doesn't support paths or
   //    filenames with spaces!)
   //    Strictly not required when only latex is generated
-  QStrList &citeDataList = Config_getList("CITE_BIB_FILES");
+  QStrList &citeDataList = Config_getList(CITE_BIB_FILES);
   QCString bibOutputDir = outputDir+"/"+bibTmpDir;
   QCString bibOutputFiles = "";
   QDir thisDir;
@@ -226,13 +226,13 @@ void CiteDict::generatePage() const
     else if (insideBib) doc+=line+"\n";
     int i;
     // determine text to use at the location of the @cite command
-    if (insideBib && (i=line.find("<a name=\"CITEREF_"))!=-1)
+    if (insideBib && (i=line.find("name=\"CITEREF_"))!=-1)
     {
       int j=line.find("\">[");
       int k=line.find("]</a>");
       if (j!=-1 && k!=-1)
       {
-        QCString label = line.mid(i+17,j-i-17);
+        QCString label = line.mid(i+14,j-i-14);
         QCString number = line.mid(j+2,k-j-1);
         CiteInfo *ci = m_entries.find(label);
         //printf("label='%s' number='%s' => %p\n",label.data(),number.data(),ci);
@@ -251,11 +251,11 @@ void CiteDict::generatePage() const
 
   // 8. for latex we just copy the bib files to the output and let 
   //    latex do this work.
-  if (Config_getBool("GENERATE_LATEX"))
+  if (Config_getBool(GENERATE_LATEX))
   {
     // copy bib files to the latex output dir
-    QStrList &citeDataList = Config_getList("CITE_BIB_FILES");
-    QCString latexOutputDir = Config_getString("LATEX_OUTPUT")+"/";
+    QStrList &citeDataList = Config_getList(CITE_BIB_FILES);
+    QCString latexOutputDir = Config_getString(LATEX_OUTPUT)+"/";
     int i = 0;
     const char *bibdata = citeDataList.first();
     while (bibdata)

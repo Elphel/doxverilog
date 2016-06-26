@@ -36,12 +36,12 @@ static QDict<QCString> g_symbolDict(10007);
  */
 bool Htags::execute(const QCString &htmldir)
 {
-  static QStrList &inputSource = Config_getList("INPUT");
-  static bool quiet = Config_getBool("QUIET");
-  static bool warnings = Config_getBool("WARNINGS");
-  static QCString htagsOptions = ""; //Config_getString("HTAGS_OPTIONS");
-  static QCString projectName = Config_getString("PROJECT_NAME");
-  static QCString projectNumber = Config_getString("PROJECT_NUMBER");
+  static QStrList &inputSource = Config_getList(INPUT);
+  static bool quiet = Config_getBool(QUIET);
+  static bool warnings = Config_getBool(WARNINGS);
+  static QCString htagsOptions = ""; //Config_getString(HTAGS_OPTIONS);
+  static QCString projectName = Config_getString(PROJECT_NAME);
+  static QCString projectNumber = Config_getString(PROJECT_NUMBER);
 
   QCString cwd = QDir::currentDirPath().utf8();
   if (inputSource.isEmpty())
@@ -59,7 +59,7 @@ bool Htags::execute(const QCString &htmldir)
   }
   else
   {
-    err("If you use USE_HTAGS then INPUT should specific a single directory. \n");
+    err("If you use USE_HTAGS then INPUT should specify a single directory.\n");
     return FALSE;
   }
 

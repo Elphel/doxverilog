@@ -145,7 +145,6 @@ class ParserManager
   public:
     /** Creates the parser manager object. 
      */
-  
     ParserManager()
       : m_defaultParser(0) { m_parsers.setAutoDelete(TRUE); }
    ~ParserManager()
@@ -166,7 +165,7 @@ class ParserManager
      */
     void registerParser(const char *name,ParserInterface *parser)
     {
-       m_parsers.insert(name,parser);
+      m_parsers.insert(name,parser);
     }
 
     /** Registers a file \a extension with a parser with name \a parserName. 
@@ -190,15 +189,13 @@ class ParserManager
      *  the interface to the default parser will be returned.
      */
     ParserInterface *getParser(const char *extension)
-    { 
+    {
       QCString ext = QCString(extension).lower();
-      
-if (ext.isEmpty()) ext=".no_extension";
-
+      if (ext.isEmpty()) ext=".no_extension";
       ParserInterface *intf = m_extensions.find(ext);
       if (intf==0 && ext.length()>4)
       {
-       intf = m_extensions.find(ext.left(4));
+        intf = m_extensions.find(ext.left(4));
       }
       return intf ? intf : m_defaultParser;
     }

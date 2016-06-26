@@ -20,7 +20,7 @@ static int g_dirCount=0;
 
 DirDef::DirDef(const char *path) : Definition(path,1,1,path), visited(FALSE)
 {
-  bool fullPathNames = Config_getBool("FULL_PATH_NAMES");
+  bool fullPathNames = Config_getBool(FULL_PATH_NAMES);
   // get display name (stipping the paths mentioned in STRIP_FROM_PATH)
   // get short name (last part of path)
   m_shortName = path;
@@ -67,15 +67,21 @@ bool DirDef::isLinkable() const
 
 void DirDef::addSubDir(DirDef *subdir)
 {
-  m_subdirs.inSort(subdir);
+  m_subdirs.append(subdir);
   subdir->setOuterScope(this);
   subdir->m_parent=this;
 }
 
 void DirDef::addFile(FileDef *fd)
 {
-  m_fileList->inSort(fd);
+  m_fileList->append(fd);
   fd->setDirDef(this);
+}
+
+void DirDef::sort()
+{
+  m_subdirs.sort();
+  m_fileList->sort();
 }
 
 static QCString encodeDirName(const QCString &anchor)
@@ -119,7 +125,7 @@ QCString DirDef::getOutputFileBase() const
 
 void DirDef::writeDetailedDescription(OutputList &ol,const QCString &title)
 {
-  if ((!briefDescription().isEmpty() && Config_getBool("REPEAT_BRIEF")) || 
+  if ((!briefDescription().isEmpty() && Config_getBool(REPEAT_BRIEF)) || 
       !documentation().isEmpty())
   {
     ol.pushGeneratorState();
@@ -135,12 +141,12 @@ void DirDef::writeDetailedDescription(OutputList &ol,const QCString &title)
     ol.endGroupHeader();
 
     // repeat brief description
-    if (!briefDescription().isEmpty() && Config_getBool("REPEAT_BRIEF"))
+    if (!briefDescription().isEmpty() && Config_getBool(REPEAT_BRIEF))
     {
       ol.generateDoc(briefFile(),briefLine(),this,0,briefDescription(),FALSE,FALSE);
     }
     // separator between brief and details
-    if (!briefDescription().isEmpty() && Config_getBool("REPEAT_BRIEF") && 
+    if (!briefDescription().isEmpty() && Config_getBool(REPEAT_BRIEF) && 
         !documentation().isEmpty())
     {
       ol.pushGeneratorState();
@@ -164,7 +170,7 @@ void DirDef::writeDetailedDescription(OutputList &ol,const QCString &title)
 
 void DirDef::writeBriefDescription(OutputList &ol)
 {
-  if (!briefDescription().isEmpty() && Config_getBool("BRIEF_MEMBER_DESC"))
+  if (!briefDescription().isEmpty() && Config_getBool(BRIEF_MEMBER_DESC))
   {
     DocRoot *rootNode = validatingParseDoc(
          briefFile(),briefLine(),this,0,briefDescription(),TRUE,FALSE);
@@ -177,7 +183,7 @@ void DirDef::writeBriefDescription(OutputList &ol)
       ol.writeString(" \n");
       ol.enable(OutputGenerator::RTF);
 
-      if (Config_getBool("REPEAT_BRIEF") ||
+      if (Config_getBool(REPEAT_BRIEF) ||
           !documentation().isEmpty()
          )
       {
@@ -198,7 +204,7 @@ void DirDef::writeBriefDescription(OutputList &ol)
 void DirDef::writeDirectoryGraph(OutputList &ol)
 {
   // write graph dependency graph
-  if (Config_getBool("DIRECTORY_GRAPH") && Config_getBool("HAVE_DOT"))
+  if (Config_getBool(DIRECTORY_GRAPH) && Config_getBool(HAVE_DOT))
   {
     DotDirDeps dirDep(this);
     if (!dirDep.isTrivial())
@@ -217,36 +223,48 @@ void DirDef::writeDirectoryGraph(OutputList &ol)
 
 void DirDef::writeSubDirList(OutputList &ol)
 {
+  int numSubdirs = 0;
+  QListIterator<DirDef> it(m_subdirs);
+  DirDef *dd;
+  for (it.toFirst();(dd=it.current());++it)
+  {
+    if (dd->hasDocumentation() || dd->getFiles()->count()>0)
+    {
+      numSubdirs++;
+    }
+  }
+
   // write subdir list
-  if (m_subdirs.count()>0)
+  if (numSubdirs>0)
   {
     ol.startMemberHeader("subdirs");
     ol.parseText(theTranslator->trDir(TRUE,FALSE));
     ol.endMemberHeader();
     ol.startMemberList();
-    QListIterator<DirDef> it(m_subdirs);
-    DirDef *dd;
-    for (;(dd=it.current());++it)
+    for (it.toFirst();(dd=it.current());++it)
     {
-      ol.startMemberDeclaration();
-      ol.startMemberItem(dd->getOutputFileBase(),0);
-      ol.parseText(theTranslator->trDir(FALSE,TRUE)+" ");
-      ol.insertMemberAlign();
-      ol.writeObjectLink(dd->getReference(),dd->getOutputFileBase(),0,dd->shortName());
-      ol.endMemberItem();
-      if (!dd->briefDescription().isEmpty() && Config_getBool("BRIEF_MEMBER_DESC"))
+      if (dd->hasDocumentation() || dd->getFiles()->count()==0)
       {
-        ol.startMemberDescription(dd->getOutputFileBase());
-        ol.generateDoc(briefFile(),briefLine(),dd,0,dd->briefDescription(),
-            FALSE, // indexWords
-            FALSE, // isExample
-            0,     // exampleName
-            TRUE,  // single line
-            TRUE   // link from index
-           );
-        ol.endMemberDescription();
+        ol.startMemberDeclaration();
+        ol.startMemberItem(dd->getOutputFileBase(),0);
+        ol.parseText(theTranslator->trDir(FALSE,TRUE)+" ");
+        ol.insertMemberAlign();
+        ol.writeObjectLink(dd->getReference(),dd->getOutputFileBase(),0,dd->shortName());
+        ol.endMemberItem();
+        if (!dd->briefDescription().isEmpty() && Config_getBool(BRIEF_MEMBER_DESC))
+        {
+          ol.startMemberDescription(dd->getOutputFileBase());
+          ol.generateDoc(briefFile(),briefLine(),dd,0,dd->briefDescription(),
+              FALSE, // indexWords
+              FALSE, // isExample
+              0,     // exampleName
+              TRUE,  // single line
+              TRUE   // link from index
+              );
+          ol.endMemberDescription();
+        }
+        ol.endMemberDeclaration(0,0);
       }
-      ol.endMemberDeclaration(0,0);
     }
 
     ol.endMemberList();
@@ -255,8 +273,19 @@ void DirDef::writeSubDirList(OutputList &ol)
 
 void DirDef::writeFileList(OutputList &ol)
 {
+  int numFiles = 0;
+  QListIterator<FileDef> it(*m_fileList);
+  FileDef *fd;
+  for (it.toFirst();(fd=it.current());++it)
+  {
+    if (fd->hasDocumentation())
+    {
+      numFiles++;
+    }
+  }
+
   // write file list
-  if (m_fileList->count()>0)
+  if (numFiles>0)
   {
     ol.startMemberHeader("files");
     ol.parseText(theTranslator->trFile(TRUE,FALSE));
@@ -266,46 +295,49 @@ void DirDef::writeFileList(OutputList &ol)
     FileDef *fd;
     for (;(fd=it.current());++it)
     {
-      ol.startMemberDeclaration();
-      ol.startMemberItem(fd->getOutputFileBase(),0);
-      ol.docify(theTranslator->trFile(FALSE,TRUE)+" ");
-      ol.insertMemberAlign();
-      if (fd->isLinkable())
+      if (fd->hasDocumentation())
       {
-        ol.writeObjectLink(fd->getReference(),fd->getOutputFileBase(),0,fd->name());
+        ol.startMemberDeclaration();
+        ol.startMemberItem(fd->getOutputFileBase(),0);
+        ol.docify(theTranslator->trFile(FALSE,TRUE)+" ");
+        ol.insertMemberAlign();
+        if (fd->isLinkable())
+        {
+          ol.writeObjectLink(fd->getReference(),fd->getOutputFileBase(),0,fd->name());
+        }
+        else
+        {
+          ol.startBold();
+          ol.docify(fd->name());
+          ol.endBold();
+        }
+        if (fd->generateSourceFile())
+        {
+          ol.pushGeneratorState();
+          ol.disableAllBut(OutputGenerator::Html);
+          ol.docify(" ");
+          ol.startTextLink(fd->includeName(),0);
+          ol.docify("[");
+          ol.parseText(theTranslator->trCode());
+          ol.docify("]");
+          ol.endTextLink();
+          ol.popGeneratorState();
+        }
+        ol.endMemberItem();
+        if (!fd->briefDescription().isEmpty() && Config_getBool(BRIEF_MEMBER_DESC))
+        {
+          ol.startMemberDescription(fd->getOutputFileBase());
+          ol.generateDoc(briefFile(),briefLine(),fd,0,fd->briefDescription(),
+              FALSE, // indexWords
+              FALSE, // isExample
+              0,     // exampleName
+              TRUE,  // single line
+              TRUE   // link from index
+              );
+          ol.endMemberDescription();
+        }
+        ol.endMemberDeclaration(0,0);
       }
-      else
-      {
-        ol.startBold();
-        ol.docify(fd->name()); 
-        ol.endBold();
-      }
-      if (fd->generateSourceFile())
-      {
-        ol.pushGeneratorState();
-        ol.disableAllBut(OutputGenerator::Html);
-        ol.docify(" ");
-        ol.startTextLink(fd->includeName(),0);
-        ol.docify("[");
-        ol.parseText(theTranslator->trCode());
-        ol.docify("]");
-        ol.endTextLink();
-        ol.popGeneratorState();
-      }
-      ol.endMemberItem();
-      if (!fd->briefDescription().isEmpty() && Config_getBool("BRIEF_MEMBER_DESC"))
-      {
-        ol.startMemberDescription(fd->getOutputFileBase());
-        ol.generateDoc(briefFile(),briefLine(),fd,0,fd->briefDescription(),
-            FALSE, // indexWords
-            FALSE, // isExample
-            0,     // exampleName
-            TRUE,  // single line
-            TRUE   // link from index
-           );
-        ol.endMemberDescription();
-      }
-      ol.endMemberDeclaration(0,0);
     }
     ol.endMemberList();
   }
@@ -328,7 +360,7 @@ QCString DirDef::shortTitle() const
 
 bool DirDef::hasDetailedDescription() const
 {
-  static bool repeatBrief = Config_getBool("REPEAT_BRIEF");
+  static bool repeatBrief = Config_getBool(REPEAT_BRIEF);
   return (!briefDescription().isEmpty() && repeatBrief) || !documentation().isEmpty();
 }
 
@@ -381,11 +413,11 @@ void DirDef::writeTagFile(FTextStream &tagFile)
 
 void DirDef::writeDocumentation(OutputList &ol)
 {
-  static bool generateTreeView = Config_getBool("GENERATE_TREEVIEW");
+  static bool generateTreeView = Config_getBool(GENERATE_TREEVIEW);
   ol.pushGeneratorState();
   
   QCString title=theTranslator->trDirReference(m_dispName);
-  startFile(ol,getOutputFileBase(),name(),title,HLI_None,!generateTreeView);
+  startFile(ol,getOutputFileBase(),name(),title,HLI_Files,!generateTreeView);
 
   if (!generateTreeView)
   {
@@ -591,9 +623,18 @@ void DirDef::computeDependencies()
               //printf("      %d: add dependency %s->%s\n",count++,name().data(),usedDir->name().data());
               addUsesDependency(usedDir,fd,ii->fileDef,FALSE);
             }
-          } 
+          }
         }
       }
+    }
+  }
+  if (m_usedDirs)
+  {
+    QDictIterator<UsedDir> udi(*m_usedDirs);
+    UsedDir *udir;
+    for (udi.toFirst();(udir=udi.current());++udi)
+    {
+      udir->sort();
     }
   }
 }
@@ -610,7 +651,7 @@ bool DirDef::isParentOf(DirDef *dir) const
 
 bool DirDef::depGraphIsTrivial() const
 {
-  return FALSE;
+  return m_usedDirs->count()==0;
 }
 
 //----------------------------------------------------------------------
@@ -618,8 +659,9 @@ bool DirDef::depGraphIsTrivial() const
 int FilePairDict::compareValues(const FilePair *left,const FilePair *right) const
 {
   int orderHi = qstricmp(left->source()->name(),right->source()->name());
+  if (orderHi!=0) return orderHi;
   int orderLo = qstricmp(left->destination()->name(),right->destination()->name());
-  return orderHi==0 ? orderLo : orderHi;
+  return orderLo;
 }
 
 //----------------------------------------------------------------------
@@ -637,8 +679,13 @@ UsedDir::~UsedDir()
 
 void UsedDir::addFileDep(FileDef *srcFd,FileDef *dstFd)
 {
-  m_filePairs.inSort(srcFd->getOutputFileBase()+dstFd->getOutputFileBase(),
+  m_filePairs.append(srcFd->getOutputFileBase()+dstFd->getOutputFileBase(),
                      new FilePair(srcFd,dstFd));
+}
+
+void UsedDir::sort()
+{
+  m_filePairs.sort();
 }
 
 FilePair *UsedDir::findFilePair(const char *name)
@@ -656,7 +703,7 @@ DirDef *DirDef::createNewDir(const char *path)
     //printf("Adding new dir %s\n",path);
     dir = new DirDef(path);
     //printf("createNewDir %s short=%s\n",path,dir->shortName().data());
-    Doxygen::directories->inSort(path,dir);
+    Doxygen::directories->append(path,dir);
   }
   return dir;
 }
@@ -677,7 +724,7 @@ bool DirDef::matchPath(const QCString &path,QStrList &l)
 }
 
 /*! strip part of \a path if it matches
- *  one of the paths in the Config_getList("STRIP_FROM_PATH") list
+ *  one of the paths in the Config_getList(STRIP_FROM_PATH) list
  */
 DirDef *DirDef::mergeDirectoryInTree(const QCString &path)
 {
@@ -687,18 +734,13 @@ DirDef *DirDef::mergeDirectoryInTree(const QCString &path)
   while ((i=path.find('/',p))!=-1)
   {
     QCString part=path.left(i+1);
-    if (!matchPath(part,Config_getList("STRIP_FROM_PATH")) && (part!="/" && part!="//"))
+    if (!matchPath(part,Config_getList(STRIP_FROM_PATH)) && (part!="/" && part!="//"))
     {
       dir=createNewDir(part); 
     }
     p=i+1;
   }
   return dir;
-}
-
-void DirDef::writeDepGraph(FTextStream &t)
-{
-    writeDotDirDepGraph(t,this);
 }
 
 //----------------------------------------------------------------------
@@ -734,7 +776,7 @@ static void writePartialFilePath(OutputList &ol,const DirDef *root,const FileDef
 
 void DirRelation::writeDocumentation(OutputList &ol)
 {
-  static bool generateTreeView = Config_getBool("GENERATE_TREEVIEW");
+  static bool generateTreeView = Config_getBool(GENERATE_TREEVIEW);
   ol.pushGeneratorState();
   ol.disableAllBut(OutputGenerator::Html);
 
@@ -841,6 +883,7 @@ static void computeCommonDirPrefix()
           else // dir is shorter than path -> take path of dir as new start
           {
             path=dir->name();
+            l=path.length();
             int i=path.findRev('/',l-2);
             if (i==-1) // no unique prefix -> stop
             {
@@ -905,7 +948,6 @@ void buildDirectories()
   DirSDict::Iterator sdi(*Doxygen::directories);
   for (sdi.toFirst();(dir=sdi.current());++sdi)
   {
-    //printf("New dir %s\n",dir->displayName().data());
     QCString name = dir->name();
     int i=name.findRev('/',name.length()-2);
     if (i>0)
@@ -920,6 +962,11 @@ void buildDirectories()
       }
     }
   }
+  for (sdi.toFirst();(dir=sdi.current());++sdi)
+  {
+    dir->sort();
+  }
+  Doxygen::directories->sort();
   computeCommonDirPrefix();
 }
 
@@ -949,7 +996,7 @@ void generateDirDocs(OutputList &ol)
   {
     dir->writeDocumentation(ol);
   }
-  if (Config_getBool("DIRECTORY_GRAPH"))
+  if (Config_getBool(DIRECTORY_GRAPH))
   {
     SDict<DirRelation>::Iterator rdi(Doxygen::dirRelations);
     DirRelation *dr;

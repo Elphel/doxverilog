@@ -27,10 +27,7 @@
 #include <qcstring.h>
 #include <qfileinfo.h>
 #include <qstringlist.h>
-#include "bufstr.h"
-//#ifdef DEBUGFLOW
 #include <qmap.h>
-//#endif
 
 /* --------------------------------------------------------------- */
 
@@ -47,7 +44,6 @@
 #include "searchindex.h"
 #include "outputlist.h"
 #include "parserintf.h"
-
 #include "layout.h"
 #include "arguments.h"
 #include "portable.h"
@@ -59,14 +55,13 @@
 #include "filename.h"
 #include "membergroup.h"
 #include "memberdef.h"
-
+#include "plantuml.h"
 #include "vhdljjparser.h"
 #include "VhdlParser.h"
-
 #include "vhdlcode.h"
 #include "verilogdocgen.h"
 #include "verilogscanner.h"
-
+#include "bufstr.h"
 
 #define theTranslator_vhdlType VhdlDocGen::trVhdlType
 
@@ -99,7 +94,7 @@ void VhdlDocGen::setFlowMember( const MemberDef* mem)
   flowMember=mem;
 }
 
-const MemberDef* VhdlDocGen::getFlowMember()
+ const MemberDef* VhdlDocGen::getFlowMember()
 {
   return flowMember;
 }
@@ -137,10 +132,13 @@ static void codify(FTextStream &t,const char *str)
 
 static void writeLink(const MemberDef* mdef,OutputList &ol)
 {
-  ol.writeObjectLink(mdef->getReference(),
+    QCString nn=mdef->name();
+	VerilogDocGen::adjustOpName(nn);
+
+	ol.writeObjectLink(mdef->getReference(),
       mdef->getOutputFileBase(),
       mdef->anchor(),
-      mdef->name());
+      nn.data());
 }
 
 static void startFonts(const QCString& q, const char *keyword,OutputList& ol)
@@ -169,7 +167,7 @@ static int compareString(const QCString& s1,const QCString& s2)
 
 static void createSVG()
 {
-    QCString ov =Config_getString("HTML_OUTPUT");
+    QCString ov =Config_getString(HTML_OUTPUT);
     QCString dir="-o \""+ov+"/vhdl_design_overview.html\"";
     ov+="/vhdl_design.dot";
 
@@ -199,7 +197,7 @@ void VhdlDocGen::writeOverview()
 
   if (!found) return;
 
-  QCString ov =Config_getString("HTML_OUTPUT");
+  QCString ov =Config_getString(HTML_OUTPUT);
   QCString fileName=ov+"/vhdl_design.dot";
   QFile f(fileName);
   FTextStream  t(&f);
@@ -577,7 +575,7 @@ VhdlDocGen::~VhdlDocGen()
 void VhdlDocGen::init()
 {
 
- // vhdl keywords inlcuded VHDL 2008
+ // vhdl keywords included VHDL 2008
 const char* g_vhdlKeyWordMap0[] =
 {
   "abs","access","after","alias","all","and","architecture","array","assert","assume","assume_guarantee","attribute",
@@ -847,7 +845,7 @@ MemberDef* VhdlDocGen::findMemberDef(ClassDef* cd,const QCString& key,MemberList
   }
   MemberListIterator fmni(*ml);
   //int l=ml->count();
-  //	fprintf(stderr,"\n loading enity %s %s: %d",cd->symbolName().data(),keyType.data(),l);
+  //	fprintf(stderr,"\n loading entity %s %s: %d",cd->symbolName().data(),keyType.data(),l);
 
   for (fmni.toFirst();(md=fmni.current());++fmni)
   {
@@ -972,7 +970,7 @@ QCString VhdlDocGen::getClassTitle(const ClassDef *cd)
   QCString pageTitle;
   if (cd==0) return "";
 
-  static bool optVerilog = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+  static bool optVerilog = Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
   if(optVerilog)
    return VerilogDocGen::getClassTitle(cd);
 
@@ -1078,7 +1076,7 @@ void VhdlDocGen::writeInlineClassLink(const ClassDef* cd ,OutputList& ol)
 }// write
 
 /*
- * finds all architectures which belongs to an entiy
+ * finds all architectures which belongs to an entity
  */
 void VhdlDocGen::findAllArchitectures(QList<QCString>& qll,const ClassDef *cd)
 {
@@ -1151,7 +1149,7 @@ void VhdlDocGen::writeVhdlLink(const ClassDef* ccd ,OutputList& ol,QCString& typ
 void VhdlDocGen::prepareComment(QCString& qcs)
 {
 
- static bool optVerilog       = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+ static bool optVerilog       = Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
   const char* s="--!";
   int index=0;
    if(optVerilog)
@@ -1249,7 +1247,7 @@ QCString VhdlDocGen::getIndexWord(const char* c,int index)
 QCString VhdlDocGen::getProtectionName(int prot)
 {
 
-    static bool optVerilog    = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+    static bool optVerilog    = Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
  if(optVerilog)
 	 {
        if(prot==Public) return "Module";
@@ -1271,7 +1269,7 @@ QCString VhdlDocGen::getProtectionName(int prot)
 QCString VhdlDocGen::trTypeString(uint64 type)
 {
 
-	 static bool optVerilog       = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+	 static bool optVerilog       = Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
 
     if(optVerilog)
     return VerilogDocGen::convertTypeToString(type);
@@ -1359,7 +1357,7 @@ QCString VhdlDocGen::getRecordNumber()
 QCString VhdlDocGen::getProcessNumber()
 {
   static int stringCounter;
-  static bool optVerilog=Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+  static bool optVerilog=Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
 
   char buf[8];
 
@@ -1382,8 +1380,8 @@ QCString VhdlDocGen::getProcessNumber()
 void VhdlDocGen::writeFormatString(const QCString& s,OutputList&ol,const MemberDef* mdef)
 {
   QRegExp reg("[\\[\\]\\.\\/\\:\\<\\>\\:\\s\\,\\;\\'\\+\\-\\*\\|\\&\\=\\(\\)\"]");
-  QCString qcs = s+" ";
-  qcs=qcs.append(" ");// parsing the last sign
+  QCString qcs = s;
+  qcs+=QCString(" ");// parsing the last sign
   QCString *ss;
   QCString find=qcs;
   QCString temp=qcs;
@@ -1393,7 +1391,6 @@ void VhdlDocGen::writeFormatString(const QCString& s,OutputList&ol,const MemberD
   int j;
   int len;
   j = reg.match(temp.data(),0,&len);
-// fprintf(stderr,"\n find %s ",s.data());
 
   ol.startBold();
   if (j>=0)
@@ -1401,11 +1398,8 @@ void VhdlDocGen::writeFormatString(const QCString& s,OutputList&ol,const MemberD
     while (j>=0)
     {
       find=find.left(j);
-  //    fprintf(stderr,"\n find %s ",find.data());
       buf[0]=temp[j];
       ss=VhdlDocGen::findKeyWord(find);
-    //   fprintf(stderr,"\n temp %s ",temp.data());
-
       bool k=isNumber(find); // is this a number
       if (k)
       {
@@ -1428,8 +1422,6 @@ void VhdlDocGen::writeFormatString(const QCString& s,OutputList&ol,const MemberD
 
       QCString st=temp.remove(0,j+1);
       find=st;
-    //  fprintf(stderr,"\n find_2 %s ",find.data());
-
       if (!find.isEmpty() && find.at(0)=='"')
       {
         int ii=find.find('"',2);
@@ -1457,13 +1449,12 @@ void VhdlDocGen::writeFormatString(const QCString& s,OutputList&ol,const MemberD
 /*!
  * returns TRUE if this string is a number
  */
-
 bool VhdlDocGen::isNumber(const QCString& s)
 {
   static QRegExp regg("[0-9][0-9eEfFbBcCdDaA_.#-+?xXzZ]*");
    static QRegExp reggVerilog("[0-9]+[']*[0-9a-fA-FhHoOxXzZ._?]*");
   static QRegExp reggVerilog1("['][0-9a-fA-FhHoOxXzZ._?]+");
-   static bool optVerilog=Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+   static bool optVerilog=Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
 
   if (s.isEmpty()) return FALSE;
   int j,len;
@@ -1478,7 +1469,6 @@ bool VhdlDocGen::isNumber(const QCString& s)
     }
   else
   j = regg.match(s.data(),0,&len);
-
   if ((j==0) && (len==(int)s.length())) return TRUE;
   return FALSE;
 
@@ -1492,7 +1482,7 @@ bool VhdlDocGen::isNumber(const QCString& s)
 
 void VhdlDocGen::formatString(const QCString &s, OutputList& ol,const MemberDef* mdef)
 {
-  static bool optVerilog  = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+  static bool optVerilog  = Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
 
   if(optVerilog){
       VhdlDocGen::writeFormatString(s,ol,mdef);
@@ -1727,7 +1717,7 @@ bool VhdlDocGen::writeFuncProcDocu(
     const ArgumentList* al,
     bool /*type*/)
 {
-    static bool optVerilog       = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+    static bool optVerilog       = Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
     if (al==0) return FALSE;
   //bool sem=FALSE;
   ol.enableAll();
@@ -1744,16 +1734,15 @@ bool VhdlDocGen::writeFuncProcDocu(
   //ol.startParameterName(FALSE);
   Argument *arg;
   bool first=TRUE;
-  
   for (;(arg=ali.current());++ali)
   {
-  // fprintf(stderr,"\n always... %s | %s  | %s",arg->name.data(),arg->defval.data(),arg->type.data());
-   ol.startParameterType(first,"");
+    ol.startParameterType(first,"");
     //   if (first) ol.writeChar('(');
     QCString attl=arg->defval;
     bool bGen=attl.stripPrefix("gen!");
     if (bGen)
       VhdlDocGen::writeFormatString(QCString("generic "),ol,md);
+
 
     if (VhdlDocGen::isProcedure(md))
     {
@@ -1765,20 +1754,21 @@ bool VhdlDocGen::writeFuncProcDocu(
     ol.startParameterName(TRUE);
 	 if(optVerilog){
       VerilogDocGen::adjustOpName(arg->name);
-	  BufStr buf(1000);
+	  int pp=1000;
+	  BufStr buf(pp);
 	  
 	  VhdlDocGen::writeFormatString(arg->type,ol,md);
       ol.docify("  ");
 	  VhdlDocGen::writeFormatString(arg->defval,ol,md);
 	  ol.docify("  ");
 	 // QCString lks=arg->name+"-";
-	   fprintf(stderr,"\n  %d",arg->name.length());
+	 //  fprintf(stderr,"\n  %d",arg->name.length());
 	  	
 	   buf.addArray(arg->name.copy().data(),arg->name.length()-1);
 	     buf.addArray("---",3);
 	
 		QCString sa(buf.data());
-	   fprintf(stderr,"\n %s %d ",sa.data(),sa.length());
+	   //fprintf(stderr,"\n %s %d ",sa.data(),sa.length());
 	  VhdlDocGen::writeFormatString(sa,ol,md);
 	  if(--index) 
 	   ol.endParameterName(FALSE,FALSE,FALSE);
@@ -1788,6 +1778,7 @@ bool VhdlDocGen::writeFuncProcDocu(
 	   continue;
 	 }
 
+    ol.startParameterName(TRUE);
     VhdlDocGen::writeFormatString(arg->name,ol,md);
 
     if (VhdlDocGen::isProcedure(md))
@@ -1868,7 +1859,7 @@ void VhdlDocGen::writeVhdlDeclarations(MemberList* ml,
     OutputList& ol,GroupDef* gd,ClassDef* cd,FileDef *fd,NamespaceDef* nd)
 {
 
-static bool optVerilog  = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+static bool optVerilog  = Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
 
 	 if(optVerilog){
        VerilogDocGen::writeVerilogDeclarations(ml,ol,0,cd);
@@ -1937,7 +1928,6 @@ static void setGlobalType(MemberList *ml)
 }
 
 /* writes a vhdl type documentation */
-
 bool VhdlDocGen::writeVHDLTypeDocumentation(const MemberDef* mdef, const Definition *d, OutputList &ol)
 {
   ClassDef *cd=(ClassDef*)d;
@@ -1945,7 +1935,6 @@ bool VhdlDocGen::writeVHDLTypeDocumentation(const MemberDef* mdef, const Definit
 
   bool bParseVerilogFunc=false;
    SrcLangExt lang = mdef->getLanguage();
-
     bool optVerilog = lang==SrcLangExt_VHDL || lang==SrcLangExt_VERILOG;
 
   if(optVerilog)
@@ -2063,9 +2052,7 @@ bool VhdlDocGen::writeVHDLTypeDocumentation(const MemberDef* mdef, const Definit
     }
   }
   return hasParams;
-
 }
-
 
 void VhdlDocGen::writeTagFile(MemberDef *mdef,FTextStream &tagFile)
 {
@@ -2139,7 +2126,7 @@ void VhdlDocGen::writeVHDLDeclaration(MemberDef* mdef,OutputList &ol,
   QCString cfname = d->getOutputFileBase();
 
   //HtmlHelp *htmlHelp=0;
-  //  bool hasHtmlHelp = Config_getBool("GENERATE_HTML") && Config_getBool("GENERATE_HTMLHELP");
+  //  bool hasHtmlHelp = Config_getBool(GENERATE_HTML) && Config_getBool(GENERATE_HTMLHELP);
   //  if (hasHtmlHelp) htmlHelp = HtmlHelp::getInstance();
 
   // search for the last anonymous scope in the member type
@@ -2309,7 +2296,6 @@ void VhdlDocGen::writeVHDLDeclaration(MemberDef* mdef,OutputList &ol,
       {
         if (VhdlDocGen::isConfig(mdef) || VhdlDocGen::isCompInst(mdef))
         {
-          nn=mdef->getOutputFileBase();
           nn=ltype;
         }
         else
@@ -2393,7 +2379,7 @@ void VhdlDocGen::writeVHDLDeclaration(MemberDef* mdef,OutputList &ol,
   }
 
   bool htmlOn = ol.isEnabled(OutputGenerator::Html);
-  if (htmlOn && /*Config_getBool("HTML_ALIGN_MEMBERS") &&*/ !ltype.isEmpty())
+  if (htmlOn && /*Config_getBool(HTML_ALIGN_MEMBERS) &&*/ !ltype.isEmpty())
   {
     ol.disable(OutputGenerator::Html);
   }
@@ -2412,12 +2398,13 @@ void VhdlDocGen::writeVHDLDeclaration(MemberDef* mdef,OutputList &ol,
   //    name().data(),annoClassDef,annEnumType);
  // if(mm!=VhdlDocGen::MISCELLANEOUS)
   ol.endMemberItem();
-  if (!mdef->briefDescription().isEmpty() &&   Config_getBool("BRIEF_MEMBER_DESC") /* && !annMemb */)
+  if (!mdef->briefDescription().isEmpty() &&   Config_getBool(BRIEF_MEMBER_DESC) /* && !annMemb */)
   {
-    ol.startMemberDescription(mdef->anchor());
+ 	 QCString s=mdef->briefDescription();
+	 ol.startMemberDescription(mdef->anchor());
     ol.generateDoc(mdef->briefFile(),mdef->briefLine(),
         mdef->getOuterScope()?mdef->getOuterScope():d,
-        mdef,mdef->briefDescription(),TRUE,FALSE,0,TRUE,FALSE);
+        mdef,s.data(),TRUE,FALSE,0,TRUE,FALSE);
     if (detailsVisible)
     {
       ol.pushGeneratorState();
@@ -2566,7 +2553,7 @@ bool VhdlDocGen::writeClassType( ClassDef *& cd,
     OutputList &ol ,QCString & cname)
 {
 
-   static bool optVerilog    = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+   static bool optVerilog    = Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
 
   QCString qcs;
   if(optVerilog){
@@ -2591,7 +2578,7 @@ bool VhdlDocGen::writeClassType( ClassDef *& cd,
 QCString VhdlDocGen::trVhdlType(uint64 type,bool sing)
 {
 
- static bool optVerilog    = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+ static bool optVerilog    = Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
 
    if(optVerilog) return   VerilogDocGen::convertTypeToString(type,sing);
 
@@ -2698,7 +2685,7 @@ QCString VhdlDocGen::trDesignUnitMembers()
 QCString VhdlDocGen::trDesignUnitListDescription()
 {
 
-  static bool optVerilog = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+  static bool optVerilog = Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
  if(optVerilog)
   return "Here is a list of all design unit members with links to "
          "the Modules they belong to:";
@@ -2721,7 +2708,7 @@ QCString VhdlDocGen::trDesignUnits()
 QCString VhdlDocGen::trFunctionAndProc()
 {
 
-    if(Config_getBool("OPTIMIZE_OUTPUT_VERILOG"))
+    if(Config_getBool(OPTIMIZE_OUTPUT_VERILOG))
    return "Functions/Tasks/Always Construct";
     return "Functions/Procedures/Processes";
 }
@@ -2731,7 +2718,7 @@ QCString VhdlDocGen::trFunctionAndProc()
 
 void VhdlDocGen::writeStringLink(const MemberDef *mdef,QCString mem, OutputList& ol)
 {
-   bool optVerilog          = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+   bool optVerilog          = Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
    MemberDef* memdef=0;
 
  if (mdef)
@@ -2762,6 +2749,8 @@ void VhdlDocGen::writeStringLink(const MemberDef *mdef,QCString mem, OutputList&
   }
   startFonts(mem,"vhdlchar",ol);
 }// found component
+
+
 
 void VhdlDocGen::writeSource(MemberDef *mdef,OutputList& ol,QCString & cname)
 {
@@ -2796,7 +2785,7 @@ void VhdlDocGen::writeSource(MemberDef *mdef,OutputList& ol,QCString & cname)
                        codeFragment,     // input
                        SrcLangExt_VHDL,  // lang
                        FALSE,            // isExample
-                       0,                // exampleName
+                       0,               // exampleName
                        mdef->getFileDef(),            // fileDef
                        mdef->getStartBodyLine(),      // startLine
                        mdef->getEndBodyLine(),        // endLine
@@ -2990,7 +2979,7 @@ bool VhdlDocGen::findConstraintFile(LayoutNavEntry *lne)
   QCString co("Constraints");
 
   QCString imgExt = getDotImageExtension();
-  if (Config_getBool("HAVE_DOT") && imgExt=="svg")
+  if (Config_getBool(HAVE_DOT) && imgExt=="svg")
   {
     QCString ov = theTranslator->trDesignOverview();
     QCString ofile("vhdl_design_overview");
@@ -3745,7 +3734,7 @@ void FlowChart::printNode(const FlowChart* flo)
     }
     else
     {
-      printf("\n NO: %s%s[%d,%d]",q.data(),t.data(),flo->stamp,flo->id);
+      printf("\n NO: %s[%d,%d]",t.data(),flo->stamp,flo->id);
     }
   }
 }
@@ -3931,8 +3920,13 @@ void FlowChart::buildCommentNodes(FTextStream & t)
     FlowChart *fll=flowList.at(j);
     if (fll->type & (COMMENT_NO | BEGIN_NO))
     {
+      int diff=FLOWLEN-(j+1);
       flowList.remove(j);
-      delete fll;
+
+	   if ((fll->type & COMMENT_NO) && diff > 1)
+		  flowList.at(j+1)->label=fll->label;
+
+	   delete fll;
       fll=0;
       size--;
       if (j>0) j--;
@@ -4027,7 +4021,6 @@ void FlowChart::addFlowChart(int type,const char* text,const char* exp, const ch
   {
     flowList.append(fl);
   }
-
 }
 
 void FlowChart::moveToPrevLevel()
@@ -4036,6 +4029,87 @@ void FlowChart::moveToPrevLevel()
   ifcounter--;
 }
 
+QCString FlowChart::printPlantUmlNode(const FlowChart *flo,bool ca,bool endL)
+{
+  QCString t;
+  QCString exp=flo->exp.stripWhiteSpace();
+  QCString text=flo->text.stripWhiteSpace();
+  switch (flo->type)
+  {
+    case START_NO:   t=":"+text+"|"; break;
+    case IF_NO :     t="\nif ("+exp+") then (yes)"; break;
+    case ELSIF_NO:   t="\nelseif ("+exp+") then (yes)"; break;
+    case ELSE_NO:    t="\nelse"; break;
+    case CASE_NO:    t="\n:"+exp+";"; break;
+    case WHEN_NO:    t="\n";
+                     if (!ca) t+="else";
+                     t+="if ("+exp+") then (yes)";
+                     break;
+    case EXIT_NO:    break;
+    case END_NO:     if (text.contains(" function")==0) t="\n:"+text+";";
+                     break;
+    case TEXT_NO:    t="\n:"+text+"]"; break;
+    case ENDIF_NO:   t="\nendif"; break;
+    case FOR_NO:     t="\nwhile ("+exp+") is (yes)"; break;
+    case WHILE_NO:   t="\nwhile ("+exp+") is (yes)"; break;
+    case END_LOOP:   t="\nendwhile"; break;
+    case END_CASE:   t="\nendif\n:end case;"; break;
+    case VARIABLE_NO:t="\n:"+text+";"; break;
+    case RETURN_NO:  t="\n:"+text+";";
+                     if (!endL) t+="\nstop";
+                     break;
+    case LOOP_NO:    t="\nwhile (infinite loop)"; break;
+    case NEXT_NO:    break;
+    case EMPTY_NO:   break;
+    case COMMENT_NO: t="\n note left \n "+flo->label+"\nend note \n"; break;
+    case BEGIN_NO:   t="\n:begin;"; break;
+    default:         assert(false); break;
+  }
+  return t;
+}
+
+void  FlowChart::printUmlTree()
+{
+  int caseCounter = 0;
+  int whenCounter = 0;
+
+  QCString qcs;
+  uint size=flowList.count();
+  bool endList;
+  for (uint j=0;j<size;j++)
+  {
+    endList=j==FLOWLEN;
+    FlowChart *flo=flowList.at(j);
+    if (flo->type==CASE_NO)
+    {
+      caseCounter++;
+      whenCounter=0;
+    }
+
+    if (flo->type==END_CASE)
+    {
+      caseCounter--;
+    }
+
+    bool ca = (caseCounter>0 && whenCounter==0);
+
+    qcs+=printPlantUmlNode(flo,ca,endList);
+
+    if (flo->type==WHEN_NO)
+    {
+      whenCounter++;
+    }
+
+  }
+  qcs+="\n";
+
+  QCString & htmlOutDir = Config_getString(HTML_OUTPUT);
+
+  QCString n=convertNameToFileName();
+  QCString tmp=htmlOutDir;
+  n=writePlantUMLSource(tmp,n,qcs);
+  generatePlantUMLOutput(n.data(),tmp.data(),PUML_SVG);
+}
 
 QCString FlowChart::convertNameToFileName()
 {
@@ -4043,16 +4117,19 @@ QCString FlowChart::convertNameToFileName()
   QCString temp,qcs;
   const  MemberDef* md=VhdlDocGen::getFlowMember();
 
-  temp.sprintf("%p",md);
+  // temp.sprintf("%p",md);
   qcs=md->name();
 
+  #if 0
   if (qcs.find(exp,0)>=0)
   {
     qcs.prepend("Z");
     qcs=qcs.replace(exp,"_");
   }
+  #endif
 
-  return qcs+temp;
+  //QCString tt= qcs;VhdlDocGen::getRecordNumber();
+  return qcs;
 }
 
 const char* FlowChart::getNodeType(int c)
@@ -4075,7 +4152,7 @@ const char* FlowChart::getNodeType(int c)
     case END_CASE:     return "end_case  ";
     case VARIABLE_NO:  return "variable_decl  ";
     case RETURN_NO:    return "return  ";
-    case LOOP_NO:      return "infinte loop  ";
+    case LOOP_NO:      return "infinite loop  ";
     case NEXT_NO:      return "next  ";
     case COMMENT_NO:   return "comment  ";
     case EMPTY_NO:     return "empty  ";
@@ -4087,7 +4164,7 @@ const char* FlowChart::getNodeType(int c)
 void FlowChart::createSVG()
 {
   QCString qcs("/");
-  QCString ov = Config_getString("HTML_OUTPUT");
+  QCString ov = Config_getString(HTML_OUTPUT);
 
   qcs+=FlowChart::convertNameToFileName()+".svg";
 
@@ -4123,7 +4200,7 @@ void FlowChart::writeFlowChart()
 {
   //  assert(VhdlDocGen::flowMember);
 
-  QCString ov = Config_getString("HTML_OUTPUT");
+  QCString ov = Config_getString(HTML_OUTPUT);
   QCString fileName = ov+"/flow_design.dot";
   QFile f(fileName);
   FTextStream t(&f);
@@ -4135,14 +4212,23 @@ void FlowChart::writeFlowChart()
   }
 
   colTextNodes();
+  //  buildCommentNodes(t);
 
 #ifdef DEBUGFLOW
-  printFlowTree();
+   printFlowTree();
 #endif
+  const MemberDef *p=VhdlDocGen::getFlowMember();
+
+  if (p->isStatic())
+  {
+    printUmlTree();
+    delFlowList();
+    f.close();
+    return;
+  }
 
   startDot(t);
   buildCommentNodes(t);
-
   uint size=flowList.count();
 
   for (uint j=0;j <size ;j++)
@@ -4644,4 +4730,9 @@ parseVhdlCode(codeOutIntf,
 
 );
 
-}
+
+
+
+
+
+}// class

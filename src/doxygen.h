@@ -1,8 +1,5 @@
 /******************************************************************************
  *
- *
- *
- *
  * Copyright (C) 1997-2015 by Dimitri van Heesch.
  *
  * Permission to use, copy, modify, and distribute this software and its
@@ -69,20 +66,22 @@ typedef QListIterator<QCString>    StringListIterator;
 //typedef QDict<FileDef>     FileDict;
 //typedef QDict<GroupDef>    GroupDict;
 
-class StringDict : public QDict<QCString> {
-public:
+class StringDict : public QDict<QCString>
+{
+  public:
     StringDict(uint size=17) : QDict<QCString>(size) {}
     virtual ~StringDict() {}
 };
 
-struct LookupInfo {
-    LookupInfo() : classDef(0), typeDef(0) {}
-    LookupInfo(ClassDef *cd,MemberDef *td,QCString ts,QCString rt)
-        : classDef(cd), typeDef(td), templSpec(ts),resolvedType(rt) {}
-    ClassDef  *classDef;
-    MemberDef *typeDef;
-    QCString   templSpec;
-    QCString   resolvedType;
+struct LookupInfo
+{
+  LookupInfo() : classDef(0), typeDef(0) {}
+  LookupInfo(ClassDef *cd,MemberDef *td,QCString ts,QCString rt)
+    : classDef(cd), typeDef(td), templSpec(ts),resolvedType(rt) {}
+  ClassDef  *classDef;
+  MemberDef *typeDef;
+  QCString   templSpec;
+  QCString   resolvedType;
 };
 
 extern QCString g_spaces;
@@ -91,8 +90,9 @@ extern QCString g_spaces;
  *
  *  All fields in this class are public and static, so they can be used directly.
  */
-class Doxygen {
-public:
+class Doxygen
+{
+  public:
     static ClassSDict               *classSDict;
     static ClassSDict               *hiddenClasses;
     static PageSDict                *exampleSDict;

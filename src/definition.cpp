@@ -149,7 +149,7 @@ void DefinitionImpl::init(const char *df, const char *n)
 
 static bool matchExcludedSymbols(const char *name)
 {
-  static QStrList &exclSyms = Config_getList("EXCLUDE_SYMBOLS");
+  static QStrList &exclSyms = Config_getList(EXCLUDE_SYMBOLS);
   if (exclSyms.count()==0) return FALSE; // nothing specified
   const char *pat = exclSyms.first();
   QCString symName = name;
@@ -206,7 +206,7 @@ static bool matchExcludedSymbols(const char *name)
 
 void Definition::addToMap(const char *name,Definition *d)
 {
-  bool vhdlOpt = Config_getBool("OPTIMIZE_OUTPUT_VHDL");
+  bool vhdlOpt = Config_getBool(OPTIMIZE_OUTPUT_VHDL);
   QCString symbolName = name;
   int index=computeQualifiedIndex(symbolName);
   if (!vhdlOpt && index!=-1) symbolName=symbolName.mid(index+2);
@@ -282,7 +282,7 @@ void Definition::removeFromMap(Definition *d)
 
 Definition::Definition(const char *df,int dl,int dc,
                        const char *name,const char *b,
-                       const char *d,bool isSymbol)
+                       const char *d,bool isSymbol) : m_cookie(0)
 {
   m_name = name;
   m_defLine = dl;
@@ -299,7 +299,7 @@ Definition::Definition(const char *df,int dl,int dc,
   }
 }
 
-Definition::Definition(const Definition &d) : DefinitionIntf()
+Definition::Definition(const Definition &d) : DefinitionIntf(), m_cookie(0)
 {
   m_name = d.m_name;
   m_defLine = d.m_defLine;
@@ -380,7 +380,7 @@ Definition::Definition(const Definition &d) : DefinitionIntf()
 
 Definition::~Definition()
 {
-  if (m_isSymbol) 
+  if (m_isSymbol)
   {
     removeFromMap(this);
   }
@@ -389,6 +389,8 @@ Definition::~Definition()
     delete m_impl;
     m_impl=0;
   }
+  delete m_cookie;
+  m_cookie=0;
 }
 
 void Definition::setName(const char *name)
@@ -524,7 +526,7 @@ void Definition::writeDocAnchorsToTagFile(FTextStream &tagFile)
     SectionInfo *si;
     for (;(si=sdi.current());++sdi)
     {
-      if (!si->generated)
+      if (!si->generated && si->ref.isEmpty())
       {
         //printf("write an entry!\n");
         if (definitionType()==TypeMember) tagFile << "  ";
@@ -629,7 +631,7 @@ static bool lastCharIsMultibyte(const QCString &s)
 
 void Definition::_setBriefDescription(const char *b,const char *briefFile,int briefLine)
 {
-  static QCString outputLanguage = Config_getEnum("OUTPUT_LANGUAGE");
+  static QCString outputLanguage = Config_getEnum(OUTPUT_LANGUAGE);
   static bool needsDot = outputLanguage!="Japanese" && 
                          outputLanguage!="Chinese" &&
                          outputLanguage!="Korean";
@@ -726,8 +728,8 @@ void Definition::setInbodyDocumentation(const char *d,const char *inbodyFile,int
 bool readCodeFragment(const char *fileName,
                       int &startLine,int &endLine,QCString &result)
 {
-  static bool filterSourceFiles = Config_getBool("FILTER_SOURCE_FILES");
-  static int tabSize = Config_getInt("TAB_SIZE");
+  static bool filterSourceFiles = Config_getBool(FILTER_SOURCE_FILES);
+  static int tabSize = Config_getInt(TAB_SIZE);
   //printf("readCodeFragment(%s,%d,%d)\n",fileName,startLine,endLine);
   if (fileName==0 || fileName[0]==0) return FALSE; // not a valid file name
   QCString filter = getFileFilter(fileName,TRUE);
@@ -876,6 +878,7 @@ bool readCodeFragment(const char *fileName,
     }
   }
   result = transcodeCharacterStringToUTF8(result);
+  if (!result.isEmpty() && result.at(result.length()-1)!='\n') result += "\n";
   //fprintf(stderr,"readCodeFragement(%d-%d)=%s\n",startLine,endLine,result.data());
   return found;
 }
@@ -884,7 +887,7 @@ QCString Definition::getSourceFileBase() const
 { 
   ASSERT(definitionType()!=Definition::TypeFile); // file overloads this method
   QCString fn;
-  static bool sourceBrowser = Config_getBool("SOURCE_BROWSER");
+  static bool sourceBrowser = Config_getBool(SOURCE_BROWSER);
   if (sourceBrowser && 
       m_impl->body && m_impl->body->startLine!=-1 && m_impl->body->fileDef)
   {
@@ -915,8 +918,8 @@ QCString Definition::getSourceAnchor() const
 /*! Write a reference to the source code defining this definition */
 void Definition::writeSourceDef(OutputList &ol,const char *)
 {
-  static bool latexSourceCode = Config_getBool("LATEX_SOURCE_CODE");
-  static bool rtfSourceCode = Config_getBool("RTF_SOURCE_CODE");
+  static bool latexSourceCode = Config_getBool(LATEX_SOURCE_CODE);
+  static bool rtfSourceCode = Config_getBool(RTF_SOURCE_CODE);
   ol.pushGeneratorState();
   //printf("Definition::writeSourceRef %d %p\n",bodyLine,bodyDef);
   QCString fn = getSourceFileBase();
@@ -1094,7 +1097,7 @@ bool Definition::hasSources() const
 /*! Write code of this definition into the documentation */
 void Definition::writeInlineCode(OutputList &ol,const char *scopeName)
 {
-  static bool inlineSources = Config_getBool("INLINE_SOURCES");
+  static bool inlineSources = Config_getBool(INLINE_SOURCES);
   ol.pushGeneratorState();
   //printf("Source Fragment %s: %d-%d bodyDef=%p\n",name().data(),
   //        m_startBodyLine,m_endBodyLine,m_bodyDef);
@@ -1140,10 +1143,10 @@ void Definition::writeInlineCode(OutputList &ol,const char *scopeName)
 void Definition::_writeSourceRefList(OutputList &ol,const char *scopeName,
     const QCString &text,MemberSDict *members,bool /*funcOnly*/)
 {
-  static bool latexSourceCode = Config_getBool("LATEX_SOURCE_CODE"); 
-  static bool rtfSourceCode   = Config_getBool("RTF_SOURCE_CODE");
-  static bool sourceBrowser   = Config_getBool("SOURCE_BROWSER");
-  static bool refLinkSource   = Config_getBool("REFERENCES_LINK_SOURCE");
+  static bool latexSourceCode = Config_getBool(LATEX_SOURCE_CODE); 
+  static bool rtfSourceCode   = Config_getBool(RTF_SOURCE_CODE);
+  static bool sourceBrowser   = Config_getBool(SOURCE_BROWSER);
+  static bool refLinkSource   = Config_getBool(REFERENCES_LINK_SOURCE);
   ol.pushGeneratorState();
   if (members)
   {
@@ -1217,7 +1220,7 @@ void Definition::_writeSourceRefList(OutputList &ol,const char *scopeName,
           {
             ol.disable(OutputGenerator::Latex);
           }
-          if (!rtfSourceCode)
+          if (rtfSourceCode)
           {
             ol.disable(OutputGenerator::RTF);
           }
@@ -1274,7 +1277,7 @@ void Definition::_writeSourceRefList(OutputList &ol,const char *scopeName,
 
 void Definition::writeSourceReffedBy(OutputList &ol,const char *scopeName)
 {
-  if (Config_getBool("REFERENCED_BY_RELATION"))
+  if (Config_getBool(REFERENCED_BY_RELATION))
   {
     _writeSourceRefList(ol,scopeName,theTranslator->trReferencedBy(),m_impl->sourceRefByDict,FALSE);
   }
@@ -1282,7 +1285,7 @@ void Definition::writeSourceReffedBy(OutputList &ol,const char *scopeName)
 
 void Definition::writeSourceRefs(OutputList &ol,const char *scopeName)
 {
-  if (Config_getBool("REFERENCES_RELATION"))
+  if (Config_getBool(REFERENCES_RELATION))
   {
     _writeSourceRefList(ol,scopeName,theTranslator->trReferences(),m_impl->sourceRefsDict,TRUE);
   }
@@ -1290,8 +1293,8 @@ void Definition::writeSourceRefs(OutputList &ol,const char *scopeName)
 
 bool Definition::hasDocumentation() const
 { 
-  static bool extractAll    = Config_getBool("EXTRACT_ALL"); 
-  //static bool sourceBrowser = Config_getBool("SOURCE_BROWSER");
+  static bool extractAll    = Config_getBool(EXTRACT_ALL); 
+  //static bool sourceBrowser = Config_getBool(SOURCE_BROWSER);
   bool hasDocs = 
          (m_impl->details    && !m_impl->details->doc.isEmpty())    || // has detailed docs
          (m_impl->brief      && !m_impl->brief->doc.isEmpty())      || // has brief description
@@ -1503,19 +1506,6 @@ int Definition::_getXRefListId(const char *listName) const
 QList<ListItemInfo> *Definition::xrefListItems() const
 {
   return m_impl->xrefListItems;
-}
-
-
-QCString Definition::convertNameToFile(const char *name,bool allowDots) const
-{
-  if (!m_impl->ref.isEmpty())
-  {
-    return name;
-  }
-  else
-  {
-    return ::convertNameToFile(name,allowDots);
-  }
 }
 
 QCString Definition::pathFragment() const
@@ -1739,7 +1729,7 @@ QCString abbreviate(const char *s,const char *name)
     result=result.left(result.length()-1);
 
   // strip any predefined prefix
-  QStrList &briefDescAbbrev = Config_getList("ABBREVIATE_BRIEF");
+  QStrList &briefDescAbbrev = Config_getList(ABBREVIATE_BRIEF);
   const char *p = briefDescAbbrev.first();
   while (p)
   {
@@ -1939,8 +1929,31 @@ void Definition::_setSymbolName(const QCString &name)
 
 bool Definition::hasBriefDescription() const
 {
-  static bool briefMemberDesc = Config_getBool("BRIEF_MEMBER_DESC");
+  static bool briefMemberDesc = Config_getBool(BRIEF_MEMBER_DESC);
   return !briefDescription().isEmpty() && briefMemberDesc;
 }
+
+QCString Definition::externalReference(const QCString &relPath) const
+{
+  QCString ref = getReference();
+  if (!ref.isEmpty())
+  {
+    QCString *dest = Doxygen::tagDestinationDict[ref];
+    if (dest)
+    {
+      QCString result = *dest;
+      int l = result.length();
+      if (!relPath.isEmpty() && l>0 && result.at(0)=='.')
+      { // relative path -> prepend relPath.
+        result.prepend(relPath);
+        l+=relPath.length();
+      }
+      if (l>0 && result.at(l-1)!='/') result+='/';
+      return result;
+    }
+  }
+  return relPath;
+}
+
 
 

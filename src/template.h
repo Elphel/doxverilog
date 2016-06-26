@@ -139,28 +139,41 @@ class TemplateVariant
     enum Type { None, Bool, Integer, String, Struct, List, Function };
 
     /** Returns the type of the value stored in the variant */
-    Type type() const;
+    Type type() const { return m_type; }
 
     /** Return a string representation of the type of the value stored in the variant */
-    QCString typeAsString() const;
+    QCString typeAsString() const
+    {
+      switch (m_type)
+      {
+        case None:     return "none";
+        case Bool:     return "bool";
+        case Integer:  return "integer";
+        case String:   return "string";
+        case Struct:   return "struct";
+        case List:     return "list";
+        case Function: return "function";
+      }
+      return "invalid";
+    }
 
     /** Returns TRUE if the variant holds a valid value, or FALSE otherwise */
-    bool isValid() const;
+    bool isValid() const { return m_type!=None; }
 
     /** Constructs an invalid variant. */
-    TemplateVariant();
+    TemplateVariant() : m_type(None), m_strukt(0), m_raw(FALSE) {}
 
     /** Constructs a new variant with a boolean value \a b. */
-    explicit TemplateVariant(bool b);
+    explicit TemplateVariant(bool b) : m_type(Bool), m_boolVal(b), m_raw(FALSE) {}
 
     /** Constructs a new variant with a integer value \a v. */
-    TemplateVariant(int v);
+    TemplateVariant(int v) : m_type(Integer), m_intVal(v), m_raw(FALSE) {}
 
     /** Constructs a new variant with a string value \a s. */
-    TemplateVariant(const char *s,bool raw=FALSE);
+    TemplateVariant(const char *s,bool raw=FALSE) : m_type(String), m_strVal(s), m_strukt(0), m_raw(raw) {}
 
     /** Constructs a new variant with a string value \a s. */
-    TemplateVariant(const QCString &s,bool raw=FALSE);
+    TemplateVariant(const QCString &s,bool raw=FALSE) : m_type(String), m_strVal(s), m_strukt(0), m_raw(raw) {}
 
     /** Constructs a new variant with a struct value \a s.
      *  @note. The variant will hold a reference to the object.
@@ -179,7 +192,7 @@ class TemplateVariant
      *  TemplateVariant::Delegate::fromFunction() to create
      *  Delegate objects.
      */
-    TemplateVariant(const Delegate &delegate);
+    TemplateVariant(const Delegate &delegate) : m_type(Function), m_strukt(0), m_delegate(delegate), m_raw(FALSE) {}
 
     /** Destroys the Variant object */
     ~TemplateVariant();
@@ -195,46 +208,96 @@ class TemplateVariant
     /** Compares this QVariant with v and returns true if they are equal;
      *  otherwise returns false.
      */
-    bool operator==(TemplateVariant &other);
+    bool operator==(TemplateVariant &other)
+    {
+      if (m_type==None)
+      {
+        return FALSE;
+      }
+      if (m_type==TemplateVariant::List && other.m_type==TemplateVariant::List)
+      {
+        return m_list==other.m_list; // TODO: improve me
+      }
+      else if (m_type==TemplateVariant::Struct && other.m_type==TemplateVariant::Struct)
+      {
+        return m_strukt==other.m_strukt; // TODO: improve me
+      }
+      else
+      {
+        return toString()==other.toString();
+      }
+    }
 
     /** Returns the variant as a string. */
-    QCString            toString() const;
+    QCString toString() const
+    {
+      switch (m_type)
+      {
+        case None:     return QCString();
+        case Bool:     return m_boolVal ? "true" : "false";
+        case Integer:  return QCString().setNum(m_intVal);
+        case String:   return m_strVal;
+        case Struct:   return "[struct]";
+        case List:     return "[list]";
+        case Function: return "[function]";
+      }
+      return QCString();
+    }
 
     /** Returns the variant as a boolean. */
-    bool                toBool() const;
+    bool toBool() const;
 
     /** Returns the variant as an integer. */
-    int                 toInt() const;
+    int toInt() const;
 
     /** Returns the pointer to list referenced by this variant
      *  or 0 if this variant does not have list type.
      */
-    TemplateListIntf   *toList() const;
+    TemplateListIntf   *toList() const
+    {
+      return m_type==List ? m_list : 0;
+    }
 
     /** Returns the pointer to struct referenced by this variant
      *  or 0 if this variant does not have struct type.
      */
-    TemplateStructIntf *toStruct() const;
+    TemplateStructIntf *toStruct() const
+    {
+      return m_type==Struct ? m_strukt : 0;
+    }
 
     /** Return the result of apply this function with \a args.
      *  Returns an empty string if the variant type is not a function.
      */
-    TemplateVariant call(const QValueList<TemplateVariant> &args);
+    TemplateVariant call(const QValueList<TemplateVariant> &args)
+    {
+      if (m_type==Function) return m_delegate(args);
+      return TemplateVariant();
+    }
 
     /** Sets whether or not the value of the Variant should be
      *  escaped or written as-is (raw).
      *  @param[in] b TRUE means write as-is, FALSE means apply escaping.
      */
-    void setRaw(bool b);
+    void setRaw(bool b) { m_raw = b; }
 
     /** Returns whether or not the value of the Value is raw.
      *  @see setRaw()
      */
-    bool raw() const;
+    bool raw() const { return m_raw; }
 
   private:
-    class Private;
-    Private *p;
+    Type                  m_type;
+    QCString              m_strVal;
+    union
+    {
+      int                 m_intVal;
+      bool                m_boolVal;
+      TemplateStructIntf *m_strukt;
+      TemplateListIntf   *m_list;
+    };
+    Delegate              m_delegate;
+    bool                  m_raw;
 };
 
 //------------------------------------------------------------------------
@@ -396,6 +459,8 @@ class TemplateEscapeIntf
   public:
     /** Returns the \a input after escaping certain characters */
     virtual QCString escape(const QCString &input) = 0;
+    /** Setting tabbing mode on or off (for LaTeX) */
+    virtual void enableTabbing(bool b) = 0;
 };
 
 //------------------------------------------------------------------------
@@ -453,7 +518,7 @@ class TemplateContext
      */
     virtual const TemplateVariant *getRef(const QCString &name) const = 0;
 
-    /** When files are create (i.e. by {% create ... %}) they written
+    /** When files are created (i.e. by {% create ... %}) they written
      *  to the directory \a dir.
      */
     virtual void setOutputDirectory(const QCString &dir) = 0;
@@ -510,11 +575,10 @@ class TemplateEngine
      */
     void destroyContext(TemplateContext *ctx);
 
-    /** Creates a new template whole contents are in a file.
-     *  @param[in] fileName The name of the file containing the
-     *             template data
+    /** Creates a new template whose contents are in a file.
+     *  @param[in] fileName The name of the file containing the template data
      *  @param[in] fromLine The line number of the statement that triggered the load
-     *  @return the new template, the caller will be the owner.
+     *  @return the new template, the engine will keep ownership of the object.
      */
     Template *loadByName(const QCString &fileName,int fromLine);
 
@@ -523,12 +587,26 @@ class TemplateEngine
      */
     void unload(Template *t);
 
+    /** Prints the current template file include stack */
     void printIncludeContext(const char *fileName,int line) const;
+
+    /** Sets the search directory where to look for template files */
+    void setTemplateDir(const char *dirName);
 
   private:
     friend class TemplateNodeBlock;
+    friend class TemplateNodeCreate;
+
     void enterBlock(const QCString &fileName,const QCString &blockName,int line);
     void leaveBlock();
+
+    /** Sets the extension of the output file. This is used to control the
+     *  format of 'special' tags in the template
+     */
+    void setOutputExtension(const char *extension);
+
+    /** Returns the output extension, set via setOutputExtension() */
+    QCString outputExtension() const;
 
     class Private;
     Private *p;

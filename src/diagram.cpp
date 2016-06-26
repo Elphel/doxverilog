@@ -274,7 +274,7 @@ static void writeMapArea(FTextStream &t,ClassDef *cd,QCString relPath,
     QCString tooltip = cd->briefDescriptionAsTooltip();
     if (!tooltip.isEmpty())
     {
-      t << "title=\"" << tooltip << "\" ";
+      t << "title=\"" << convertToHtml(tooltip) << "\" ";
     }
     t << "alt=\"" << convertToXML(cd->displayName()); 
     t << "\" shape=\"rect\" coords=\"" << x << "," << y << ",";
@@ -321,7 +321,7 @@ QCString DiagramItem::label() const
   {
     result=classDef->displayName();
   }
-  if (Config_getBool("HIDE_SCOPE_NAMES")) result=stripScope(result);
+  if (Config_getBool(HIDE_SCOPE_NAMES)) result=stripScope(result);
   return result;
 }
 
@@ -1332,7 +1332,7 @@ void ClassDiagram::writeFigure(FTextStream &output,const char *path,
   super->drawConnectors(t,0,FALSE,FALSE,baseRows,superRows,0,0);
 
   f1.close();
-  if (Config_getBool("USE_PDFLATEX"))
+  if (Config_getBool(USE_PDFLATEX))
   {
     QCString epstopdfArgs(4096);
     epstopdfArgs.sprintf("\"%s.eps\" --outfile=\"%s.pdf\"",

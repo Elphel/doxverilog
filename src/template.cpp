@@ -34,6 +34,7 @@
 #include "message.h"
 #include "util.h"
 #include "resourcemgr.h"
+#include "portable.h"
 
 #define ENABLE_TRACING 0
 
@@ -98,6 +99,36 @@ static QValueList<QCString> split(const QCString &str,const QCString &sep,
 
 //----------------------------------------------------------------------------
 
+/** Strips spaces surrounding `=` from string \a in, so
+ *  `foo = 10 bar=5 baz= 'hello'` will become `foo=10 bar=5 baz='hello'`
+ */
+static QCString removeSpacesAroundEquals(const char *s)
+{
+  QCString result(s);
+  const char *p=result.data();
+  char *q = result.rawData();
+  char c;
+  while ((c=*p++))
+  {
+    if (c==' ') // found a space, see if there is a = as well
+    {
+      const char *t = p;
+      bool found=FALSE;
+      while (*t==' ' || *t=='=') { if (*t++=='=') found=TRUE; }
+      if (found)
+      {
+        c='=';
+        p=t; // move p to end of '\s*=\s*' sequence
+      }
+    }
+    *q++=c;
+  }
+  if (q<p) result.resize(q-result.data()+1);
+  return result;
+}
+
+//----------------------------------------------------------------------------
+
 #if ENABLE_TRACING
 static QCString replace(const char *s,char csrc,char cdst)
 {
@@ -112,92 +143,38 @@ static QCString replace(const char *s,char csrc,char cdst)
 
 //- TemplateVariant implementation -------------------------------------------
 
-/** @brief Private data of a template variant object */
-class TemplateVariant::Private
-{
-  public:
-    Private(Type t) : type(t), intVal(0), boolVal(TRUE), strukt(0), list(0), raw(FALSE) {}
-    Type                type;
-    int                 intVal;
-    QCString            strVal;
-    bool                boolVal;
-    TemplateStructIntf *strukt;
-    TemplateListIntf   *list;
-    Delegate            delegate;
-    bool                raw;
-};
-
-TemplateVariant::TemplateVariant()
-{
-  p = new Private(None);
-}
-
-TemplateVariant::TemplateVariant(bool b)
-{
-  p = new Private(Bool);
-  p->boolVal = b;
-}
-
-TemplateVariant::TemplateVariant(int v)
-{
-  p = new Private(Integer);
-  p->intVal = v;
-}
-
-TemplateVariant::TemplateVariant(const char *s,bool raw)
-{
-  p = new Private(String);
-  p->strVal = s;
-  p->raw = raw;
-}
-
-TemplateVariant::TemplateVariant(const QCString &s,bool raw)
-{
-  p = new Private(String);
-  p->strVal = s;
-  p->raw = raw;
-}
 
 TemplateVariant::TemplateVariant(TemplateStructIntf *s)
+  : m_type(Struct), m_strukt(s), m_raw(FALSE)
 {
-  p = new Private(Struct);
-  p->strukt = s;
-  p->strukt->addRef();
+  m_strukt->addRef();
 }
 
 TemplateVariant::TemplateVariant(TemplateListIntf *l)
+  : m_type(List), m_list(l), m_raw(FALSE)
 {
-  p = new Private(List);
-  p->list = l;
-  p->list->addRef();
-}
-
-TemplateVariant::TemplateVariant(const TemplateVariant::Delegate &delegate)
-{
-  p = new Private(Function);
-  p->delegate = delegate;
+  m_list->addRef();
 }
 
 TemplateVariant::~TemplateVariant()
 {
-  if (p->type==Struct) p->strukt->release();
-  else if (p->type==List) p->list->release();
-  delete p;
+  if      (m_type==Struct) m_strukt->release();
+  else if (m_type==List)   m_list->release();
 }
 
 TemplateVariant::TemplateVariant(const TemplateVariant &v)
+  : m_type(v.m_type), m_strukt(0), m_raw(FALSE)
 {
-  p = new Private(v.p->type);
-  p->raw     = v.p->raw;
-  switch (p->type)
+  m_raw = v.m_raw;
+  switch (m_type)
   {
     case None: break;
-    case Bool:     p->boolVal = v.p->boolVal; break;
-    case Integer:  p->intVal  = v.p->intVal;  break;
-    case String:   p->strVal  = v.p->strVal;  break;
-    case Struct:   p->strukt  = v.p->strukt;  p->strukt->addRef(); break;
-    case List:     p->list    = v.p->list;    p->list->addRef();   break;
-    case Function: p->delegate= v.p->delegate;break;
+    case Bool:     m_boolVal = v.m_boolVal; break;
+    case Integer:  m_intVal  = v.m_intVal;  break;
+    case String:   m_strVal  = v.m_strVal;  break;
+    case Struct:   m_strukt  = v.m_strukt;  m_strukt->addRef(); break;
+    case List:     m_list    = v.m_list;    m_list->addRef();   break;
+    case Function: m_delegate= v.m_delegate;break;
   }
 }
 
@@ -205,21 +182,21 @@ TemplateVariant &TemplateVariant::operator=(const TemplateVariant &v)
 {
   // assignment can change the type of the variable, so we have to be
   // careful with reference counted content.
-  TemplateStructIntf *tmpStruct = p->type==Struct ? p->strukt : 0;
-  TemplateListIntf   *tmpList   = p->type==List   ? p->list   : 0;
-  Type tmpType = p->type;
+  TemplateStructIntf *tmpStruct = m_type==Struct ? m_strukt : 0;
+  TemplateListIntf   *tmpList   = m_type==List   ? m_list   : 0;
+  Type tmpType = m_type;
 
-  p->type    = v.p->type;
-  p->raw     = v.p->raw;
-  switch (p->type)
+  m_type    = v.m_type;
+  m_raw     = v.m_raw;
+  switch (m_type)
   {
     case None: break;
-    case Bool:     p->boolVal = v.p->boolVal; break;
-    case Integer:  p->intVal  = v.p->intVal;  break;
-    case String:   p->strVal  = v.p->strVal;  break;
-    case Struct:   p->strukt  = v.p->strukt;  p->strukt->addRef(); break;
-    case List:     p->list    = v.p->list;    p->list->addRef();   break;
-    case Function: p->delegate= v.p->delegate;break;
+    case Bool:     m_boolVal = v.m_boolVal; break;
+    case Integer:  m_intVal  = v.m_intVal;  break;
+    case String:   m_strVal  = v.m_strVal;  break;
+    case Struct:   m_strukt  = v.m_strukt;  m_strukt->addRef(); break;
+    case List:     m_list    = v.m_list;    m_list->addRef();   break;
+    case Function: m_delegate= v.m_delegate;break;
   }
 
   // release overwritten reference counted values
@@ -228,161 +205,34 @@ TemplateVariant &TemplateVariant::operator=(const TemplateVariant &v)
   return *this;
 }
 
-QCString TemplateVariant::toString() const
-{
-  QCString result;
-  switch (p->type)
-  {
-    case None:
-      break;
-    case Bool:
-      result=p->boolVal ? "true" : "false";
-      break;
-    case Integer:
-      result=QCString().setNum(p->intVal);
-      break;
-    case String:
-      result=p->strVal;
-      break;
-    case Struct:
-      result="[struct]";
-      break;
-    case List:
-      result="[list]";
-      break;
-    case Function:
-      result="[function]";
-      break;
-  }
-  return result;
-}
-
 bool TemplateVariant::toBool() const
 {
-  bool result=FALSE;
-  switch (p->type)
+  switch (m_type)
   {
-    case None:
-      break;
-    case Bool:
-      result = p->boolVal;
-      break;
-    case Integer:
-      result = p->intVal!=0;
-      break;
-    case String:
-      result = !p->strVal.isEmpty(); // && p->strVal!="false" && p->strVal!="0";
-      break;
-    case Struct:
-      result = TRUE;
-      break;
-    case List:
-      result = p->list->count()!=0;
-      break;
-    case Function:
-      result = FALSE;
-      break;
+    case None:     return FALSE;
+    case Bool:     return m_boolVal;
+    case Integer:  return m_intVal!=0;
+    case String:   return !m_strVal.isEmpty();
+    case Struct:   return TRUE;
+    case List:     return m_list->count()!=0;
+    case Function: return FALSE;
   }
-  return result;
+  return FALSE;
 }
 
 int TemplateVariant::toInt() const
 {
-  int result=0;
-  switch (p->type)
+  switch (m_type)
   {
-    case None:
-      break;
-    case Bool:
-      result = p->boolVal ? 1 : 0;
-      break;
-    case Integer:
-      result = p->intVal;
-      break;
-    case String:
-      result = p->strVal.toInt();
-      break;
-    case Struct:
-      break;
-    case List:
-      result = p->list->count();
-      break;
-    case Function:
-      result = 0;
-      break;
+    case None:     return 0;
+    case Bool:     return m_boolVal ? 1 : 0;
+    case Integer:  return m_intVal;
+    case String:   return m_strVal.toInt();
+    case Struct:   return 0;
+    case List:     return m_list->count();
+    case Function: return 0;
   }
-  return result;
-}
-
-TemplateStructIntf *TemplateVariant::toStruct() const
-{
-  return p->type==Struct ? p->strukt : 0;
-}
-
-TemplateListIntf *TemplateVariant::toList() const
-{
-  return p->type==List ? p->list : 0;
-}
-
-TemplateVariant TemplateVariant::call(const QValueList<TemplateVariant> &args)
-{
-  if (p->type==Function) return p->delegate(args);
-  return TemplateVariant();
-}
-
-bool TemplateVariant::operator==(TemplateVariant &other)
-{
-  if (p->type==None)
-  {
-    return FALSE;
-  }
-  if (p->type==TemplateVariant::List && other.p->type==TemplateVariant::List)
-  {
-    return p->list==other.p->list; // TODO: improve me
-  }
-  else if (p->type==TemplateVariant::Struct && other.p->type==TemplateVariant::Struct)
-  {
-    return p->strukt==other.p->strukt; // TODO: improve me
-  }
-  else
-  {
-    return toString()==other.toString();
-  }
-}
-
-TemplateVariant::Type TemplateVariant::type() const
-{
-  return p->type;
-}
-
-QCString TemplateVariant::typeAsString() const
-{
-  switch (p->type)
-  {
-    case None:     return "none";
-    case Bool:     return "bool";
-    case Integer:  return "integer";
-    case String:   return "string";
-    case Struct:   return "struct";
-    case List:     return "list";
-    case Function: return "function";
-  }
-  return "invalid";
-}
-
-bool TemplateVariant::isValid() const
-{
-  return p->type!=None;
-}
-
-void TemplateVariant::setRaw(bool b)
-{
-  p->raw = b;
-}
-
-bool TemplateVariant::raw() const
-{
-  return p->raw;
+  return 0;
 }
 
 //- Template struct implementation --------------------------------------------
@@ -699,6 +549,14 @@ class TemplateContextImpl : public TemplateContext
                                                    m_spacelessEnabled=b;
                                                  }
     bool spacelessEnabled() const                { return m_spacelessEnabled && m_spacelessIntf; }
+    void enableTabbing(bool b)                   { m_tabbingEnabled=b;
+                                                   if (m_activeEscapeIntf) m_activeEscapeIntf->enableTabbing(b);
+                                                 }
+    bool tabbingEnabled() const                  { return m_tabbingEnabled; }
+    bool needsRecoding() const                   { return !m_encoding.isEmpty(); }
+    QCString encoding() const                    { return m_encoding; }
+    void setEncoding(const QCString &file,int line,const QCString &enc);
+    QCString recode(const QCString &s);
     void warn(const char *fileName,int line,const char *fmt,...) const;
 
     // index related functions
@@ -717,8 +575,11 @@ class TemplateContextImpl : public TemplateContext
     TemplateEscapeIntf *m_activeEscapeIntf;
     TemplateSpacelessIntf *m_spacelessIntf;
     bool m_spacelessEnabled;
+    bool m_tabbingEnabled;
     TemplateAutoRef<TemplateStruct> m_indices;
     QDict< QStack<TemplateVariant> > m_indexStacks;
+    QCString m_encoding;
+    void *m_fromUtf8;
 };
 
 //-----------------------------------------------------------------------------
@@ -783,6 +644,87 @@ class FilterGet
     }
 };
 
+//-----------------------------------------------------------------------------
+
+/** @brief The implementation of the "raw" filter */
+class FilterRaw
+{
+  public:
+    static TemplateVariant apply(const TemplateVariant &v,const TemplateVariant &)
+    {
+      if (v.isValid() && (v.type()==TemplateVariant::String || v.type()==TemplateVariant::Integer))
+      {
+        return TemplateVariant(v.toString(),TRUE);
+      }
+      else
+      {
+        return v;
+      }
+    }
+};
+
+//-----------------------------------------------------------------------------
+
+/** @brief The implementation of the "list" filter */
+class FilterList
+{
+  public:
+    static TemplateVariant apply(const TemplateVariant &v,const TemplateVariant &)
+    {
+      if (v.isValid())
+      {
+        if (v.type()==TemplateVariant::List) // input is already a list
+        {
+          return v;
+        }
+        // create a list with v as the only element
+        TemplateList *list = TemplateList::alloc();
+        list->append(v);
+        return list;
+      }
+      else
+      {
+        return v;
+      }
+    }
+};
+
+//-----------------------------------------------------------------------------
+/** @brief The implementation of the "texlabel" filter */
+class FilterTexLabel
+{
+  public:
+    static TemplateVariant apply(const TemplateVariant &v,const TemplateVariant &)
+    {
+      if (v.isValid() && (v.type()==TemplateVariant::String))
+      {
+        return TemplateVariant(latexEscapeLabelName(v.toString(),FALSE),TRUE);
+      }
+      else
+      {
+        return v;
+      }
+    }
+};
+
+//-----------------------------------------------------------------------------
+
+/** @brief The implementation of the "texindex" filter */
+class FilterTexIndex
+{
+  public:
+    static TemplateVariant apply(const TemplateVariant &v,const TemplateVariant &)
+    {
+      if (v.isValid() && (v.type()==TemplateVariant::String))
+      {
+        return TemplateVariant(latexEscapeIndexChars(v.toString(),FALSE),TRUE);
+      }
+      else
+      {
+        return v;
+      }
+    }
+};
 
 //-----------------------------------------------------------------------------
 
@@ -793,7 +735,7 @@ class FilterAppend
     static TemplateVariant apply(const TemplateVariant &v,const TemplateVariant &arg)
     {
       if ((v.type()==TemplateVariant::String || v.type()==TemplateVariant::Integer) &&
-          arg.type()==TemplateVariant::String)
+          (arg.type()==TemplateVariant::String || arg.type()==TemplateVariant::Integer))
       {
         return TemplateVariant(v.toString() + arg.toString());
       }
@@ -1088,6 +1030,25 @@ class FilterGroupBy
 
 //--------------------------------------------------------------------
 
+/** @brief The implementation of the "relative" filter */
+class FilterRelative
+{
+  public:
+    static TemplateVariant apply(const TemplateVariant &v,const TemplateVariant &)
+    {
+      if (v.isValid() && v.type()==TemplateVariant::String && v.toString().left(2)=="..")
+      {
+        return TRUE;
+      }
+      else
+      {
+        return FALSE;
+      }
+    }
+};
+
+//--------------------------------------------------------------------
+
 /** @brief The implementation of the "paginate" filter */
 class FilterPaginate
 {
@@ -1158,16 +1119,19 @@ class FilterAlphaIndex
     static QCString keyToLabel(uint startLetter)
     {
       char s[11]; // 0x12345678 + '\0'
-      if (startLetter>0x20 && startLetter<=0x7f) // printable ASCII character
+      if ((startLetter>='0' && startLetter<='9') ||
+          (startLetter>='a' && startLetter<='z') ||
+          (startLetter>='A' && startLetter<='Z'))
       {
-        s[0]=tolower((char)startLetter);
-        s[1]=0;
+        int i=0;
+        if (startLetter>='0' && startLetter<='9') s[i++] = 'x';
+        s[i++]=tolower((char)startLetter);
+        s[i++]=0;
       }
       else
       {
         const char hex[]="0123456789abcdef";
         int i=0;
-        s[i++]='0';
         s[i++]='x';
         if (startLetter>(1<<24)) // 4 byte character
         {
@@ -1328,6 +1292,64 @@ class FilterDivisibleBy
     }
 };
 
+//--------------------------------------------------------------------
+
+/** @brief The implementation of the "isRelativeURL" filter */
+class FilterIsRelativeURL
+{
+  public:
+    static TemplateVariant apply(const TemplateVariant &v,const TemplateVariant &)
+    {
+      if (v.isValid() && v.type()==TemplateVariant::String)
+      {
+        QCString s = v.toString();
+        if (!s.isEmpty() && s.at(0)=='!') return TRUE;
+      }
+      return FALSE;
+    }
+};
+
+//--------------------------------------------------------------------
+
+/** @brief The implementation of the "isRelativeURL" filter */
+class FilterIsAbsoluteURL
+{
+  public:
+    static TemplateVariant apply(const TemplateVariant &v,const TemplateVariant &)
+    {
+      if (v.isValid() && v.type()==TemplateVariant::String)
+      {
+        QCString s = v.toString();
+        if (!s.isEmpty() && s.at(0)=='^') return TRUE;
+      }
+      return FALSE;
+    }
+};
+
+//--------------------------------------------------------------------
+
+/** @brief The implementation of the "decodeURL" filter
+ *  The leading character is removed from the value in case it is a ^ or !.
+ *  - ^ is used to encode a absolute URL
+ *  - ! is used to encode a relative URL
+ */
+class FilterDecodeURL
+{
+  public:
+    static TemplateVariant apply(const TemplateVariant &v,const TemplateVariant &)
+    {
+      if (v.isValid() && v.type()==TemplateVariant::String)
+      {
+        QCString s = v.toString();
+        if (!s.isEmpty() && (s.at(0)=='^' || s.at(0)=='!'))
+        {
+          return s.mid(1);
+        }
+      }
+      return v;
+    }
+};
+
 
 //--------------------------------------------------------------------
 
@@ -1379,20 +1401,28 @@ class TemplateFilterFactory
 };
 
 // register a handlers for each filter we support
-static TemplateFilterFactory::AutoRegister<FilterAdd>         fAdd("add");
-static TemplateFilterFactory::AutoRegister<FilterGet>         fGet("get");
-static TemplateFilterFactory::AutoRegister<FilterAppend>      fAppend("append");
-static TemplateFilterFactory::AutoRegister<FilterLength>      fLength("length");
-static TemplateFilterFactory::AutoRegister<FilterNoWrap>      fNoWrap("nowrap");
-static TemplateFilterFactory::AutoRegister<FilterFlatten>     fFlatten("flatten");
-static TemplateFilterFactory::AutoRegister<FilterDefault>     fDefault("default");
-static TemplateFilterFactory::AutoRegister<FilterPrepend>     fPrepend("prepend");
-static TemplateFilterFactory::AutoRegister<FilterGroupBy>     fGroupBy("groupBy");
-static TemplateFilterFactory::AutoRegister<FilterListSort>    fListSort("listsort");
-static TemplateFilterFactory::AutoRegister<FilterPaginate>    fPaginate("paginate");
-static TemplateFilterFactory::AutoRegister<FilterStripPath>   fStripPath("stripPath");
-static TemplateFilterFactory::AutoRegister<FilterAlphaIndex>  fAlphaIndex("alphaIndex");
-static TemplateFilterFactory::AutoRegister<FilterDivisibleBy> fDivisibleBy("divisibleby");
+static TemplateFilterFactory::AutoRegister<FilterAdd>                fAdd("add");
+static TemplateFilterFactory::AutoRegister<FilterGet>                fGet("get");
+static TemplateFilterFactory::AutoRegister<FilterRaw>                fRaw("raw");
+static TemplateFilterFactory::AutoRegister<FilterList>               fList("list");
+static TemplateFilterFactory::AutoRegister<FilterAppend>             fAppend("append");
+static TemplateFilterFactory::AutoRegister<FilterLength>             fLength("length");
+static TemplateFilterFactory::AutoRegister<FilterNoWrap>             fNoWrap("nowrap");
+static TemplateFilterFactory::AutoRegister<FilterFlatten>            fFlatten("flatten");
+static TemplateFilterFactory::AutoRegister<FilterDefault>            fDefault("default");
+static TemplateFilterFactory::AutoRegister<FilterPrepend>            fPrepend("prepend");
+static TemplateFilterFactory::AutoRegister<FilterGroupBy>            fGroupBy("groupBy");
+static TemplateFilterFactory::AutoRegister<FilterRelative>           fRelative("relative");
+static TemplateFilterFactory::AutoRegister<FilterListSort>           fListSort("listsort");
+static TemplateFilterFactory::AutoRegister<FilterTexLabel>           fTexLabel("texLabel");
+static TemplateFilterFactory::AutoRegister<FilterTexIndex>           fTexIndex("texIndex");
+static TemplateFilterFactory::AutoRegister<FilterPaginate>           fPaginate("paginate");
+static TemplateFilterFactory::AutoRegister<FilterStripPath>          fStripPath("stripPath");
+static TemplateFilterFactory::AutoRegister<FilterDecodeURL>          fDecodeURL("decodeURL");
+static TemplateFilterFactory::AutoRegister<FilterAlphaIndex>         fAlphaIndex("alphaIndex");
+static TemplateFilterFactory::AutoRegister<FilterDivisibleBy>        fDivisibleBy("divisibleby");
+static TemplateFilterFactory::AutoRegister<FilterIsRelativeURL>      fIsRelativeURL("isRelativeURL");
+static TemplateFilterFactory::AutoRegister<FilterIsAbsoluteURL>      fIsAbsoluteURL("isAbsoluteURL");
 
 //--------------------------------------------------------------------
 
@@ -1446,6 +1476,10 @@ class ExprAstFunctionVariable : public ExprAst
       : m_var(var), m_args(args)
     { TRACE(("ExprAstFunctionVariable()\n"));
       m_args.setAutoDelete(TRUE);
+    }
+   ~ExprAstFunctionVariable()
+    {
+      delete m_var;
     }
     virtual TemplateVariant resolve(TemplateContext *c)
     {
@@ -1978,17 +2012,6 @@ class ExpressionParser
       TRACE(("{parseLiteral(%s)\n",m_curToken.id.data()));
       ExprAst *expr = new ExprAstLiteral(m_curToken.id);
       getNextToken();
-      if (expr)
-      {
-        while (m_curToken.type==ExprToken::Operator &&
-               m_curToken.op==Operator::Filter)
-        {
-          getNextToken();
-          ExprAstFilter *filter = parseFilter();
-          if (!filter) break;
-          expr = new ExprAstFilterAppl(expr,filter);
-        }
-      }
       TRACE(("}parseLiteral()\n"));
       return expr;
     }
@@ -2307,7 +2330,9 @@ class TemplateNodeList : public QList<TemplateNode>
 class TemplateImpl : public TemplateNode, public Template
 {
   public:
-    TemplateImpl(TemplateEngine *e,const QCString &name,const char *data,int size);
+    TemplateImpl(TemplateEngine *e,const QCString &name,const QCString &data,
+                 const QCString &extension);
+   ~TemplateImpl();
     void render(FTextStream &ts, TemplateContext *c);
 
     TemplateEngine *engine() const { return m_engine; }
@@ -2322,14 +2347,31 @@ class TemplateImpl : public TemplateNode, public Template
 
 //----------------------------------------------------------
 
+/** @brief Weak reference wrapper for TemplateStructIntf that provides access to the
+ *  wrapped struct without holding a reference.
+ */
+class TemplateStructWeakRef : public TemplateStructIntf
+{
+  public:
+    TemplateStructWeakRef(TemplateStructIntf *ref) : m_ref(ref), m_refCount(0) {}
+    virtual TemplateVariant get(const char *name) const { return m_ref->get(name); }
+    virtual int addRef() { return ++m_refCount; }
+    virtual int release() { int count=--m_refCount; if (count<=0) { delete this; } return count; }
+  private:
+    TemplateStructIntf *m_ref;
+    int m_refCount;
+};
+
+//----------------------------------------------------------
 
 TemplateContextImpl::TemplateContextImpl(const TemplateEngine *e)
   : m_engine(e), m_templateName("<unknown>"), m_line(1), m_activeEscapeIntf(0),
-    m_spacelessIntf(0), m_spacelessEnabled(FALSE), m_indices(TemplateStruct::alloc())
+    m_spacelessIntf(0), m_spacelessEnabled(FALSE), m_tabbingEnabled(FALSE), m_indices(TemplateStruct::alloc())
 {
   m_indexStacks.setAutoDelete(TRUE);
   m_contextStack.setAutoDelete(TRUE);
   m_escapeIntfDict.setAutoDelete(TRUE);
+  m_fromUtf8 = (void*)(-1);
   push();
   set("index",m_indices.get());
 }
@@ -2337,6 +2379,49 @@ TemplateContextImpl::TemplateContextImpl(const TemplateEngine *e)
 TemplateContextImpl::~TemplateContextImpl()
 {
   pop();
+}
+
+void TemplateContextImpl::setEncoding(const QCString &templateName,int line,const QCString &enc)
+{
+  if (enc==m_encoding) return; // nothing changed
+  if (m_fromUtf8!=(void *)(-1))
+  {
+    portable_iconv_close(m_fromUtf8);
+    m_fromUtf8 = (void*)(-1);
+  }
+  m_encoding=enc;
+  if (!enc.isEmpty())
+  {
+    m_fromUtf8 = portable_iconv_open(enc,"UTF-8");
+    if (m_fromUtf8==(void*)(-1))
+    {
+      warn(templateName,line,"unsupported character conversion: '%s'->'UTF-8'\n", enc.data());
+    }
+  }
+  //printf("TemplateContextImpl::setEncoding(%s)\n",enc.data());
+}
+
+QCString TemplateContextImpl::recode(const QCString &s)
+{
+  //printf("TemplateContextImpl::recode(%s)\n",s.data());
+  int iSize        = s.length();
+  int oSize        = iSize*4+1;
+  QCString output(oSize);
+  size_t iLeft     = iSize;
+  size_t oLeft     = oSize;
+  char *iPtr       = s.rawData();
+  char *oPtr       = output.rawData();
+  if (!portable_iconv(m_fromUtf8,&iPtr,&iLeft,&oPtr,&oLeft))
+  {
+    oSize -= (int)oLeft;
+    output.resize(oSize+1);
+    output.at(oSize)='\0';
+    return output;
+  }
+  else
+  {
+    return s;
+  }
 }
 
 void TemplateContextImpl::set(const char *name,const TemplateVariant &v)
@@ -2358,9 +2443,8 @@ TemplateVariant TemplateContextImpl::get(const QCString &name) const
   }
   else // obj.prop
   {
-    TemplateVariant v;
     QCString objName = name.left(i);
-    v = getPrimary(objName);
+    TemplateVariant v = getPrimary(objName);
     QCString propName = name.mid(i+1);
     while (!propName.isEmpty())
     {
@@ -2511,6 +2595,7 @@ void TemplateContextImpl::closeSubIndex(const QCString &indexName)
       }
     }
   }
+  //fprintf(stderr,"TemplateContextImpl::closeSubIndex(%s) end g_count=%d\n\n",indexName.data(),g_count);
 }
 
 static void getPathListFunc(TemplateStructIntf *entry,TemplateList *list)
@@ -2569,7 +2654,9 @@ void TemplateContextImpl::addIndexEntry(const QCString &indexName,const QValueLi
     if (stack->count()>1)
     {
       TemplateVariant *tmp = stack->pop();
-      parent = *stack->top();
+      // To prevent a cyclic dependency between parent and child which causes a memory
+      // leak, we wrap the parent into a weak reference version.
+      parent = new TemplateStructWeakRef(stack->top()->toStruct());
       stack->push(tmp);
       ASSERT(parent.type()==TemplateVariant::Struct);
     }
@@ -2611,16 +2698,30 @@ class TemplateNodeText : public TemplateNode
 
     void render(FTextStream &ts, TemplateContext *c)
     {
-      //printf("TemplateNodeText::render(%s)\n",m_data.data());
       TemplateContextImpl* ci = dynamic_cast<TemplateContextImpl*>(c);
       if (ci==0) return; // should not happen
+      //printf("TemplateNodeText::render(%s) needsRecoding=%d ci=%p\n",m_data.data(),ci->needsRecoding(),ci);
       if (ci->spacelessEnabled())
       {
-        ts << ci->spacelessIntf()->remove(m_data);
+        if (ci->needsRecoding())
+        {
+          ts << ci->recode(ci->spacelessIntf()->remove(m_data));
+        }
+        else
+        {
+          ts << ci->spacelessIntf()->remove(m_data);
+        }
       }
       else
       {
-        ts << m_data;
+        if (ci->needsRecoding())
+        {
+          ts << ci->recode(m_data);
+        }
+        else
+        {
+          ts << m_data;
+        }
       }
     }
   private:
@@ -2661,14 +2762,27 @@ class TemplateNodeVariable : public TemplateNode
         {
           v = v.call(QValueList<TemplateVariant>());
         }
-        //printf("TemplateNodeVariable::render(%s) raw=%d\n",value.data(),v.raw());
         if (ci->escapeIntf() && !v.raw())
         {
-          ts << ci->escapeIntf()->escape(v.toString());
+          if (ci->needsRecoding())
+          {
+            ts << ci->recode(ci->escapeIntf()->escape(v.toString()));
+          }
+          else
+          {
+            ts << ci->escapeIntf()->escape(v.toString());
+          }
         }
         else
         {
-          ts << v.toString();
+          if (ci->needsRecoding())
+          {
+            ts << ci->recode(v.toString());
+          }
+          else
+          {
+            ts << v.toString();
+          }
         }
       }
     }
@@ -2817,7 +2931,7 @@ class TemplateNodeIf : public TemplateNodeCreator<TemplateNodeIf>
           if (guardValue.toBool()) // render nodes for the first guard that evaluated to 'true'
           {
             nodes->trueNodes.render(ts,c);
-           processed=TRUE;
+            processed=TRUE;
           }
         }
         else
@@ -3482,6 +3596,24 @@ class TemplateNodeInclude : public TemplateNodeCreator<TemplateNodeInclude>
 
 //----------------------------------------------------------
 
+static void stripLeadingWhiteSpace(QGString &s)
+{
+  const char *src = s.data();
+  if (src)
+  {
+    char *dst = s.data();
+    char c;
+    bool skipSpaces=TRUE;
+    while ((c=*src++))
+    {
+      if (c=='\n') { *dst++=c; skipSpaces=TRUE; }
+      else if (c==' ' && skipSpaces) {}
+      else { *dst++=c; skipSpaces=FALSE; }
+    }
+    *dst='\0';
+  }
+}
+
 /** @brief Class representing an 'create' tag in a template */
 class TemplateNodeCreate : public TemplateNodeCreator<TemplateNodeCreate>
 {
@@ -3545,17 +3677,18 @@ class TemplateNodeCreate : public TemplateNodeCreator<TemplateNodeCreate>
           TemplateImpl *t = getTemplate();
           if (t)
           {
+            QCString extension=outputFile;
+            int i=extension.findRev('.');
+            if (i!=-1)
+            {
+              extension=extension.right(extension.length()-i-1);
+            }
+            t->engine()->setOutputExtension(extension);
             Template *ct = t->engine()->loadByName(templateFile,m_line);
             TemplateImpl *createTemplate = ct ? dynamic_cast<TemplateImpl*>(ct) : 0;
             if (createTemplate)
             {
               mkpath(ci,outputFile);
-              QCString extension=outputFile;
-              int i=extension.findRev('.');
-              if (i!=-1)
-              {
-                extension=extension.right(extension.length()-i-1);
-              }
               if (!ci->outputDirectory().isEmpty())
               {
                 outputFile.prepend(ci->outputDirectory()+"/");
@@ -3567,7 +3700,11 @@ class TemplateNodeCreate : public TemplateNodeCreator<TemplateNodeCreate>
                 TemplateEscapeIntf *escIntf = ci->escapeIntf();
                 ci->selectEscapeIntf(extension);
                 FTextStream ts(&f);
-                createTemplate->render(ts,c);
+                QGString out;
+                FTextStream os(&out);
+                createTemplate->render(os,c);
+                stripLeadingWhiteSpace(out);
+                ts << out;
                 t->engine()->unload(t);
                 ci->setActiveEscapeIntf(escIntf);
               }
@@ -3580,6 +3717,7 @@ class TemplateNodeCreate : public TemplateNodeCreator<TemplateNodeCreate>
             {
               ci->warn(m_templateName,m_line,"failed to load template '%s' for include",templateFile.data());
             }
+            t->engine()->setOutputExtension("");
           }
         }
       }
@@ -3678,6 +3816,7 @@ class TemplateNodeTree : public TemplateNodeCreator<TemplateNodeTree>
         }
       }
       c->pop();
+      delete it;
       return result.data();
     }
     void render(FTextStream &ts, TemplateContext *c)
@@ -3868,7 +4007,8 @@ class TemplateNodeWith : public TemplateNodeCreator<TemplateNodeWith>
       TRACE(("{TemplateNodeWith(%s)\n",data.data()));
       m_args.setAutoDelete(TRUE);
       ExpressionParser expParser(parser,line);
-      QValueList<QCString> args = split(data," ");
+      QCString filteredData = removeSpacesAroundEquals(data);
+      QValueList<QCString> args = split(filteredData," ");
       QValueListIterator<QCString> it = args.begin();
       while (it!=args.end())
       {
@@ -3920,7 +4060,7 @@ class TemplateNodeWith : public TemplateNodeCreator<TemplateNodeWith>
 
 //----------------------------------------------------------
 
-/** @brief Class representing an 'set' tag in a template */
+/** @brief Class representing an 'cycle' tag in a template */
 class TemplateNodeCycle : public TemplateNodeCreator<TemplateNodeCycle>
 {
   public:
@@ -3961,11 +4101,25 @@ class TemplateNodeCycle : public TemplateNodeCreator<TemplateNodeCycle>
         }
         if (ci->escapeIntf() && !v.raw())
         {
-          ts << ci->escapeIntf()->escape(v.toString());
+          if (ci->needsRecoding())
+          {
+            ts << ci->recode(ci->escapeIntf()->escape(v.toString()));
+          }
+          else
+          {
+            ts << ci->escapeIntf()->escape(v.toString());
+          }
         }
         else
         {
-          ts << v.toString();
+          if (ci->needsRecoding())
+          {
+            ts << ci->recode(v.toString());
+          }
+          else
+          {
+            ts << v.toString();
+          }
         }
       }
       if (++m_index==m_args.count()) // wrap around
@@ -4083,6 +4237,11 @@ class TemplateNodeMarkers : public TemplateNodeCreator<TemplateNodeMarkers>
       parser->removeNextToken(); // skip over endmarkers
       TRACE(("}TemplateNodeMarkers(%s)\n",data.data()));
     }
+   ~TemplateNodeMarkers()
+    {
+      delete m_listExpr;
+      delete m_patternExpr;
+    }
     void render(FTextStream &ts, TemplateContext *c)
     {
       TemplateContextImpl *ci = dynamic_cast<TemplateContextImpl*>(c);
@@ -4104,7 +4263,14 @@ class TemplateNodeMarkers : public TemplateNodeCreator<TemplateNodeMarkers>
             int index=0,newIndex,matchLen;
             while ((newIndex=marker.match(str,index,&matchLen))!=-1)
             {
-              ts << str.mid(index,newIndex-index); // write text before marker
+              if (ci->needsRecoding())
+              {
+                ts << ci->recode(str.mid(index,newIndex-index)); // write text before marker
+              }
+              else
+              {
+                ts << str.mid(index,newIndex-index); // write text before marker
+              }
               bool ok;
               uint entryIndex = str.mid(newIndex+1,matchLen-1).toUInt(&ok); // get marker id
               TemplateVariant var;
@@ -4132,8 +4298,16 @@ class TemplateNodeMarkers : public TemplateNodeCreator<TemplateNodeMarkers>
               }
               index=newIndex+matchLen; // set index just after marker
             }
-            ts << str.right(str.length()-index); // write text after last marker
+            if (ci->needsRecoding())
+            {
+              ts << ci->recode(str.right(str.length()-index)); // write text after last marker
+            }
+            else
+            {
+              ts << str.right(str.length()-index); // write text after last marker
+            }
             c->pop();
+            delete it;
           }
           else
           {
@@ -4151,6 +4325,36 @@ class TemplateNodeMarkers : public TemplateNodeCreator<TemplateNodeMarkers>
     QCString m_var;
     ExprAst *m_listExpr;
     ExprAst *m_patternExpr;
+};
+
+//----------------------------------------------------------
+
+/** @brief Class representing an 'tabbing' tag in a template */
+class TemplateNodeTabbing : public TemplateNodeCreator<TemplateNodeTabbing>
+{
+  public:
+    TemplateNodeTabbing(TemplateParser *parser,TemplateNode *parent,int line,const QCString &)
+      : TemplateNodeCreator<TemplateNodeTabbing>(parser,parent,line)
+    {
+      TRACE(("{TemplateNodeTabbing()\n"));
+      QStrList stopAt;
+      stopAt.append("endtabbing");
+      parser->parse(this,line,stopAt,m_nodes);
+      parser->removeNextToken(); // skip over endtabbing
+      TRACE(("}TemplateNodeTabbing()\n"));
+    }
+    void render(FTextStream &ts, TemplateContext *c)
+    {
+      TemplateContextImpl *ci = dynamic_cast<TemplateContextImpl*>(c);
+      if (ci==0) return; // should not happen
+      ci->setLocation(m_templateName,m_line);
+      bool wasTabbing = ci->tabbingEnabled();
+      ci->enableTabbing(TRUE);
+      m_nodes.render(ts,c);
+      ci->enableTabbing(wasTabbing);
+    }
+  private:
+    TemplateNodeList m_nodes;
 };
 
 //----------------------------------------------------------
@@ -4208,8 +4412,7 @@ class TemplateNodeResource : public TemplateNodeCreator<TemplateNodeResource>
             QCString targetFile = m_asExpr->resolve(c).toString();
             mkpath(ci,targetFile);
             if (targetFile.isEmpty())
-            {
-              ci->warn(m_templateName,m_line,"invalid parameter at right side of 'as' for resource command\n");
+            { ci->warn(m_templateName,m_line,"invalid parameter at right side of 'as' for resource command\n");
             }
             else
             {
@@ -4226,6 +4429,59 @@ class TemplateNodeResource : public TemplateNodeCreator<TemplateNodeResource>
   private:
     ExprAst *m_resExpr;
     ExprAst *m_asExpr;
+};
+
+//----------------------------------------------------------
+
+/** @brief Class representing the 'encoding' tag in a template */
+class TemplateNodeEncoding : public TemplateNodeCreator<TemplateNodeEncoding>
+{
+  public:
+    TemplateNodeEncoding(TemplateParser *parser,TemplateNode *parent,int line,const QCString &data)
+      : TemplateNodeCreator<TemplateNodeEncoding>(parser,parent,line)
+    {
+      TRACE(("{TemplateNodeEncoding(%s)\n",data.data()));
+      ExpressionParser ep(parser,line);
+      if (data.isEmpty())
+      {
+        parser->warn(m_templateName,line,"encoding tag is missing encoding argument");
+        m_encExpr = 0;
+      }
+      else
+      {
+        m_encExpr = ep.parse(data);
+      }
+      QStrList stopAt;
+      stopAt.append("endencoding");
+      parser->parse(this,line,stopAt,m_nodes);
+      parser->removeNextToken(); // skip over endencoding
+      TRACE(("}TemplateNodeEncoding(%s)\n",data.data()));
+    }
+   ~TemplateNodeEncoding()
+    {
+      delete m_encExpr;
+    }
+    void render(FTextStream &ts, TemplateContext *c)
+    {
+      TemplateContextImpl *ci = dynamic_cast<TemplateContextImpl*>(c);
+      if (ci==0) return; // should not happen
+      ci->setLocation(m_templateName,m_line);
+      QCString encStr;
+      if (m_encExpr)
+      {
+        encStr = m_encExpr->resolve(c).toString();
+      }
+      QCString oldEncStr = ci->encoding();
+      if (!encStr.isEmpty())
+      {
+        ci->setEncoding(m_templateName,m_line,encStr);
+      }
+      m_nodes.render(ts,c);
+      ci->setEncoding(m_templateName,m_line,oldEncStr);
+    }
+  private:
+    ExprAst *m_encExpr;
+    TemplateNodeList m_nodes;
 };
 
 //----------------------------------------------------------
@@ -4290,7 +4546,9 @@ static TemplateNodeFactory::AutoRegister<TemplateNodeCreate>        autoRefCreat
 static TemplateNodeFactory::AutoRegister<TemplateNodeRepeat>        autoRefRepeat("repeat");
 static TemplateNodeFactory::AutoRegister<TemplateNodeInclude>       autoRefInclude("include");
 static TemplateNodeFactory::AutoRegister<TemplateNodeMarkers>       autoRefMarkers("markers");
+static TemplateNodeFactory::AutoRegister<TemplateNodeTabbing>       autoRefTabbing("tabbing");
 static TemplateNodeFactory::AutoRegister<TemplateNodeResource>      autoRefResource("resource");
+static TemplateNodeFactory::AutoRegister<TemplateNodeEncoding>      autoRefEncoding("encoding");
 static TemplateNodeFactory::AutoRegister<TemplateNodeSpaceless>     autoRefSpaceless("spaceless");
 static TemplateNodeFactory::AutoRegister<TemplateNodeIndexEntry>    autoRefIndexEntry("indexentry");
 static TemplateNodeFactory::AutoRegister<TemplateNodeOpenSubIndex>  autoRefOpenSubIndex("opensubindex");
@@ -4378,8 +4636,10 @@ void TemplateBlockContext::push(TemplateNodeBlock *block)
 class TemplateLexer
 {
   public:
-    TemplateLexer(const TemplateEngine *engine,const QCString &fileName,const char *data,int size);
+    TemplateLexer(const TemplateEngine *engine,const QCString &fileName,const QCString &data);
     void tokenize(QList<TemplateToken> &tokens);
+    void setOpenCloseCharacters(char openChar,char closeChar)
+    { m_openChar=openChar; m_closeChar=closeChar; }
   private:
     void addToken(QList<TemplateToken> &tokens,
                   const char *data,int line,int startPos,int endPos,
@@ -4388,14 +4648,15 @@ class TemplateLexer
     const TemplateEngine *m_engine;
     QCString m_fileName;
     QCString m_data;
+    char m_openChar;
+    char m_closeChar;
 };
 
-TemplateLexer::TemplateLexer(const TemplateEngine *engine,const QCString &fileName,const char *data,int size) :
-  m_engine(engine), m_fileName(fileName)
+TemplateLexer::TemplateLexer(const TemplateEngine *engine,const QCString &fileName,const QCString &data) :
+  m_engine(engine), m_fileName(fileName), m_data(data)
 {
-  m_data.resize(size+1);
-  memcpy(m_data.rawData(),data,size);
-  m_data[size]=0;
+  m_openChar='{';
+  m_closeChar='}';
 }
 
 void TemplateLexer::tokenize(QList<TemplateToken> &tokens)
@@ -4414,6 +4675,7 @@ void TemplateLexer::tokenize(QList<TemplateToken> &tokens)
   };
 
   const char *p=m_data.data();
+  if (p==0) return;
   int  state=StateText;
   int  pos=0;
   int  lastTokenPos=0;
@@ -4427,7 +4689,7 @@ void TemplateLexer::tokenize(QList<TemplateToken> &tokens)
     switch (state)
     {
       case StateText:
-        if (c=='{') // {{ or {% or {# or something else
+        if (c==m_openChar) // {{ or {% or {# or something else
         {
           state=StateBeginTemplate;
         }
@@ -4448,7 +4710,14 @@ void TemplateLexer::tokenize(QList<TemplateToken> &tokens)
             markStartPos=pos-1;
             break;
           case '{': // {{
-            state=StateMaybeVar;
+            if (m_openChar=='{')
+            {
+              state=StateMaybeVar;
+            }
+            else
+            {
+              state=StateVariable;
+            }
             markStartPos=pos-1;
             break;
           default:
@@ -4460,7 +4729,7 @@ void TemplateLexer::tokenize(QList<TemplateToken> &tokens)
       case StateTag:
         if (c=='\n')
         {
-          warn(m_fileName,line,"unexpected new line inside {%%...%%} block");
+          warn(m_fileName,line,"unexpected new line inside %c%%...%%%c block",m_openChar,m_closeChar);
           m_engine->printIncludeContext(m_fileName,line);
         }
         else if (c=='%') // %} or something else
@@ -4469,7 +4738,7 @@ void TemplateLexer::tokenize(QList<TemplateToken> &tokens)
         }
         break;
       case StateEndTag:
-        if (c=='}') // %}
+        if (c==m_closeChar) // %}
         {
           // found tag!
           state=StateText;
@@ -4484,7 +4753,7 @@ void TemplateLexer::tokenize(QList<TemplateToken> &tokens)
         {
           if (c=='\n')
           {
-            warn(m_fileName,line,"unexpected new line inside {%%...%%} block");
+            warn(m_fileName,line,"unexpected new line inside %c%%...%%%c block",m_openChar,m_closeChar);
             m_engine->printIncludeContext(m_fileName,line);
           }
           state=StateTag;
@@ -4493,7 +4762,7 @@ void TemplateLexer::tokenize(QList<TemplateToken> &tokens)
       case StateComment:
         if (c=='\n')
         {
-          warn(m_fileName,line,"unexpected new line inside {#...#} block");
+          warn(m_fileName,line,"unexpected new line inside %c#...#%c block",m_openChar,m_closeChar);
           m_engine->printIncludeContext(m_fileName,line);
         }
         else if (c=='#') // #} or something else
@@ -4502,7 +4771,7 @@ void TemplateLexer::tokenize(QList<TemplateToken> &tokens)
         }
         break;
       case StateEndComment:
-        if (c=='}') // #}
+        if (c==m_closeChar) // #}
         {
           // found comment tag!
           state=StateText;
@@ -4515,7 +4784,7 @@ void TemplateLexer::tokenize(QList<TemplateToken> &tokens)
         {
           if (c=='\n')
           {
-            warn(m_fileName,line,"unexpected new line inside {#...#} block");
+            warn(m_fileName,line,"unexpected new line inside %c#...#%c block",m_openChar,m_closeChar);
             m_engine->printIncludeContext(m_fileName,line);
           }
           state=StateComment;
@@ -4538,9 +4807,10 @@ void TemplateLexer::tokenize(QList<TemplateToken> &tokens)
         }
         break;
       case StateVariable:
+        emptyOutputLine=FALSE; // assume a variable expands to content
         if (c=='\n')
         {
-          warn(m_fileName,line,"unexpected new line inside {{...}} block");
+          warn(m_fileName,line,"unexpected new line inside %c{...}%c block",m_openChar,m_closeChar);
           m_engine->printIncludeContext(m_fileName,line);
         }
         else if (c=='}') // }} or something else
@@ -4549,7 +4819,7 @@ void TemplateLexer::tokenize(QList<TemplateToken> &tokens)
         }
         break;
       case StateEndVariable:
-        if (c=='}') // }}
+        if (c==m_closeChar) // }}
         {
           // found variable tag!
           state=StateText;
@@ -4564,7 +4834,7 @@ void TemplateLexer::tokenize(QList<TemplateToken> &tokens)
         {
           if (c=='\n')
           {
-            warn(m_fileName,line,"unexpected new line inside {{...}} block");
+            warn(m_fileName,line,"unexpected new line inside %c{...}%c block",m_openChar,m_closeChar);
             m_engine->printIncludeContext(m_fileName,line);
           }
           state=StateVariable;
@@ -4666,7 +4936,8 @@ void TemplateParser::parse(
                    command=="endrecursetree" || command=="endspaceless" ||
                    command=="endmarkers"     || command=="endmsg"       ||
                    command=="endrepeat"      || command=="elif"         ||
-                   command=="endrange")
+                   command=="endrange"       || command=="endtabbing"   ||
+                   command=="endencoding")
           {
             warn(m_templateName,tok->line,"Found tag '%s' without matching start tag",command.data());
           }
@@ -4734,17 +5005,27 @@ void TemplateParser::warn(const char *fileName,int line,const char *fmt,...) con
 //----------------------------------------------------------
 
 
-TemplateImpl::TemplateImpl(TemplateEngine *engine,const QCString &name,const char *data,int size)
+TemplateImpl::TemplateImpl(TemplateEngine *engine,const QCString &name,const QCString &data,
+    const QCString &extension)
   : TemplateNode(0)
 {
   m_name = name;
   m_engine = engine;
-  TemplateLexer lexer(engine,name,data,size);
+  TemplateLexer lexer(engine,name,data);
+  if (extension=="tex")
+  {
+    lexer.setOpenCloseCharacters('<','>');
+  }
   QList<TemplateToken> tokens;
   tokens.setAutoDelete(TRUE);
   lexer.tokenize(tokens);
   TemplateParser parser(engine,name,tokens);
   parser.parse(this,1,QStrList(),m_nodes);
+}
+
+TemplateImpl::~TemplateImpl()
+{
+  //printf("deleting template %s\n",m_name.data());
 }
 
 void TemplateImpl::render(FTextStream &ts, TemplateContext *c)
@@ -4807,32 +5088,29 @@ class TemplateEngine::Private
       //printf("loadByName(%s,%d) {\n",fileName.data(),line);
       m_includeStack.append(new IncludeEntry(IncludeEntry::Template,fileName,QCString(),line));
       Template *templ = m_templateCache.find(fileName);
-      if (templ==0)
+      if (templ==0) // first time template is referenced
       {
-        const Resource *res = ResourceMgr::instance().get(fileName);
-        if (res)
-        {
-          templ = new TemplateImpl(m_engine,fileName,(const char *)res->data,res->size);
-          m_templateCache.insert(fileName,templ);
-        }
-#if 0
-        QFile f(fileName);
+        QCString filePath = m_templateDirName+"/"+fileName;
+        QFile f(filePath);
         if (f.open(IO_ReadOnly))
         {
-          uint size=f.size();
-          char *data = new char[size+1];
-          if (data)
-          {
-            data[size]=0;
-            if (f.readBlock(data,f.size()))
-            {
-              templ = new TemplateImpl(m_engine,fileName,data);
-              m_templateCache.insert(fileName,templ);
-            }
-            delete[] data;
-          }
+           QFileInfo fi(filePath);
+           int size=fi.size();
+           QCString data(size+1);
+           if (f.readBlock(data.rawData(),size)==size)
+           {
+             templ = new TemplateImpl(m_engine,filePath,data,m_extension);
+             m_templateCache.insert(fileName,templ);
+             return templ;
+           }
         }
-#endif
+        // fallback to default built-in template
+        const QCString data = ResourceMgr::instance().getAsString(fileName);
+        if (!data.isEmpty())
+        {
+          templ = new TemplateImpl(m_engine,fileName,data,m_extension);
+          m_templateCache.insert(fileName,templ);
+        }
         else
         {
           err("Cound not open template file %s\n",fileName.data());
@@ -4889,11 +5167,28 @@ class TemplateEngine::Private
       }
     }
 
+    void setOutputExtension(const char *extension)
+    {
+      m_extension = extension;
+    }
+
+    QCString outputExtension() const
+    {
+      return m_extension;
+    }
+
+    void setTemplateDir(const char *dirName)
+    {
+      m_templateDirName = dirName;
+    }
+
   private:
     QDict<Template> m_templateCache;
     //mutable int m_indent;
     TemplateEngine *m_engine;
     QList<IncludeEntry> m_includeStack;
+    QCString m_extension;
+    QCString m_templateDirName;
 };
 
 TemplateEngine::TemplateEngine()
@@ -4940,4 +5235,20 @@ void TemplateEngine::printIncludeContext(const char *fileName,int line) const
 {
   p->printIncludeContext(fileName,line);
 }
+
+void TemplateEngine::setOutputExtension(const char *extension)
+{
+  p->setOutputExtension(extension);
+}
+
+QCString TemplateEngine::outputExtension() const
+{
+  return p->outputExtension();
+}
+
+void TemplateEngine::setTemplateDir(const char *dirName)
+{
+  p->setTemplateDir(dirName);
+}
+
 

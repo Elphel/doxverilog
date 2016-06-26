@@ -171,6 +171,7 @@ void FTVHelp::decContentsDepth()
 
 /*! Add a list item to the contents file.
  *  \param isDir TRUE if the item is a directory, FALSE if it is a text
+ *  \param name The name of the item.
  *  \param ref  the URL of to the item.
  *  \param file the file containing the definition of the item
  *  \param anchor the anchor within the file.
@@ -489,7 +490,7 @@ static QCString convertFileId2Var(const QCString &fileId)
 static bool generateJSTree(NavIndexEntryList &navIndex,FTextStream &t, 
                            const QList<FTVNode> &nl,int level,bool &first)
 {
-  static QCString htmlOutput = Config_getString("HTML_OUTPUT");
+  static QCString htmlOutput = Config_getString(HTML_OUTPUT);
   QCString indentStr;
   indentStr.fill(' ',level*2);
   bool found=FALSE;
@@ -578,7 +579,7 @@ static bool generateJSTree(NavIndexEntryList &navIndex,FTextStream &t,
 
 static void generateJSNavTree(const QList<FTVNode> &nodeList)
 {
-  QCString htmlOutput = Config_getString("HTML_OUTPUT");
+  QCString htmlOutput = Config_getString(HTML_OUTPUT);
   QFile f(htmlOutput+"/navtreedata.js");
   NavIndexEntryList navIndex;
   if (f.open(IO_WriteOnly) /*&& fidx.open(IO_WriteOnly)*/)
@@ -590,7 +591,7 @@ static void generateJSNavTree(const QList<FTVNode> &nodeList)
     t << "var NAVTREE =" << endl;
     t << "[" << endl;
     t << "  [ ";
-    QCString &projName = Config_getString("PROJECT_NAME");
+    QCString &projName = Config_getString(PROJECT_NAME);
     if (projName.isEmpty())
     {
       if (Doxygen::mainPage && !Doxygen::mainPage->title().isEmpty()) // Use title of main page as root
@@ -688,20 +689,18 @@ static void generateJSNavTree(const QList<FTVNode> &nodeList)
 // new style images
 void FTVHelp::generateTreeViewImages()
 {
-  QCString dname=Config_getString("HTML_OUTPUT");
+  QCString dname=Config_getString(HTML_OUTPUT);
   const ResourceMgr &rm = ResourceMgr::instance();
   rm.copyResource("doc.luma",dname);
   rm.copyResource("folderopen.luma",dname);
   rm.copyResource("folderclosed.luma",dname);
-  rm.copyResource("arrowdown.luma",dname);
-  rm.copyResource("arrowright.luma",dname);
   rm.copyResource("splitbar.lum",dname);
 }
 
 // new style scripts
 void FTVHelp::generateTreeViewScripts()
 {
-  QCString htmlOutput = Config_getString("HTML_OUTPUT");
+  QCString htmlOutput = Config_getString(HTML_OUTPUT);
 
   // generate navtree.js & navtreeindex.js
   generateJSNavTree(m_indentNodes[0]);
@@ -714,7 +713,7 @@ void FTVHelp::generateTreeViewScripts()
 // write tree inside page
 void FTVHelp::generateTreeViewInline(FTextStream &t)
 {
-  int preferredNumEntries = Config_getInt("HTML_INDEX_NUM_ENTRIES");
+  int preferredNumEntries = Config_getInt(HTML_INDEX_NUM_ENTRIES);
   t << "<div class=\"directory\">\n";
   QListIterator<FTVNode> li(m_indentNodes[0]);
   FTVNode *n;

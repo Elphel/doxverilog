@@ -223,32 +223,14 @@ void XmlDocVisitor::visit(DocVerbatim *s)
       m_t << "</verbatim>"; 
       break;
     case DocVerbatim::HtmlOnly: 
-      m_t << "<htmlonly>";
-      filter(s->text());
-      m_t << "</htmlonly>";
-      break;
     case DocVerbatim::RtfOnly: 
-      m_t << "<rtfonly>";
-      filter(s->text());
-      m_t << "</rtfonly>";
-      break;
     case DocVerbatim::ManOnly: 
-      m_t << "<manonly>";
-      filter(s->text());
-      m_t << "</manonly>";
-      break;
     case DocVerbatim::LatexOnly: 
-      m_t << "<latexonly>";
-      filter(s->text());
-      m_t << "</latexonly>";
+    case DocVerbatim::DocbookOnly:
+      /* nothing */ 
       break;
     case DocVerbatim::XmlOnly: 
       m_t << s->text();
-      break;
-    case DocVerbatim::DocbookOnly:
-      m_t << "<docbookonly>";
-      filter(s->text());
-      m_t << "</docbookonly>";
       break;
     case DocVerbatim::Dot:
       visitPreStart(m_t, "dot", s->hasCaption(), this, s->children(), QCString(""), FALSE, DocImage::Html, s->width(), s->height());
@@ -744,7 +726,7 @@ void XmlDocVisitor::visitPre(DocImage *img)
 
   // copy the image to the output dir
   QFile inImage(img->name());
-  QFile outImage(Config_getString("XML_OUTPUT")+"/"+baseName.data());
+  QFile outImage(Config_getString(XML_OUTPUT)+"/"+baseName.data());
   if (inImage.open(IO_ReadOnly))
   {
     if (outImage.open(IO_WriteOnly))

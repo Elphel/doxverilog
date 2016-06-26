@@ -400,7 +400,7 @@ void VerilogDocGen::writeVerilogDeclarations(MemberList* ml,OutputList& ol,Group
 
 void VerilogDocGen::writeTagFile(MemberDef *mdef,FTextStream &tagFile)
 {
-  if (!Config_getString("GENERATE_TAGFILE").isEmpty())
+  if (!Config_getString(GENERATE_TAGFILE).isEmpty())
   {
     int memType=mdef->getMemberSpecifiers();
 	tagFile << "    <member kind=\"";
@@ -520,11 +520,11 @@ void VerilogDocGen::writeVerilogDeclarations(MemberDef* mdef,OutputList &ol,
      largs=mdef->name();
      fdd=findFileDef(Doxygen::inputNameDict,largs.data(),ambig);
      if(fdd){
-      QCString fbb=fdd->getFileBase();
+      QCString fbb=fdd->getDefFileName();
       fbb=fdd->getReference();
      fbb= fdd->getOutputFileBase();
      fbb=fdd->getSourceFileBase();
-     fbb=fdd->convertNameToFile(largs.data(),true);
+     //fbb=fdd->convertNameToFile(largs.data(),true);
      fbb=fdd->getPath();
      fbb+=fdd->getOutputFileBase()+".html";
    
@@ -672,7 +672,7 @@ void VerilogDocGen::writeVerilogDeclarations(MemberDef* mdef,OutputList &ol,
   //    name().data(),annoClassDef,annEnumType);
   ol.endMemberItem();
 //fprintf(stderr,"\n%d %s",mdef->docLine,mdef->name().data());
-   if (!mdef->briefDescription().isEmpty() &&   Config_getBool("BRIEF_MEMBER_DESC") /* && !annMemb */)
+   if (!mdef->briefDescription().isEmpty() &&   Config_getBool(BRIEF_MEMBER_DESC) /* && !annMemb */)
   {
 	  ol.startMemberDescription(mdef->anchor());
     ol.generateDoc(mdef->briefFile(),mdef->briefLine(),mdef->getOuterScope()?mdef->getOuterScope():d,mdef,mdef->briefDescription(),TRUE,FALSE,0,TRUE,FALSE);
@@ -1106,7 +1106,7 @@ ol.docify(":");
 void VerilogDocGen::writeSource(MemberDef *mdef,OutputList& ol,QCString & cname)
 {
   //  Definition d=(Definition)mdef;
-  static bool optVerilog = Config_getBool("OPTIMIZE_OUTPUT_VERILOG");
+  static bool optVerilog = Config_getBool(OPTIMIZE_OUTPUT_VERILOG);
  /*
   if(optVerilog){
   VerilogDocGen::writeSource(mdef,ol,cname);
@@ -1156,7 +1156,7 @@ const char* VerilogDocGen::removeLastWord(const char* word)
 
 QCString VerilogDocGen::findFile(const char *fileName)
 {
-  QStrList &includePath = Config_getList("INCLUDE_PATH");
+  QStrList &includePath = Config_getList(INCLUDE_PATH);
 
   char *s=includePath.first();
 
@@ -1165,10 +1165,18 @@ QCString VerilogDocGen::findFile(const char *fileName)
      QCString absName;
      absName += (QCString)s+"/"+fileName;
      QFileInfo fin(absName);
-    
+   
+
+	// fprintf(stderr,"\n %s",absName.data());
+
      if( fin.exists() && fin.isFile())
       return absName;
     
+	 absName.prepend("/");
+	  QFileInfo fins(absName);
+	  if( fins.exists() && fins.isFile())
+      return absName;
+
      s=includePath.next();
   } 
   return "";

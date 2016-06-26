@@ -512,7 +512,7 @@ void writeVerilogFont(const char* col,const char* text)
 // writes a coloured word to the  output
 
 static void writeVWord(QCString& qcs){
-static bool stripComment=Config_getBool("STRIP_CODE_COMMENTS");
+static bool stripComment=Config_getBool(STRIP_CODE_COMMENTS);
    if(qcs.isEmpty())return;
     QCString temp=qcs.copy();
 	if(qcs.stripPrefix("\n")){
@@ -533,9 +533,9 @@ static bool stripComment=Config_getBool("STRIP_CODE_COMMENTS");
           return;
           }
     
-    if(qcs.stripPrefix("#+#")){           
-        deleteVerilogChars(qcs,"#+#");
-	 deleteVerilogChars(qcs,"$");
+    if(qcs.stripPrefix("§")){           
+        deleteVerilogChars(qcs,"§");
+	 deleteVerilogChars(qcs,"²");
 			
 		   startFontClass("undoc");
 			 codifyLines(qcs.data(),0,true);
@@ -767,7 +767,7 @@ static void writeMultiLineCodeLink(CodeOutputInterface &ol,
                   const char *ref,const char *file,
                   const char *anchor,const char *text,Definition *d)
 {
-   static bool sourceTooltips = Config_getBool("SOURCE_TOOLTIPS");
+   static bool sourceTooltips = Config_getBool(SOURCE_TOOLTIPS);
  
   TooltipManager::instance()->addTooltip(d);
 
@@ -1041,7 +1041,7 @@ static int verilogscannerYYread(char *buf,int max_size)
   while ( c < max_size && inputVerilogString.at(inputPosition) )
   {
     *buf = inputVerilogString.at(inputPosition++) ;
-    c++; buf++;
+ 	c++; buf++;
   }
   
   return c;
@@ -1202,9 +1202,11 @@ GATETYPE  	"and"|"nand"|"or"|"nor"|"xor"|"xnor"|"buf"|"bufif0"|"bufif1"|"not"|"n
                  }
 
 
-<Start>"#+#"[^$]+[$] {// grey out undefined code
+<Start>"§"[^²]+[²] {// grey out undefined code
                     QCString uu(verilogscannerYYtext);
-                    if(g_parseCode)
+                 //  fprintf(stderr,"\n undoc [%s]",uu.data());
+               
+				    if(true) //g_parseCode)
                     {
                     //  fprintf(stderr,"\n%s",uu.data());
                       qlist.append(new QCString(verilogscannerYYtext));
@@ -1272,7 +1274,7 @@ GATETYPE  	"and"|"nand"|"or"|"nor"|"xor"|"xnor"|"buf"|"bufif0"|"bufif1"|"not"|"n
 				 	if(g_parseCode)
 				 	{
                       QCString *yy=0;
-                     if(Config_getBool("MACRO_EXPANSION") && def)
+                     if(Config_getBool(MACRO_EXPANSION) && def)
                      {
                         yy=new QCString(def->definition.data());
                       //   VhdlDocGen::deleteAllChars(*yy,'"');   
@@ -1427,7 +1429,7 @@ GATETYPE  	"and"|"nand"|"or"|"nor"|"xor"|"xnor"|"buf"|"bufif0"|"bufif1"|"not"|"n
                       
      }
 					 if(g_parseCode) {
-					 if(Config_getBool("STRIP_CODE_COMMENTS"))
+					 if(Config_getBool(STRIP_CODE_COMMENTS))
 					      qlist.append(new QCString(verilogscannerYYtext)); 
 					 else{
 					     QStringList ql=QStringList::split('\n',text,false);
@@ -1495,7 +1497,7 @@ GATETYPE  	"and"|"nand"|"or"|"nor"|"xor"|"xnor"|"buf"|"bufif0"|"bufif1"|"not"|"n
    unput(*verilogscannerYYtext);
    }
    
-   if(g_parseCode) // && !Config_getBool("STRIP_CODE_COMMENTS"))
+   if(g_parseCode) // && !Config_getBool(STRIP_CODE_COMMENTS))
    { 
      qlist.append(new QCString(verilogscannerYYtext)); 
    } 
@@ -1823,9 +1825,9 @@ void  VerilogScanner::parseInput(const char *fileName,const char *fileBuf,Entry 
 //verilogscannerYY_flex_debug=1;
       bool xilinx_ucf=isConstraintFile(yyFileName,".ucf");
       bool altera_qsf=isConstraintFile(yyFileName,".qsf");
-   
+ //  fprintf(stderr,"reading <file %s> \n ",fileName);
    // support XILINX(ucf) and ALTERA (qsf) file
-   //   printf("%s",fileBuf);
+ //     printf("\n %s",fileBuf);
      if(xilinx_ucf)  {  VhdlDocGen::parseUCF(fileBuf,root,yyFileName,false);  return; }
      if(altera_qsf) { VhdlDocGen::parseUCF(fileBuf,root,yyFileName,true); return; }
     
@@ -1892,7 +1894,7 @@ for(uint j=0;j<qsl.count();j++)
     )
 				  { 
 				  num_chars=0;
-
+			
   			 TooltipManager::instance()->clearTooltips();
 
 				 //  Definition *di=(Definition*)fileDef;
@@ -1907,15 +1909,19 @@ for(uint j=0;j<qsl.count();j++)
                     g_code = &codeOutIntf;
                 		  
                    QCString ff(yyFileName);
-                   if (Config_getBool("ENABLE_PREPROCESSING") && startLine==-1)
+                   if (true) //Config_getBool(ENABLE_PREPROCESSING) && startLine==-1)
                      {
                        VerilogPreProc defProc;
                        defProc.lineDirectives(false);
                        QFileInfo fi(fileDef->absFilePath());
                        pPuffer=defProc.performPreprocessing(fi).data();
-                     //  cerr<<pPuffer.data();
-                   //     if(ff.data())
-                    //    fprintf(stderr,"\nPreprocessing code of file %s...\n",ff.data());
+                       string s1(pPuffer.data());
+					   defProc.insertIncludeText(s1);
+					   pPuffer.resize(0);
+					   pPuffer.append(s1.data());
+					 //  cerr<<pPuffer.data();
+                      //  if(ff.data())
+                      //  fprintf(stderr,"\nPreprocessing code of file %s...\n",ff.data());
                         }
                    else
                     pPuffer+=input.data();
@@ -2213,7 +2219,7 @@ QCString checkComment(QCString& q)
   QRegExp ep("[`a-zA-Z0-9_'?]+");
   QRegExp ep2("[\\s]+");
  //  j = reg.match(temp.data(),0,&len);
- int index=q.find("#+#");
+ int index=q.find("§");
  if(index>-1)
   q=q.remove(index,1);
  

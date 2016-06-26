@@ -305,7 +305,12 @@ parameter_declaration_list:  PARAMETER_TOK  { currVerilogType=VerilogDocGen::PAR
 signed_range: //empty
    | range
    | signed
-   | signed range
+   | signed range      
+   | INTEGER_TOK 
+   | REAL_TOK
+   | TIME_TOK
+   | REALTIME_TOK
+  
    ;
 
 list_of_ports :  LBRACE_TOK                    {currVerilogType=VerilogDocGen::PORT;} port_list RBRACE_TOK                                     {currVerilogType=0;vbufreset();}
@@ -2138,7 +2143,7 @@ void parseListOfPorts() {
   QCString type;
 
  QCString mod(getVerilogString());
- if(Config_getBool("HIDE_PORT")) return;
+ if(Config_getBool(HIDE_PORT)) return;
  VhdlDocGen::deleteAllChars(mod,' ');
  VhdlDocGen::deleteAllChars(mod,'\n');
  VhdlDocGen::deleteAllChars(mod,';');
