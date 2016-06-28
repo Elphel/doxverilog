@@ -132,13 +132,9 @@ class QCString
 {
 public:
     /** creates an empty string */
-    
-	const char *pToMrep;
-	
-	QCString() : m_rep()
+    QCString() : m_rep()
     {
-    pToMrep = m_rep.data();
-	}
+    }
 
     /** destroys the string */
    ~QCString()
@@ -148,13 +144,12 @@ public:
     /** makes a copy of a string. */
     QCString( const QCString &s ) : m_rep(s.m_rep)
     {
-     pToMrep=m_rep.data();
-	}
+    }
 
     /** creates a string with room for size characters
      *  @param[in] size the number of character to allocate (including the 0-terminator)
      */
-    QCString( int size ) : m_rep(size)
+    explicit QCString( int size ) : m_rep(size)
     {
     }
 
@@ -163,28 +158,24 @@ public:
      */
     QCString( const char *str ) : m_rep(str)
     {
-     pToMrep=m_rep.data();
-	}
+    }
 
     /** creates a string from \a str and copies over the first \a maxlen characters. */
     QCString( const char *str, uint maxlen ) : m_rep(str,maxlen)
     {
-     pToMrep=m_rep.data();
-	}
+    }
 
     /** replaces the contents by that of string \a s. */
     QCString &operator=( const QCString &s )
     {
       m_rep = s.m_rep;
-      pToMrep=m_rep.data();
-	  return *this;
+      return *this;
     }
 
     /** replaces the contents by that of C string \a str. */
     QCString &operator=( const char *str)
     {
       m_rep = str;
-	  pToMrep=m_rep.data();
       return *this;
     }
 
@@ -297,6 +288,7 @@ public:
     uint toUInt( bool *ok=0 ) const;
     long toLong( bool *ok=0 ) const;
     ulong toULong( bool *ok=0 )	const;
+    uint64 toUInt64( bool *ok=0 ) const;
     QCString &setNum(short n);
     QCString &setNum(ushort n);
     QCString &setNum(int n);
@@ -318,8 +310,7 @@ public:
       int len2 = (int)strlen(str);
       resize(len1+len2+1);
       memcpy(rawData()+len1,str,len2);
-      pToMrep=m_rep.data();
-	  return *this;
+      return *this;
     }
 
     /** Appends character \a c to this string and returns a reference to the result. */
@@ -792,7 +783,7 @@ Q_EXPORT inline QCString operator+( const QCString &s1, char c2 )
 {
     QCString tmp( s1.data() );
     tmp += c2;
-	return tmp;
+    return tmp;
 }
 
 Q_EXPORT inline QCString operator+( char c1, const QCString &s2 )

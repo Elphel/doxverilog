@@ -2,7 +2,7 @@
 {% block content %}
 <div class="contents">
 <div class="textblock">
-{% indexentry nav name=tr.classIndex file=page.fileName anchor='' %}
+{% indexentry nav name=tr.classIndex file=page.fileName anchor='' isReference=False %}
 </div>
 {% with index=classIndex.list|alphaIndex:'name' %}
   {# quick index at top #}
@@ -22,7 +22,7 @@
       <li>
         <span class="ai">
         {% if forloop.first %}
-        <a name="#letter_{{ section.label }}"></a>
+        <a name="letter_{{ section.label }}"></a>
         <span class="ah">&#160;&#160;{{ section.letter }}&#160;&#160;</span><br/>
         {% endif %}
         {% with obj=cls text=cls.name %}

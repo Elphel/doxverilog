@@ -24,7 +24,7 @@
    <li{% if page.highlight=='files' %} class="current"{% endif %}><a href="{{ page.relPath }}files{{ config.HTML_FILE_EXTENSION }}"><span>{{ tr.files|nowrap }}</span></a></li>
     {% endif %}
   {# examples tab #}
-    {% if exampleList.items %}
+    {% if exampleTree.tree %}
    <li{% if page.highlight=='examples' %} class="current"{% endif %}><a href="{{ page.relPath }}examples{{ config.HTML_FILE_EXTENSION }}"><span>{{ tr.examples|nowrap }}</span></a></li>
     {% endif %}
   {# search box #}
@@ -69,6 +69,7 @@
   </ul>
 </div>
 {# second navigation row #}
+{% if page.highlight=='namespace' or page.highlight=='classes' or page.highlight=='files' %}
 <div id="navrow2" class="tabs2">
   <ul class="tablist">
   {# namespace subtabs #}
@@ -94,3 +95,4 @@
   {% endif %}
   </ul>
 </div>
+{% endif %}

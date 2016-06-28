@@ -9363,6 +9363,7 @@ static void parseFile(ParserInterface *parser,
    
 	if(optVerilog) 
 	 {
+	  fprintf(stderr,"\n preprocessing");
 	  readInputFile(fileName,inBuf);
       string s=defProc.performPreprocessing(fi,true).data();
 	  // defProc.insertIncludeText(s);

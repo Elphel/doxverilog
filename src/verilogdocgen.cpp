@@ -55,10 +55,12 @@ static void writeUCFLink(const MemberDef* mdef,OutputList &ol);
 
 static void writeLink(const MemberDef* mdef,OutputList &ol)
 {
+  QCString nn=mdef->name();
+  VerilogDocGen::adjustOpName(nn) ;
   ol.writeObjectLink(mdef->getReference(),
       mdef->getOutputFileBase(),
       mdef->anchor(),
-      mdef->name());
+      nn.data());
 }
 
 static QCString splitString(QCString& str,char c)

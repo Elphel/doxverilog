@@ -7135,8 +7135,9 @@ void initDefaultExtensionMapping()
   updateLanguageMapping(".f",        "fortran");
   updateLanguageMapping(".for",      "fortran");
   updateLanguageMapping(".f90",      "fortran");
-  updateLanguageMapping(".v",      "v");
+  updateLanguageMapping(".vhd",      "vhdl");
   updateLanguageMapping(".vhdl",     "vhdl");
+  updateLanguageMapping(".v",     "v");
   updateLanguageMapping(".tcl",      "tcl");
   updateLanguageMapping(".ucf",      "vhdl");
   updateLanguageMapping(".qsf",      "vhdl");
@@ -7155,8 +7156,7 @@ SrcLangExt getLanguageFromFileName(const QCString fileName)
   if (i!=-1) // name has an extension
   {
     QCString extStr=fileName.right(fileName.length()-i).lower();
-    msg(extStr.data());
-	if (!extStr.isEmpty()) // non-empty extension
+    if (!extStr.isEmpty()) // non-empty extension
     {
       int *pVal=g_extLookup.find(extStr);
       if (pVal) // listed extension

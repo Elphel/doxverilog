@@ -2,18 +2,10 @@
 {% msg %}Generating HTML output for directory {{ compound.name }}{% endmsg %}
 
 {% block navpath %}
-  {% if compound.navigationPath %}
-    <div id="nav-path" class="navpath">
-      <ul>
-      {% for obj in compound.navigationPath %}
-        <li class="navelem">
-          {% with text=obj.text %}
-            {% include 'htmlobjlink.tpl' %}
-          {% endwith %}
-        </li>
-      {% endfor %}
-      </ul>
-    </div>
+  {% if not config.GENERATE_TREEVIEW %}
+    {% with navpath=compound.navigationPath %}
+      {% include 'htmlnavpath.tpl' %}
+    {% endwith %}
   {% endif %}
 {% endblock %}
 
@@ -45,7 +37,18 @@
     {% endif %}
   {% endif %}
 {# dir graph #}
-{# TODO #}
+  {% if compound.hasDirGraph %}
+    {% with obj=compound %}
+      {% include 'htmldynheader.tpl' %}
+    {% endwith %}
+      {{ tr.dirDependencyGraphFor:compound.dirName }}
+    </div>
+    {% with obj=compound %}
+      {% include 'htmldyncontents.tpl' %}
+    {% endwith %}
+      {{ compound.dirGraph }}
+    </div>
+  {% endif %}
 {# member declarations #}
   {# directories #}
     {% with list=compound.dirs label='subdirs' title=tr.directories local=False %}

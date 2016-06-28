@@ -205,8 +205,7 @@ bool QCString::stripPrefix(const char *prefix)
   if (qstrncmp(prefix,data(),len)==0)
   {
     m_rep=mid(len,length()-len).m_rep; // need to make a deep copy
-    pToMrep=m_rep.data();
-	return TRUE;
+    return TRUE;
   }
   return FALSE;
 }
@@ -406,7 +405,6 @@ QCString &QCString::remove( uint index, uint len )
     resize( olen-len+1 );
     memcpy( rawData()+index,tmp.data(),tmp.length() );
   }
-  pToMrep=m_rep.data();
   return *this;
 }
 
@@ -460,6 +458,12 @@ ulong QCString::toULong(bool *ok) const
 {
   QString s(data());
   return s.toULong(ok);
+}
+
+uint64 QCString::toUInt64(bool *ok) const
+{
+  QString s(data());
+  return s.toUInt64(ok);
 }
 
 QCString &QCString::setNum(short n)
@@ -647,7 +651,6 @@ inline QCString operator+( const QCString &s1, const QGString &s2 )
 {
     QCString tmp(s1);
     tmp += s2.data();
-	//pToMrep=tmp.m_rep.data();
     return tmp;
 }
 

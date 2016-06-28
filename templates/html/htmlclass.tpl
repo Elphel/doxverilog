@@ -2,9 +2,11 @@
 {% msg %}Generating HTML output for class {{ compound.name }}{% endmsg %}
 
 {% block navpath %}
-{% with navpath=compound.navigationPath %}
-  {% include 'htmlnavpath.tpl' %}
-{% endwith %}
+{% if not config.GENERATE_TREEVIEW %}
+  {% with navpath=compound.navigationPath %}
+    {% include 'htmlnavpath.tpl' %}
+  {% endwith %}
+{% endif %}
 {% endblock %}
 
 {% block title %}
@@ -180,7 +182,6 @@
     </div>
   {% endif %}
 {# memberdecls #}
-  {# TODO: isSimple #}
     {# nestedClasses #}
       {% with list=compound.classes label='nested-classes' title=tr.classes local=1 %}
         {% include 'htmldeclcomp.tpl' %}
@@ -379,9 +380,9 @@
 {% endif %}
 {# member definitions #}
   {# inline classes #}
-  {% if compound.classes %}
-    {# TODO write inlined simple classes: tr.classDocumentation / tr.typeDocumentation #}
-  {% endif %}
+    {% with classList=compound.innerClasses %}
+      {% include 'htmlinlineclasses.tpl' %}
+    {% endwith %}
   {# typedefs #}
     {% with memberListInfo=compound.detailedTypedefs %}
       {% include 'htmlmemdef.tpl' %}

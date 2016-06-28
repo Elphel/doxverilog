@@ -1417,6 +1417,7 @@ subprogram_declaration() { return s;}
  s=object_class() s1=identifier()
  {
  if (parse_sec==GEN_SEC)
+    
     addVhdlType(s.data(),getLine(),Entry::VARIABLE_SEC,currP,s1.data(),0,Public);
     return s;
     }
